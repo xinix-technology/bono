@@ -1,4 +1,5 @@
 {
+    "name": "reekoheek/bono"
     "require": {
         "slim/slim": "2.*",
         "doctrine/inflector": "1.*"
