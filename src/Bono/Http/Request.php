@@ -19,8 +19,16 @@ class Request extends \Slim\Http\Request {
         return $this->getMime()[0];
     }
 
-    public function getMime() {
-        $extension = $this->getExtension();
+    public function getMime($mime = '') {
+        if ($mime AND is_array($mime)) {
+            return $mime;
+        }
+
+        if ($mime AND is_string($mime)) {
+            $extension = $mime;
+        } else {
+            $extension = $this->getExtension();
+        }
         if (!empty($extension)) {
             foreach ($this->MIME_TYPE as $mimeClass => $mimeConfig) {
                 if (in_array($extension, $mimeConfig['extension'])) {

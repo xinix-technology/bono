@@ -13,12 +13,8 @@ class ContentNegotiatorProvider {
         });
 
         $app->hook('slim.after.router', function() use ($app) {
-            $mime = $app->config('bono.forceMimeType');
-            if ($mime) {
-                $mime = array($mime);
-            } else {
-                $mime = $app->request->getMime();
-            }
+            $mime = $app->request->getMime($app->config('bono.forceMimeType'));
+
             if ($mime[0] == 'json') {
                 $app->response->headers['Content-Type'] = $mime[1];
                 echo json_encode($app->data, $app->config('debug') ? JSON_PRETTY_PRINT : 0);
