@@ -80,4 +80,16 @@ class Request extends \Slim\Http\Request {
         }
         return $results;
     }
+
+    public function post($key = null) {
+        if (!isset($this->env['slim.input'])) {
+            throw new \RuntimeException('Missing slim.input in environment variables');
+        }
+
+        if ($this->getMediaType() == 'application/json') {
+            return json_decode($this->env['slim.input'], 1);
+        }
+
+        return parent::post();
+    }
 }
