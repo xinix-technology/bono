@@ -12,18 +12,17 @@ class Controller {
 
     protected $name;
 
-    public function __construct($app) {
+    public function __construct($app, $name = NULL) {
         $this->app = $app;
 
-        if (is_null($this->clazz)) {
-            $class = explode('\\', get_class($this));
-            $this->clazz = end($class);
+        if (isset($name)) {
+            $this->name = $name;
+            $this->clazz = Inflector::classify($this->name);
+        } else {
+            $exploded = explode('\\', get_class($this));
+            $this->clazz = end($exploded);
+            $this->name = Inflector::tableize($this->clazz);
         }
-        $this->name = Inflector::tableize($this->clazz);
-    }
-
-    public function register() {
 
     }
-
 }

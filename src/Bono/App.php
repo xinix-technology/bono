@@ -19,8 +19,6 @@ class App extends Slim {
 
         $this->configureProvider();
 
-        $this->detectController();
-
         if ($this->config('autorun')) {
             $this->run();
         }
@@ -33,16 +31,6 @@ class App extends Slim {
         }
         $ns = implode('\\', $exploded);
         return $this->config('ns').'\\'.$ns;
-    }
-
-    private function detectController() {
-        $name = explode('/', substr($this->request->getResourceUri(), 1), 2)[0];
-        $FullClassName = $this->getNS('controllers\\'.$name);
-
-        if(class_exists($FullClassName)) {
-            $o = new $FullClassName($this);
-            $o->register();
-        }
     }
 
     private function configure() {
@@ -61,8 +49,6 @@ class App extends Slim {
 
     private function configureProvider() {
         $this->providerRepository = new ProviderRepository($this);
-
-        $this->providerRepository->add(new \Bono\Provider\ContentNegotiatorProvider());
 
         foreach($this->config('bono.providers') as $Provider) {
             $this->providerRepository->add(new $Provider());
@@ -94,4 +80,5 @@ class App extends Slim {
         return $c;
 
     }
+
 }

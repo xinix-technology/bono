@@ -12,17 +12,39 @@ class ContentNegotiatorProvider {
             return new \Bono\Http\Request($c['environment']);
         });
 
-        $app->hook('slim.after.router', function() use ($app) {
+        $config = $app->config('bono.view');
+
+        if ($config['layout']) {
+            $app->layoutTemplate = $config['layout'];
+        }
+
+        $app->hook('slim.after.router', function() use ($app, $config) {
             $mime = $app->request->getMime($app->config('bono.forceMimeType'));
 
+            $data = $app->data ?: array();
+
             if ($mime[0] == 'json') {
-                $app->response->headers['Content-Type'] = $mime[1];
-                echo json_encode($app->data, $app->config('debug') ? JSON_PRETTY_PRINT : 0);
-            } elseif ($app->viewTemplate) {
-                if (!is_array($app->data)) {
-                   $app->data = array();
+
+                $app->view('\\Bono\\View\\JsonView');
+                $app->view->app = $app;
+                $app->view->contentType = $mime[1];
+
+                $app->render('', $data, $app->status);
+
+            } else {
+
+                $app->view($config['default'] ? $config['default'] : '\\Bono\\View\\LayoutedView');
+                $app->view->app = $app;
+
+                if (isset($app->layoutTemplate)) {
+                    $app->view->setLayout($app->layoutTemplate);
                 }
-                $app->render($app->viewTemplate.'.php', $app->data);
+
+                if (!$app->viewTemplate) {
+                    $app->viewTemplate = 'blank';
+                    $data['content'] = ob_get_clean();
+                }
+                $app->render($app->viewTemplate, $data);
             }
         });
     }
