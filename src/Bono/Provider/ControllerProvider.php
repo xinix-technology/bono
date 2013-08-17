@@ -22,8 +22,10 @@ class ControllerProvider {
             } else {
                 $FullClassName = $mapping[$name];
             }
-        } elseif ($config['auto']) {
+        } elseif (!empty($config['auto'])) {
             $FullClassName = $app->getNS('controllers\\'.$name);
+        } else {
+            return;
         }
 
         if(class_exists($FullClassName)) {
