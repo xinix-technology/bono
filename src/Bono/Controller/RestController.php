@@ -38,7 +38,16 @@ class RestController extends Controller {
     }
 
     public function update($id) {
-
+        $criteria = array( '$id' => $id );
+        $model = Norm::factory($this->clazz)->findOne($criteria);
+        if ($model) {
+            $model->set($this->app->request->post());
+            $result = $model->save();
+            return array(
+                'entry' => $result,
+                'collection' => Norm::factory($this->clazz),
+            );
+        }
     }
 
     public function delete($id) {
