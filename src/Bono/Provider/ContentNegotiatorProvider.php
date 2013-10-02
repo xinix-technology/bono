@@ -41,7 +41,7 @@ class ContentNegotiatorProvider {
                 }
 
                 if (!$app->viewTemplate) {
-                    $app->viewTemplate = 'blank';
+                    // $app->viewTemplate = 'blank';
                     $data['content'] = ob_get_clean();
                 }
                 $app->render($app->viewTemplate, $data);

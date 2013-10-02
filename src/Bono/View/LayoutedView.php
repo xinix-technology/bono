@@ -16,18 +16,22 @@ class LayoutedView extends View {
     }
 
     public function fetch($template) {
-        $html = parent::fetch($template.'.php');
+        if (empty($template)) {
+            return $this->data['content'];
+        } else {
+            $html = parent::fetch($template.'.php');
 
-        $data = array(
-            'content' => $html,
-            'app' => $this->app,
-            );
-        if (is_array($this->data)) {
-            $data = $this->data + $data;
+            $data = array(
+                'content' => $html,
+                'app' => $this->app,
+                );
+            if (is_array($this->data)) {
+                $data = $this->data + $data;
+            }
+            $this->layoutView->setTemplatesDirectory($this->templatesDirectory);
+            $this->layoutView->appendData($data);
+            return $this->layoutView->render($this->layout.'.php');
         }
-        $this->layoutView->setTemplatesDirectory($this->templatesDirectory);
-        $this->layoutView->appendData($data);
-        return $this->layoutView->render($this->layout.'.php');
     }
 
     public function setLayout($layout) {
