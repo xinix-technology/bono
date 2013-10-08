@@ -1,5 +1,5 @@
 {
-    "name": "reekoheek/bono",
+    "name": "xinix-technology/bono",
     "require": {
         "slim/slim": "2.3.*",
         "doctrine/inflector": "1.*"
