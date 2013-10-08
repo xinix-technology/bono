@@ -4,7 +4,7 @@ namespace Bono;
 
 use Slim\Slim;
 use Bono\Provider\ProviderRepository;
-use Doctrine\Common\Inflector\Inflector;
+use Reekoheek\Util\Inflector;
 
 class App extends Slim {
     private $defaultConfig = array(

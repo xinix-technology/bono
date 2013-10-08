@@ -2,7 +2,7 @@
 
 namespace Bono;
 
-use Doctrine\Common\Inflector\Inflector;
+use Reekoheek\Util\Inflector;
 
 class Controller {
 
