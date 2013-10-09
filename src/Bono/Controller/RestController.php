@@ -4,6 +4,7 @@ namespace Bono\Controller;
 
 use Norm\Norm;
 use Bono\Controller;
+use Bono\Exception\RestException;
 
 class RestController extends Controller {
 
@@ -32,15 +33,16 @@ class RestController extends Controller {
     }
 
     public function update($id) {
+
         $criteria = array( '$id' => $id );
         $model = Norm::factory($this->clazz)->findOne($criteria);
         if ($model) {
             $model->set($this->app->request->post());
             $result = $model->save();
-            return array(
-                'entry' => $result,
-                'collection' => Norm::factory($this->clazz),
-            );
+
+            $this->publish('entry', $result);
+        } else {
+            throw new RestException('No resource available', 404);
         }
     }
 
@@ -92,6 +94,14 @@ class RestController extends Controller {
                 $this->read($id);
                 $this->app->helper = $this->helper;
                 $this->app->published = $this->published;
+            });
+
+            $this->app->post('/:id/update', function($id) {
+                $this->update($id);
+                $this->app->helper = $this->helper;
+                $this->app->published = $this->published;
+                $this->app->redirect('../'.$id);
+
             });
 
             // search entries
