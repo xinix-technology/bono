@@ -7,13 +7,13 @@ use Bono\Controller;
 
 class RestController extends Controller {
 
+    private $helper = array();
+    private $published = array();
+
     public function search() {
         $entries = Norm::factory($this->clazz)->find();
 
-        return array(
-            'entries' => $entries,
-            'collection' => Norm::factory($this->clazz),
-        );
+        $this->publish('entries', $entries);
     }
 
     public function create() {
@@ -21,20 +21,14 @@ class RestController extends Controller {
         $model->set($this->app->request->post());
         $result = $model->save();
 
-        return array(
-            'entry' => $model,
-        );
+        $this->publish('entry', $model);
     }
 
     public function read($id) {
         $criteria = array( '$id' => $id );
         $model = Norm::factory($this->clazz)->findOne($criteria);
-        if ($model) {
-            return array(
-                'entry' => $model,
-                'collection' => Norm::factory($this->clazz),
-            );
-        }
+
+        $this->publish('entry', $model);
     }
 
     public function update($id) {
@@ -71,43 +65,70 @@ class RestController extends Controller {
         return $for;
     }
 
+    public function helper($key, $value) {
+        $this->helper[$key] = $value;
+    }
+
+    public function publish($key, $value) {
+        $this->published[$key] = $value;
+    }
+
     public function register() {
         $app = $this->app;
 
+        $this->helper('collection', Norm::factory($this->clazz));
+
         $this->app->group('/'.$this->name, function() {
 
-            // form entry
-
+            // delete form entry
             $this->app->get('/:id/delete', function($id) {
                 $this->delete($id);
                 $this->app->redirect('..');
             });
 
+            // update form entry
+            $this->app->get('/:id/update', function($id) {
+                $this->app->viewTemplate = $this->getViewFor('update');
+                $this->read($id);
+                $this->app->helper = $this->helper;
+                $this->app->published = $this->published;
+            });
+
             // search entries
             $this->app->get('/', function() {
                 $this->app->viewTemplate = $this->getViewFor('search');
-                return $this->app->data = $this->search();
+                $this->search();
+                $this->app->helper = $this->helper;
+                $this->app->published = $this->published;
             });
 
             // add new entry
             $this->app->post('/', function() {
-                return $this->app->data = $this->create();
+                $this->create();
+                $this->app->helper = $this->helper;
+                $this->app->published = $this->published;
             });
 
             // get entry
             $this->app->get('/:id', function($id) {
                 $this->app->viewTemplate = $this->getViewFor('read');
-                return $this->app->data = $this->read($id);
+                $this->read($id);
+                $this->app->helper = $this->helper;
+                $this->app->published = $this->published;
             });
 
             // update entry
             $this->app->put('/:id', function($id) {
-                return $this->app->data = $this->update($id);
+                $this->update($id);
+                $this->app->helper = $this->helper;
+                $this->app->published = $this->published;
             });
 
             // delete entry
             $this->app->delete('/:id', function($id) {
-                return $this->app->data = $this->delete($id);
+                $this->delete($id);
+                $this->app->helper = $this->helper;
+                $this->app->published = $this->published;
             });
 
 
