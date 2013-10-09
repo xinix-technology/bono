@@ -2,7 +2,7 @@
     "name": "xinix-technology/bono",
     "require": {
         "slim/slim": "2.3.*",
-        "reekoheek/util": "dev-master"
+        "reekoheek/php-util": "dev-master"
     },
     "require-dev": {
         "phpunit/phpunit": "3.7.22"
@@ -13,7 +13,7 @@
             "url": "git@github.com:reekoheek/php-util.git"
         }
     ],
-     "autoload": {
+    "autoload": {
         "psr-0": {
             "Bono": "src/"
         }
