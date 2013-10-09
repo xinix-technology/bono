@@ -13,7 +13,7 @@
             "url": "git@github.com:reekoheek/php-util.git"
         }
     ],
-     "autoload": {
+    "autoload": {
         "psr-0": {
             "Bono": "src/"
         }
