@@ -2,7 +2,7 @@
     "name": "xinix-technology/bono",
     "require": {
         "slim/slim": "2.3.*",
-        "reekoheek/util": "dev-master"
+        "reekoheek/php-util": "dev-master"
     },
     "require-dev": {
         "phpunit/phpunit": "3.7.22"
