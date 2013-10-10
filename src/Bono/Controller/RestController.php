@@ -77,68 +77,69 @@ class RestController extends Controller {
 
     public function register() {
         $app = $this->app;
+        $that = $this;
 
         $this->helper('collection', Norm::factory($this->clazz));
 
-        $this->app->group('/'.$this->name, function() {
+        $app->group('/'.$this->name, function() use ($app, $that) {
 
             // delete form entry
-            $this->app->get('/:id/delete', function($id) {
-                $this->delete($id);
-                $this->app->redirect('..');
+            $app->get('/:id/delete', function($id) use ($app, $that) {
+                $that->delete($id);
+                $app->redirect('..');
             });
 
             // update form entry
-            $this->app->get('/:id/update', function($id) {
-                $this->app->viewTemplate = $this->getViewFor('update');
-                $this->read($id);
-                $this->app->helper = $this->helper;
-                $this->app->published = $this->published;
+            $app->get('/:id/update', function($id) use ($app, $that) {
+                $app->viewTemplate = $that->getViewFor('update');
+                $that->read($id);
+                $app->helper = $that->helper;
+                $app->published = $that->published;
             });
 
-            $this->app->post('/:id/update', function($id) {
-                $this->update($id);
-                $this->app->helper = $this->helper;
-                $this->app->published = $this->published;
-                $this->app->redirect('../'.$id);
+            $app->post('/:id/update', function($id) use ($app, $that) {
+                $that->update($id);
+                $app->helper = $that->helper;
+                $app->published = $that->published;
+                $app->redirect('../'.$id);
 
             });
 
             // search entries
-            $this->app->get('/', function() {
-                $this->app->viewTemplate = $this->getViewFor('search');
-                $this->search();
-                $this->app->helper = $this->helper;
-                $this->app->published = $this->published;
+            $app->get('/', function() use ($app, $that) {
+                $app->viewTemplate = $that->getViewFor('search');
+                $that->search();
+                $app->helper = $that->helper;
+                $app->published = $that->published;
             });
 
             // add new entry
-            $this->app->post('/', function() {
-                $this->create();
-                $this->app->helper = $this->helper;
-                $this->app->published = $this->published;
+            $app->post('/', function() use ($app, $that) {
+                $that->create();
+                $app->helper = $that->helper;
+                $app->published = $that->published;
             });
 
             // get entry
-            $this->app->get('/:id', function($id) {
-                $this->app->viewTemplate = $this->getViewFor('read');
-                $this->read($id);
-                $this->app->helper = $this->helper;
-                $this->app->published = $this->published;
+            $app->get('/:id', function($id) use ($app, $that) {
+                $app->viewTemplate = $that->getViewFor('read');
+                $that->read($id);
+                $app->helper = $that->helper;
+                $app->published = $that->published;
             });
 
             // update entry
-            $this->app->put('/:id', function($id) {
-                $this->update($id);
-                $this->app->helper = $this->helper;
-                $this->app->published = $this->published;
+            $app->put('/:id', function($id) use ($app, $that) {
+                $that->update($id);
+                $app->helper = $that->helper;
+                $app->published = $that->published;
             });
 
             // delete entry
-            $this->app->delete('/:id', function($id) {
-                $this->delete($id);
-                $this->app->helper = $this->helper;
-                $this->app->published = $this->published;
+            $app->delete('/:id', function($id) use ($app, $that)  {
+                $that->delete($id);
+                $app->helper = $that->helper;
+                $app->published = $that->published;
             });
 
 
