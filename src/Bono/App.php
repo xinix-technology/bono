@@ -100,7 +100,16 @@ class App extends Slim {
     }
 
     private function configure() {
+        if (!is_readable($this->config('config.path'))) {
+            return;
+        }
+
         $dh = opendir($this->config('config.path'));
+
+        if (!$dh) {
+            return;
+        }
+
         while (false !== ($entry = readdir($dh))) {
             if (strpos($entry, 'config-') === 0) {
                 preg_match('/^config-(.*)\.php$/', $entry, $matches);
@@ -111,6 +120,11 @@ class App extends Slim {
                     $that->config($that->fetchConfig($mode, $that));
                 });
             }
+        }
+
+        $logEnable = $this->config('log.enable');
+        if (is_null($logEnable)) {
+            $this->config('log.enable', true);
         }
 
         $this->config('bono.debug', $this->config('debug'));

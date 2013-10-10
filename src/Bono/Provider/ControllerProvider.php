@@ -2,7 +2,7 @@
 
 namespace Bono\Provider;
 
-class ControllerProvider {
+class ControllerProvider implements Provider {
 
     public function initialize($app) {
 
