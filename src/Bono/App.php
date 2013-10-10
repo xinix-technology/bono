@@ -105,8 +105,10 @@ class App extends Slim {
             if (strpos($entry, 'config-') === 0) {
                 preg_match('/^config-(.*)\.php$/', $entry, $matches);
                 $mode = $matches[1];
-                $this->configureMode($mode, function() use ($mode) {
-                    $this->config($this->fetchConfig($mode));
+
+                $that = $this;
+                $this->configureMode($mode, function() use ($mode,$that) {
+                    $that->config($that->fetchConfig($mode, $that));
                 });
             }
         }
@@ -127,7 +129,7 @@ class App extends Slim {
         $this->providerRepository->initialize();
     }
 
-    private function fetchConfig($mode = '') {
+    public function fetchConfig($mode = '') {
         if (!$mode) {
             $mode = $this->config('mode');
         }
