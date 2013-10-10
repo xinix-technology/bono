@@ -1,0 +1,17 @@
+#!/usr/bin/env php
+<?php
+
+require './vendor/autoload.php';
+
+$app = new \Bono\App(array(
+        'bono.providers' => array(
+            '\\Bono\\Provider\\CLIProvider',
+        ),
+
+        'bonocli.commands' => array(
+            '\\Bono\\CLI\\Command\\Init'
+        ),
+    ));
+
+
+$app->run();
