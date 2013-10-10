@@ -16,7 +16,8 @@ class Request extends \Slim\Http\Request {
     );
 
     public function getMimeClass() {
-        return $this->getMime()[0];
+        $getMime = $this->getMime();
+        return $getMime[0];
     }
 
     public function getMime($mime = '') {
@@ -74,7 +75,8 @@ class Request extends \Slim\Http\Request {
                 'q' => 1.0
             );
             if (isset($accept[1])) {
-                $result['q'] = (double) explode('=', $accept[1])[1];
+                $accepted = explode('=', $accept[1]);
+                $result['q'] = (double) $accepted[1];
             }
             $results[] = $result;
         }

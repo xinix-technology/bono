@@ -10,6 +10,7 @@ class JsonView extends \Slim\View {
         $data = $this->data->all();
         unset($data['flash']);
         $this->app->response->headers['Content-Type'] = $this->contentType;
-        echo json_encode($data, $this->app->config('debug') ? JSON_PRETTY_PRINT : 0);
+
+        echo \JsonKit\JsonKit::encode($data);
     }
 }
