@@ -6,7 +6,8 @@ class ControllerProvider {
 
     public function initialize($app) {
 
-        $name = explode('/', substr($app->request->getResourceUri(), 1), 2)[0];
+        $arr = explode('/', substr($app->request->getResourceUri(), 1), 2);
+        $name = $arr[0];
 
         $config = $app->config('bono.controller');
         $mapping = $config['mapping'];

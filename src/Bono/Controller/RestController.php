@@ -74,40 +74,41 @@ class RestController extends Controller {
     public function register() {
         $app = $this->app;
 
-        $this->app->group('/'.$this->name, function() {
+        $that = $this;
+        $this->app->group('/'.$this->name, function() use ($that,$app) {
 
             // form entry
 
-            $this->app->get('/:id/delete', function($id) {
-                $this->delete($id);
-                $this->app->redirect('..');
+            $app->get('/:id/delete', function($id) use ($that,$app) {
+                $that->delete($id);
+                $that->app->redirect('..');
             });
 
             // search entries
-            $this->app->get('/', function() {
-                $this->app->viewTemplate = $this->getViewFor('search');
-                return $this->app->data = $this->search();
+            $app->get('/', function() use ($that,$app) {
+                $app->viewTemplate = $that->getViewFor('search');
+                return $app->data = $that->search();
             });
 
             // add new entry
-            $this->app->post('/', function() {
-                return $this->app->data = $this->create();
+            $app->post('/', function() use ($that,$app) {
+                return $app->data = $that->create();
             });
 
             // get entry
-            $this->app->get('/:id', function($id) {
-                $this->app->viewTemplate = $this->getViewFor('read');
-                return $this->app->data = $this->read($id);
+            $app->get('/:id', function($id) use ($that,$app) {
+                $app->viewTemplate = $that->getViewFor('read');
+                return $app->data = $that->read($id);
             });
 
             // update entry
-            $this->app->put('/:id', function($id) {
-                return $this->app->data = $this->update($id);
+            $app->put('/:id', function($id) use ($that,$app) {
+                return $app->data = $that->update($id);
             });
 
             // delete entry
-            $this->app->delete('/:id', function($id) {
-                return $this->app->data = $this->delete($id);
+            $app->delete('/:id', function($id) use ($that,$app) {
+                return $app->data = $that->delete($id);
             });
 
 
