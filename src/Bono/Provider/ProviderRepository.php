@@ -5,7 +5,7 @@ namespace Bono\Provider;
 class ProviderRepository {
 
     protected $app;
-    protected $providers;
+    protected $providers = array();
 
     function __construct($app) {
         $this->app = $app;
