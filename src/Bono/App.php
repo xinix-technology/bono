@@ -91,8 +91,6 @@ class App extends Slim {
 
         $this->configure();
 
-        $this->configureProvider();
-
         $that = $this;
         $this->error(function (\Exception $e) use ($that) {
             $that->onError($e);
@@ -101,6 +99,7 @@ class App extends Slim {
             $that->onNotFound();
         });
 
+        $this->configureProvider();
 
         if ($this->config('autorun')) {
             $this->run();
