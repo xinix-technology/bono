@@ -15,7 +15,7 @@ class App extends Slim {
         $errorTemplate = $this->config('templates.path').'/notFound.php';
 
         if (is_readable($errorTemplate)) {
-            $this->render($errorTemplate, null, 404);
+            $this->render($errorTemplate, array(), 404);
         } else {
             $this->response->setStatus(404);
 
