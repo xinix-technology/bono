@@ -2,7 +2,7 @@
 
 namespace Bono\Provider;
 
-class ContentNegotiatorProvider {
+class ContentNegotiatorProvider implements Provider {
     protected $app;
 
     public function initialize($app) {
