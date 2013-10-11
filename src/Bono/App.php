@@ -11,6 +11,80 @@ class App extends Slim {
         'templates.path' => '../templates'
     );
 
+    public function onNotFound() {
+        $errorTemplate = $this->config('templates.path').'/notFound.php';
+
+        if (is_readable($errorTemplate)) {
+            $this->render($errorTemplate, null, 404);
+        } else {
+            $this->response->setStatus(404);
+
+            echo '<html>
+            <head>
+                <title></title>
+            </head>
+            <body>
+                <h1>Ugly Not Found!</h1>
+
+                <p>Edit this by creating templates/notFound.php</p>
+            </body>
+            </html>';
+        }
+    }
+
+    public function onError(\Exception $e) {
+        $errorCode = 500;
+        if ($e instanceof \Bono\Exception\RestException) {
+            $errorCode = $e->getCode();
+        }
+
+        if ($errorCode == 404) {
+            $this->onNotFound();
+            return;
+        }
+
+        $errorData = array(
+            'stackTrace' => $e->getTraceAsString(),
+            'code' => $e->getCode(),
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        );
+
+        $errorTemplate = $this->config('templates.path').'/error.php';
+
+        if (is_readable($errorTemplate)) {
+            $this->render($errorTemplate, $errorData, $errorCode);
+        } else {
+            $this->response->setStatus($errorCode);
+            echo '<html>
+            <head>
+                <title></title>
+            </head>
+            <body>
+                <h1>Ugly Error!</h1>
+
+                <p>Edit this by creating templates/error.php</p>
+
+                <label>Code</label>
+                <div>'. $errorData['code'] .'</div>
+
+                <label>Message</label>
+                <div>'. $errorData['message'] .'</div>
+
+                <label>File</label>
+                <div>'. $errorData['file'] .'</div>
+
+                <label>Line</label>
+                <div>'. $errorData['line'] .'</div>
+
+                <label>Stack Trace</label>
+                <pre>'. $errorData['stackTrace'] .'</pre>
+            </body>
+            </html>';
+        }
+    }
+
     public function __construct(array $userSettings = array()) {
 
         parent::__construct($userSettings);
@@ -19,71 +93,14 @@ class App extends Slim {
 
         $this->configureProvider();
 
-        $this->error(function (\Exception $e) {
-
-            $errorCode = 500;
-            if ($e instanceof \Bono\Exception\RestException) {
-                $errorCode = $e->getCode();
-            }
-
-            $errorData = array(
-                'stackTrace' => $e->getTraceAsString(),
-                'code' => $e->getCode(),
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            );
-
-            if ($errorCode != 404) {
-                $errorTemplate = $this->config('templates.path').'/error.php';
-            } else {
-                $errorTemplate = $this->config('templates.path').'/404.php';
-            }
-
-            if (is_readable($errorTemplate)) {
-                $this->render($errorTemplate, $errorData, $errorCode);
-            } else {
-                $this->response->setStatus($errorCode);
-                if ($errorCode != 404) {
-                    echo '<html>
-                    <head>
-                        <title></title>
-                    </head>
-                    <body>
-                        <h1>Ugly Error!</h1>
-
-                        <p>Edit this by creating templates/error.php</p>
-
-                        <label>Code</label>
-                        <div>'. $errorData['code'] .'</div>
-
-                        <label>Message</label>
-                        <div>'. $errorData['message'] .'</div>
-
-                        <label>File</label>
-                        <div>'. $errorData['file'] .'</div>
-
-                        <label>Line</label>
-                        <div>'. $errorData['line'] .'</div>
-
-                        <label>Stack Trace</label>
-                        <pre>'. $errorData['stackTrace'] .'</pre>
-                    </body>
-                    </html>';
-                } else {
-                    echo '<html>
-                    <head>
-                        <title></title>
-                    </head>
-                    <body>
-                        <h1>Ugly Not Found!</h1>
-
-                        <p>Edit this by creating templates/404.php</p>
-                    </body>
-                    </html>';
-                }
-            }
+        $that = $this;
+        $this->error(function (\Exception $e) use ($that) {
+            $that->onError($e);
         });
+        $this->notFound(function () use ($that) {
+            $that->onNotFound();
+        });
+
 
         if ($this->config('autorun')) {
             $this->run();
@@ -136,7 +153,8 @@ class App extends Slim {
     private function configureProvider() {
         $this->providerRepository = new ProviderRepository($this);
 
-        foreach($this->config('bono.providers') as $Provider) {
+        $providers = $this->config('bono.providers') ?: array();
+        foreach($providers as $Provider) {
             $this->providerRepository->add(new $Provider());
         }
 
