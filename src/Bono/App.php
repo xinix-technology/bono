@@ -42,7 +42,6 @@ class App extends Slim {
         $settings['autorun'] = true;
         $settings['bono.debug'] = true;
         $settings['view'] = '\\Bono\\View\\LayoutedView';
-
         return $settings;
     }
 
