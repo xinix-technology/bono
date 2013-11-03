@@ -13,7 +13,7 @@ class CLIProvider implements Provider {
             $app->notFound(function() use ($app) {
                 $argv = $GLOBALS['argv'];
 
-                echo "Command is not defined\n";
+                echo "Undefined command\n";
             });
 
             $commands = $app->config('bonocli.commands');

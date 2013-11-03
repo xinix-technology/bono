@@ -2,31 +2,32 @@
 
 namespace Bono\View;
 
-use \Slim\View;
-
-class LayoutedView extends View {
+class LayoutedView extends \Slim\View {
     public $app;
 
     protected $layout = 'layout';
 
+    protected $layoutView;
+
     function __construct() {
         parent::__construct();
 
-        $this->layoutView = new View();
+        $this->layoutView = new \Slim\View();
     }
 
     public function fetch($template) {
         if (empty($template)) {
-            return $this->data['content'];
+            return $this->data['body'];
         } else {
             $html = parent::fetch($template.'.php');
 
             $data = array(
-                'content' => $html,
+                'body' => $html,
                 'app' => $this->app,
-                );
+            );
+
             if (is_array($this->data)) {
-                $data = $this->data + $data;
+                $data = array_merge($data, $this->data);
             }
             $this->layoutView->setTemplatesDirectory($this->templatesDirectory);
             $this->layoutView->appendData($data);
