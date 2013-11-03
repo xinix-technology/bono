@@ -1,155 +1,199 @@
 <?php
 
+/**
+ * bono
+ * https://github.com/xinix-technology/bono
+ *
+ * Copyright (c) 2013 PT Sagara Xinix Solusitama
+ * Licensed under the MIT license.
+ * https://github.com/xinix-technology/bono/blob/master/LICENSE
+ *
+ */
+
 namespace Bono;
 
 use Slim\Slim;
 use Bono\Provider\ProviderRepository;
 use Reekoheek\Util\Inflector;
 
+/**
+ * App
+ * Bono default application context
+ *
+ */
 class App extends Slim {
-    private $defaultConfig = array(
-        'templates.path' => '../templates'
-    );
 
-    public function onNotFound() {
-        $errorTemplate = $this->config('templates.path').'/notFound.php';
+    /**
+     * Application context state whether it is running or not
+     * @var boolean
+     */
+    protected $isRunning = false;
 
-        if (is_readable($errorTemplate)) {
-            $this->render($errorTemplate, array(), 404);
-        } else {
-            $this->response->setStatus(404);
+    /**
+     * Override default settings
+     * @return array
+     */
+    public static function getDefaultSettings() {
+        $settings = parent::getDefaultSettings();
 
-            echo '<html>
-            <head>
-                <title></title>
-            </head>
-            <body>
-                <h1>Ugly Not Found!</h1>
+        $settings['templates.path'] = '../templates';
+        $settings['config.path'] = '../config';
+        $settings['debug'] = false;
+        $settings['autorun'] = true;
+        $settings['bono.debug'] = true;
+        $settings['view'] = '\\Bono\\View\\LayoutedView';
 
-                <p>Edit this by creating templates/notFound.php</p>
-            </body>
-            </html>';
-        }
+        return $settings;
     }
 
-    public function onError(\Exception $e) {
-        $errorCode = 500;
-        if ($e instanceof \Bono\Exception\RestException) {
-            $errorCode = $e->getCode();
-        }
-
-        if ($errorCode == 404) {
-            $this->onNotFound();
-            return;
-        }
-
-        $errorData = array(
-            'stackTrace' => $e->getTraceAsString(),
-            'code' => $e->getCode(),
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-        );
-
-        $errorTemplate = $this->config('templates.path').'/error.php';
-
-        if (is_readable($errorTemplate)) {
-            $this->render($errorTemplate, $errorData, $errorCode);
-        } else {
-            $this->response->setStatus($errorCode);
-            echo '<html>
-            <head>
-                <title></title>
-            </head>
-            <body>
-                <h1>Ugly Error!</h1>
-
-                <p>Edit this by creating templates/error.php</p>
-
-                <label>Code</label>
-                <div>'. $errorData['code'] .'</div>
-
-                <label>Message</label>
-                <div>'. $errorData['message'] .'</div>
-
-                <label>File</label>
-                <div>'. $errorData['file'] .'</div>
-
-                <label>Line</label>
-                <div>'. $errorData['line'] .'</div>
-
-                <label>Stack Trace</label>
-                <pre>'. $errorData['stackTrace'] .'</pre>
-            </body>
-            </html>';
-        }
-    }
-
+    /**
+     * Constructor
+     * @param array $userSettings override settings from parameter
+     */
     public function __construct(array $userSettings = array()) {
 
         parent::__construct($userSettings);
 
+        $this->container->singleton('request', function ($c) {
+            return new \Bono\Http\Request($c['environment']);
+        });
+
+        $this->container->singleton('response', function ($c) {
+            return new \Bono\Http\Response();
+        });
+
+        $this->configureHandler();
+
         $this->configure();
 
-        $that = $this;
-        $this->error(function (\Exception $e) use ($that) {
-            $that->onError($e);
-        });
-        $this->notFound(function () use ($that) {
-            $that->onNotFound();
-        });
-
         $this->configureProvider();
+
+        $this->configureMiddleware();
 
         if ($this->config('autorun')) {
             $this->run();
         }
     }
 
-    public function getNS($ns) {
-        $exploded = explode('\\', $ns);
-        foreach ($exploded as &$value) {
-            $value = Inflector::classify($value);
+    /**
+     * Override run method
+     */
+    public function run() {
+        if($this->isRunning) {
+            return;
         }
-        $ns = implode('\\', $exploded);
-        return $this->config('ns').'\\'.$ns;
+        $this->isRunning = true;
+        parent::run();
     }
 
-    private function configure() {
-        if (!is_readable($this->config('config.path'))) {
-            return;
-        }
-
-        $dh = opendir($this->config('config.path'));
-
-        if (!$dh) {
-            return;
-        }
-
-        while (false !== ($entry = readdir($dh))) {
-            if (strpos($entry, 'config-') === 0) {
-                preg_match('/^config-(.*)\.php$/', $entry, $matches);
-                $mode = $matches[1];
-
-                $that = $this;
-                $this->configureMode($mode, function() use ($mode,$that) {
-                    $that->config($that->fetchConfig($mode, $that));
-                });
+    /**
+     * Configure life cycle
+     */
+    protected function configure() {
+        if (is_readable($configFile = $this->config('config.path') . '/config.php')) {
+            $c = include($configFile);
+            if (!is_array($c)) {
+                $c = (array) $c;
             }
+            $this->config($c);
         }
-
-        $logEnable = $this->config('log.enable');
-        if (is_null($logEnable)) {
-            $this->config('log.enable', true);
+        if (is_readable($configFile = $this->config('config.path') . '/config-' . $this->config('mode') . '.php')) {
+            $c = include($configFile);
+            if (!is_array($c)) {
+                $c = (array) $c;
+            }
+            $this->config($c);
         }
-
-        $this->config('bono.debug', $this->config('debug'));
-        $this->config('debug', false);
-
-        closedir($dh);
     }
 
-    private function configureProvider() {
+    /**
+     * Configure handler
+     * Right now there are 2 handlers: onNotFound and onError
+     */
+    protected function configureHandler() {
+        $that = $this;
+        $onNotFound = function () use ($that) {
+            $errorTemplate = $that->config('templates.path').'/notFound.php';
+
+            if (is_readable($errorTemplate)) {
+                $that->render($errorTemplate, array(), 404);
+            } else {
+                $that->response->setStatus(404);
+
+                echo '<html>
+                <head>
+                    <title></title>
+                </head>
+                <body>
+                    <h1>Ugly Not Found!</h1>
+
+                    <p>Edit this by creating templates/notFound.php</p>
+                </body>
+                </html>';
+            }
+
+        };
+        $onError = function (\Exception $e) use ($that, $onNotFound) {
+            $errorCode = 500;
+            if ($e instanceof \Bono\Exception\RestException) {
+                $errorCode = $e->getCode();
+            }
+
+            if ($errorCode == 404) {
+                $onNotFound();
+                return;
+            }
+
+            $errorData = array(
+                'stackTrace' => $e->getTraceAsString(),
+                'code' => $e->getCode(),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            );
+
+            $errorTemplate = $that->config('templates.path').'/error.php';
+
+            if (is_readable($errorTemplate)) {
+                $that->render($errorTemplate, $errorData, $errorCode);
+            } else {
+                $that->response->setStatus($errorCode);
+                echo '<html>
+                <head>
+                    <title></title>
+                </head>
+                <body>
+                    <h1>Ugly Error!</h1>
+
+                    <p>Edit this by creating templates/error.php</p>
+
+                    <label>Code</label>
+                    <div>'. $errorData['code'] .'</div>
+
+                    <label>Message</label>
+                    <div>'. $errorData['message'] .'</div>
+
+                    <label>File</label>
+                    <div>'. $errorData['file'] .'</div>
+
+                    <label>Line</label>
+                    <div>'. $errorData['line'] .'</div>
+
+                    <label>Stack Trace</label>
+                    <pre>'. $errorData['stackTrace'] .'</pre>
+                </body>
+                </html>';
+            }
+        };
+
+        $this->error($onError);
+        $this->notFound($onNotFound);
+    }
+
+    /**
+     * Configure providers
+     */
+    protected function configureProvider() {
         $this->providerRepository = new ProviderRepository($this);
 
         $providers = $this->config('bono.providers') ?: array();
@@ -160,28 +204,14 @@ class App extends Slim {
         $this->providerRepository->initialize();
     }
 
-    public function fetchConfig($mode = '') {
-        if (!$mode) {
-            $mode = $this->config('mode');
+    /**
+     * Configure middlewares
+     */
+    protected function configureMiddleware() {
+        $middlewares = $this->config('bono.middlewares') ?: array();
+        foreach ($middlewares as $Middleware) {
+            $this->add(new $Middleware());
         }
-
-        $config = $modeConfig = array();
-        if (is_readable($configFile = $this->config('config.path') . '/config.php')) {
-            $config = include($configFile);
-            if (!is_array($config)) {
-                $config = array();
-            }
-        }
-        if (is_readable($configFile = $this->config('config.path') . '/config-' . $mode . '.php')) {
-            $modeConfig = include($configFile);
-            if (!is_array($modeConfig)) {
-                $modeConfig = array();
-            }
-        }
-
-        $c = $modeConfig + $config + $this->defaultConfig;
-        return $c;
-
     }
 
 }
