@@ -5,7 +5,7 @@ namespace Bono\Http;
 class Response extends \Slim\Http\Response {
 
     protected $template = '';
-    protected $data;
+    protected $data = array();
 
     public function set($key, $value) {
         if (is_null($value)) {
@@ -29,6 +29,11 @@ class Response extends \Slim\Http\Response {
 
     public function data() {
         return $this->data;
+    }
+
+    public function redirect ($url, $status = 302) {
+        $url = \Bono\Helper\URL::site($url);
+        return parent::redirect($url, $status);
     }
 
 }

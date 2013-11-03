@@ -82,6 +82,9 @@ class App extends Slim {
             return;
         }
         $this->isRunning = true;
+
+        $this->add(new \Bono\Middleware\ErrorHandlerMiddleware());
+
         parent::run();
     }
 
@@ -121,12 +124,22 @@ class App extends Slim {
 
                 echo '<html>
                 <head>
-                    <title></title>
+                    <title>Ugly Not Found!</title>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+                    <style>
+                        body { font-family: Arial; font-size: 14px; line-height: 1.5; color: #333 }
+                        h1 { border-bottom: 1px solid #f88; font-weight: normal; }
+                        label { margin-top: 10px; display: block; font-size: .8em; font-weight: bold; }
+                        pre { margin: 0}
+                        blockquote { font-size: .8em; font-style: italic; margin: 0; }
+                        .row, .stack-trace { border: 1px solid #f88; padding: 5px; border-radius: 5px; background-color: #fee; overflow: auto; }
+                    </style>
                 </head>
                 <body>
                     <h1>Ugly Not Found!</h1>
 
-                    <p>Edit this by creating templates/notFound.php</p>
+                    <p>Whoops! Apparently this is not the page you are looking for.</p>
+                    <blockquote>Edit this page by creating templates/notFound.php</blockquote>
                 </body>
                 </html>';
             }
@@ -159,27 +172,40 @@ class App extends Slim {
                 $that->response->setStatus($errorCode);
                 echo '<html>
                 <head>
-                    <title></title>
+                    <title>Ugly Error!</title>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+                    <style>
+                        body { font-family: Arial; font-size: 14px; line-height: 1.5; color: #333 }
+                        h1 { border-bottom: 1px solid #f88; font-weight: normal; }
+                        label { margin-top: 10px; display: block; font-size: .8em; font-weight: bold; }
+                        pre { margin: 0}
+                        blockquote { font-size: .8em; font-style: italic; margin: 0; }
+                        .row, .stack-trace { border: 1px solid #f88; padding: 5px; border-radius: 5px; background-color: #fee; overflow: auto; }
+                    </style>
                 </head>
                 <body>
                     <h1>Ugly Error!</h1>
 
-                    <p>Edit this by creating templates/error.php</p>
+                    <p>Something wrong happened.</p>
+                    <blockquote>Edit this page by creating templates/error.php</blockquote>
 
                     <label>Code</label>
-                    <div>'. $errorData['code'] .'</div>
+                    <div class="row">'. $errorData['code'] .'</div>
 
                     <label>Message</label>
-                    <div>'. $errorData['message'] .'</div>
+                    <div class="row">'. $errorData['message'] .'</div>
 
                     <label>File</label>
-                    <div>'. $errorData['file'] .'</div>
+                    <div class="row">'. $errorData['file'] .'</div>
 
                     <label>Line</label>
-                    <div>'. $errorData['line'] .'</div>
+                    <div class="row">'. $errorData['line'] .'</div>
 
                     <label>Stack Trace</label>
-                    <pre>'. $errorData['stackTrace'] .'</pre>
+                    <div class="stack-trace">
+                        <pre>'. $errorData['stackTrace'] .'</pre>
+                    </div>
+
                 </body>
                 </html>';
             }

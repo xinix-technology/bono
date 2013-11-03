@@ -21,17 +21,21 @@ class LayoutedView extends \Slim\View {
         } else {
             $html = parent::fetch($template.'.php');
 
-            $data = array(
-                'body' => $html,
-                'app' => $this->app,
-            );
+            if ($this->layout) {
+                $data = array(
+                    'body' => $html,
+                    'app' => $this->app,
+                );
 
-            if (is_array($this->data)) {
-                $data = array_merge($data, $this->data);
+                if (is_array($this->data)) {
+                    $data = array_merge($data, $this->data);
+                }
+                $this->layoutView->setTemplatesDirectory($this->templatesDirectory);
+                $this->layoutView->appendData($data);
+                return $this->layoutView->render($this->layout.'.php');
+            } else {
+                return $html;
             }
-            $this->layoutView->setTemplatesDirectory($this->templatesDirectory);
-            $this->layoutView->appendData($data);
-            return $this->layoutView->render($this->layout.'.php');
         }
     }
 
