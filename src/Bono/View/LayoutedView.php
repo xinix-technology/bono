@@ -22,16 +22,9 @@ class LayoutedView extends \Slim\View {
             $html = parent::fetch($template.'.php');
 
             if ($this->layout) {
-                $data = array(
-                    'body' => $html,
-                    'app' => $this->app,
-                );
-
-                if (is_array($this->data)) {
-                    $data = array_merge($data, $this->data);
-                }
                 $this->layoutView->setTemplatesDirectory($this->templatesDirectory);
-                $this->layoutView->appendData($data);
+                $this->layoutView->replace($this->all());
+                $this->layoutView->set('body', $html);
                 return $this->layoutView->render($this->layout.'.php');
             } else {
                 return $html;

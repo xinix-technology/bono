@@ -2,6 +2,12 @@
 
 namespace Bono\Provider;
 
-interface Provider {
-    public function initialize($app);
+abstract class Provider {
+    protected $app;
+
+    public function setApp($app) {
+        $this->app = $app;
+    }
+
+    abstract public function initialize();
 }

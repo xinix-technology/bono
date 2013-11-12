@@ -11,7 +11,8 @@ class ProviderRepository {
         $this->app = $app;
     }
 
-    public function add($provider) {
+    public function add(Provider $provider) {
+        $provider->setApp($this->app);
         $this->providers[] = $provider;
     }
 

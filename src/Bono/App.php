@@ -120,15 +120,15 @@ class App extends Slim {
             if (is_readable($errorTemplate)) {
                 $that->render($errorTemplate, array(), 404);
             } else {
+                $that->view->setLayout(NULL);
                 $that->response->setStatus(404);
-
                 echo '<html>
                 <head>
                     <title>Ugly Not Found!</title>
                     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
                     <style>
                         body { font-family: Arial; font-size: 14px; line-height: 1.5; color: #333 }
-                        h1 { border-bottom: 1px solid #f88; font-weight: normal; }
+                        h1 { border-bottom: 1px solid #88f; font-weight: normal; }
                         label { margin-top: 10px; display: block; font-size: .8em; font-weight: bold; }
                         pre { margin: 0}
                         blockquote { font-size: .8em; font-style: italic; margin: 0; }
@@ -169,6 +169,7 @@ class App extends Slim {
             if (is_readable($errorTemplate)) {
                 $that->render($errorTemplate, $errorData, $errorCode);
             } else {
+                $that->view->setLayout(NULL);
                 $that->response->setStatus($errorCode);
                 echo '<html>
                 <head>
