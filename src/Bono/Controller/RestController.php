@@ -2,148 +2,99 @@
 
 namespace Bono\Controller;
 
-use Norm\Norm;
-use Bono\Controller;
-use Bono\Exception\RestException;
+use \Reekoheek\Util\Inflector;
 
-class RestController extends Controller {
+abstract class RestController {
+    public $clazz;
 
-    private $helper = array();
-    private $published = array();
+    protected $app;
+    protected $request;
+    protected $response;
 
-    public function search() {
-        $entries = Norm::factory($this->clazz)->find();
+    protected $baseUri;
+    protected $activeRoute;
+    protected $data = array();
 
-        $this->publish('entries', $entries);
-    }
+    public function __construct($app, $baseUri) {
+        $exploded = explode('/', $baseUri);
+        $this->clazz = Inflector::classify(end($exploded));
 
-    public function create() {
-        $model = Norm::factory($this->clazz)->newInstance();
-        $model->set($this->app->request->post());
-        $result = $model->save();
+        $this->app = $app;
+        $this->request = $app->request;
+        $this->response = $app->response;
 
-        $this->publish('entry', $model);
-    }
+        $this->baseUri = $baseUri;
 
-    public function read($id) {
-        $criteria = array( '$id' => $id );
-        $model = Norm::factory($this->clazz)->findOne($criteria);
+        $this->data = array(
+            '_controller' => $this,
+        );
 
-        $this->publish('entry', $model);
-    }
+        $controller = $this;
 
-    public function update($id) {
+        $app->group($baseUri, function() use ($app, $controller) {
+            $app->map('/null/create', array($controller, 'delegate'))->name('create')->via('GET', 'POST');
+            $app->map('/:id/update', array($controller, 'delegate'))->name('update')->via('GET', 'POST');
+            $app->map('/:id/delete', array($controller, 'delegate'))->name('delete')->via('GET', 'POST');
 
-        $criteria = array( '$id' => $id );
-        $model = Norm::factory($this->clazz)->findOne($criteria);
-        if ($model) {
-            $model->set($this->app->request->post());
-            $result = $model->save();
-
-            $this->publish('entry', $result);
-        } else {
-            throw new RestException('No resource available', 404);
-        }
-    }
-
-    public function delete($id) {
-        $criteria = array( '$id' => $id );
-        $model = Norm::factory($this->clazz)->findOne($criteria);
-        if ($model) {
-            $model->remove();
-        }
-    }
-
-    public function getViewFor($for) {
-        if (is_readable($this->app->config('templates.path').'/'.$this->name.'/'.$for.'.php')) {
-            return $this->name.'/'.$for;
-        }
-
-        if (is_readable($this->app->config('templates.path').'/shared/'.$for.'.php')) {
-            return 'shared/'.$for;
-        }
-
-
-        return $for;
-    }
-
-    public function helper($key, $value) {
-        $this->helper[$key] = $value;
-    }
-
-    public function publish($key, $value) {
-        $this->published[$key] = $value;
-    }
-
-    public function register() {
-        $app = $this->app;
-        $that = $this;
-
-        $this->helper('collection', Norm::factory($this->clazz));
-
-        $app->group('/'.$this->name, function() use ($app, $that) {
-
-            // delete form entry
-            $app->get('/:id/delete', function($id) use ($app, $that) {
-                $that->delete($id);
-                $app->redirect('..');
-            });
-
-            // update form entry
-            $app->get('/:id/update', function($id) use ($app, $that) {
-                $app->viewTemplate = $that->getViewFor('update');
-                $that->read($id);
-                $app->helper = $that->helper;
-                $app->published = $that->published;
-            });
-
-            $app->post('/:id/update', function($id) use ($app, $that) {
-                $that->update($id);
-                $app->helper = $that->helper;
-                $app->published = $that->published;
-                $app->redirect('../'.$id);
-
-            });
-
-            // search entries
-            $app->get('/', function() use ($app, $that) {
-                $app->viewTemplate = $that->getViewFor('search');
-                $that->search();
-                $app->helper = $that->helper;
-                $app->published = $that->published;
-            });
-
-            // add new entry
-            $app->post('/', function() use ($app, $that) {
-                $that->create();
-                $app->helper = $that->helper;
-                $app->published = $that->published;
-            });
-
-            // get entry
-            $app->get('/:id', function($id) use ($app, $that) {
-                $app->viewTemplate = $that->getViewFor('read');
-                $that->read($id);
-                $app->helper = $that->helper;
-                $app->published = $that->published;
-            });
-
-            // update entry
-            $app->put('/:id', function($id) use ($app, $that) {
-                $that->update($id);
-                $app->helper = $that->helper;
-                $app->published = $that->published;
-            });
-
-            // delete entry
-            $app->delete('/:id', function($id) use ($app, $that)  {
-                $that->delete($id);
-                $app->helper = $that->helper;
-                $app->published = $that->published;
-            });
-
-
+            $app->get('/', array($controller, 'delegate'))->name('search');
+            $app->post('/', array($controller, 'delegate'))->name('create');
+            $app->get('/:id', array($controller, 'delegate'))->name('read');
+            $app->put('/', array($controller, 'delegate'))->name('update');
+            $app->delete('/', array($controller, 'delegate'))->name('delete');
         });
     }
+
+    public function getBaseUri() {
+        return $this->baseUri;
+    }
+
+    public function delegate() {
+        $this->activeRoute = $this->app->router()->getCurrentRoute();
+
+        $this->preAction();
+        call_user_func_array(array($this, $this->activeRoute->getName()), func_get_args());
+        $this->postAction();
+    }
+
+    public function preAction() {
+        $method = $this->app->router()->getCurrentRoute()->getName();
+
+        if (is_readable($this->app->config('templates.path') . $this->baseUri .'/' . $method . '.php')) {
+            $this->response->template($this->baseUri.'/'.$method);
+        } else {
+            $this->response->template('shared/'.$method);
+        }
+
+        $post = $this->request->post();
+        if (!empty($post)) {
+            $this->data['entry'] = $post;
+        }
+    }
+
+    public function postAction() {
+        $this->response->set($this->data);
+    }
+
+    public function redirect($url, $status = 302) {
+        $this->app->redirect($url, $status);
+    }
+
+    public function flash($key, $value) {
+        $this->app->flash($key, $value);
+    }
+
+    public function flashNow($key, $value) {
+        $this->app->flashNow($key, $value);
+    }
+
+    public function flashKeep() {
+        $this->app->flashKeep();
+    }
+
+    abstract function search();
+    abstract function create();
+    abstract function read($id);
+    abstract function update($id);
+    abstract function delete($id);
 
 }
