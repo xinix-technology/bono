@@ -4,7 +4,11 @@ namespace Bono\Helper;
 
 class URL {
     public static function base($uri = '') {
-        return dirname($_SERVER['SCRIPT_NAME']).'/'.trim($uri, '/');
+        $dir = dirname($_SERVER['SCRIPT_NAME']);
+        if ($dir === '/') {
+            $dir = '';
+        }
+        return $dir.'/'.trim($uri, '/');
     }
 
     public static function site($uri = '') {
