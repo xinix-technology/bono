@@ -9,7 +9,7 @@ class Response extends \Slim\Http\Response {
 
     public function set($key, $value = NULL) {
         if (is_array($key)) {
-            $this->data = $key;
+            $this->data = array_merge($this->data, $key);
         } elseif (is_null($value)) {
             unset($this->data[$key]);
         } else {

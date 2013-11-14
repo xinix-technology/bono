@@ -24,5 +24,7 @@ class Controller {
             $this->name = Inflector::tableize($this->clazz);
         }
 
+        $app->applyHook('bono.controller.construct');
+
     }
 }
