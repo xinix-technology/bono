@@ -1,5 +1,14 @@
 {
     "name": "xinix-technology/bono",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ganesha",
+            "email": "reekoheek@gmail.com",
+            "homepage": "http://xinix.co.id",
+            "role": "Developer"
+        }
+    ],
     "require": {
         "slim/slim": "2.3.*",
         "reekoheek/util": "~0.0.1"
