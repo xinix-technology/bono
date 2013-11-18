@@ -5,7 +5,7 @@ namespace Bono\Provider;
 class CLIProvider extends Provider {
 
     public function initialize() {
-        if (PHP_SAPI == 'cli') {
+        if (PHP_SAPI === 'cli') {
             $this->app->container->singleton('environment', function ($c) {
                 return \Bono\CLI\Environment::getInstance();
             });
