@@ -118,7 +118,9 @@ class App extends Slim {
             $errorTemplate = $that->config('templates.path').'/notFound.php';
 
             if (is_readable($errorTemplate)) {
-                $that->render($errorTemplate, array(), 404);
+                $templateToRender = preg_replace('/\.php?/', '', $errorTemplate);
+                $that->view->setLayout(NULL);
+                $that->render($templateToRender, array(), 404);
             } else {
                 $that->view->setLayout(NULL);
                 $that->response->setStatus(404);
@@ -167,7 +169,8 @@ class App extends Slim {
             $errorTemplate = $that->config('templates.path').'/error.php';
 
             if (is_readable($errorTemplate)) {
-                $that->render($errorTemplate, $errorData, $errorCode);
+                $templateToRender = preg_replace('/\.php?/', '', $errorTemplate);
+                $that->render($templateToRender, $errorData, $errorCode);
             } else {
                 $that->view->setLayout(NULL);
                 $that->response->setStatus($errorCode);
@@ -191,16 +194,17 @@ class App extends Slim {
                     <blockquote>Edit this page by creating templates/error.php</blockquote>
 
                     <label>Code</label>
-                    <div class="row">'. $errorData['code'] .'</div>
+                    <div class="row">'.
+                        '<code>'. $errorData['code'] .'</code>'.
+                    '</div>
 
                     <label>Message</label>
-                    <div class="row">'. $errorData['message'] .'</div>
+                    <div class="row"><code>'.$errorData['message'].'</code></div>
 
                     <label>File</label>
-                    <div class="row">'. $errorData['file'] .'</div>
-
+                    <div class="row"><code>'. $errorData['file'] .'</code></div>
                     <label>Line</label>
-                    <div class="row">'. $errorData['line'] .'</div>
+                    <div class="row"><code>'. $errorData['line'] .'</code></div>
 
                     <label>Stack Trace</label>
                     <div class="stack-trace">
