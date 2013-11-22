@@ -14,7 +14,10 @@ class ControllerMiddleware extends \Slim\Middleware {
                 if (is_null($Map)) {
                     $Map = $config['default'];
                 }
-                $controller = new $Map($this->app, $uri);
+                $this->app->controller = $controller = new $Map($this->app, $uri);
+                if (!$controller instanceof \Bono\Controller\Controller) {
+                    throw new \Exception('Controller "'.$Map.'" should be instance of \Bono\Controller\Controller.');
+                }
                 break;
             }
         }

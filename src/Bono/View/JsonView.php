@@ -10,7 +10,7 @@ class JsonView extends \Slim\View {
         $data = $this->data->all();
         unset($data['flash']);
         foreach ($data as $key => $value) {
-            if ($key[0] == '_') {
+            if ($key[0] === '_') {
                 unset($data[$key]);
             }
         }

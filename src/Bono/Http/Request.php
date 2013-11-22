@@ -33,35 +33,4 @@ class Request extends \Slim\Http\Request {
 
         return parent::getMediaType();
     }
-
-    // public function getAccepts() {
-    //     $results = array();
-
-    //     $accepts = explode(',', $this->env['HTTP_ACCEPT']);
-    //     foreach ($accepts as $accept) {
-    //         $accept = explode(';', $accept);
-    //         $result = array(
-    //             'contentType' => $accept[0],
-    //             'q' => 1.0
-    //         );
-    //         if (isset($accept[1])) {
-    //             $accepted = explode('=', $accept[1]);
-    //             $result['q'] = (double) $accepted[1];
-    //         }
-    //         $results[] = $result;
-    //     }
-    //     return $results;
-    // }
-
-    // public function post($key = null) {
-    //     if (!isset($this->env['slim.input'])) {
-    //         throw new \RuntimeException('Missing slim.input in environment variables');
-    //     }
-
-    //     if ($this->getMediaType() == 'application/json') {
-    //         return json_decode($this->env['slim.input'], 1);
-    //     }
-
-    //     return parent::post();
-    // }
 }

@@ -10,7 +10,7 @@ class Environment extends \Slim\Environment {
         } else {
 
             // Virtual environment for php-cli (ignore for phpunit)
-            // if(PHP_SAPI == 'cli') {
+            // if(PHP_SAPI === 'cli') {
 
             $argv = $GLOBALS['argv'];
 
