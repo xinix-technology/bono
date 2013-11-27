@@ -115,6 +115,8 @@ class App extends Slim {
     protected function configureHandler() {
         $that = $this;
         $onNotFound = function () use ($that) {
+            $that->view = new \Slim\View();
+
             $errorTemplate = $that->config('templates.path').'/notFound.php';
 
             if (is_readable($errorTemplate)) {
@@ -122,7 +124,6 @@ class App extends Slim {
                 $that->view->setLayout(NULL);
                 $that->render($templateToRender, array(), 404);
             } else {
-                $that->view->setLayout(NULL);
                 $that->response->setStatus(404);
                 echo '<html>
                 <head>
@@ -148,6 +149,7 @@ class App extends Slim {
 
         };
         $onError = function (\Exception $e) use ($that, $onNotFound) {
+
             $errorCode = 500;
             if ($e instanceof \Bono\Exception\RestException) {
                 $errorCode = $e->getCode();
@@ -157,6 +159,8 @@ class App extends Slim {
                 $onNotFound();
                 return;
             }
+
+            $that->view = new \Slim\View();
 
             $errorData = array(
                 'stackTrace' => $e->getTraceAsString(),
@@ -172,7 +176,6 @@ class App extends Slim {
                 $templateToRender = preg_replace('/\.php?/', '', $errorTemplate);
                 $that->render($templateToRender, $errorData, $errorCode);
             } else {
-                $that->view->setLayout(NULL);
                 $that->response->setStatus($errorCode);
                 echo '<html>
                 <head>
