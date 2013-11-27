@@ -10,17 +10,24 @@ class CLIProvider extends Provider {
                 return \Bono\CLI\Environment::getInstance();
             });
 
-            $this->$app->notFound(function() use ($app) {
+            $this->app->notFound(function() {
                 $argv = $GLOBALS['argv'];
 
                 echo "Undefined command\n";
             });
 
-            $commands = $this->$app->config('bonocli.commands');
+
+            $this->app->error(function($err) {
+                echo $err->getTraceAsString();
+                echo "\n\n";
+                echo "Done with errors\n";
+            });
+
+            $commands = $this->app->config('bonocli.commands');
 
             foreach ($commands as $commandClass) {
                 $command = new $commandClass();
-                $command->initialize($app);
+                $command->initialize($this->app);
             }
         }
     }

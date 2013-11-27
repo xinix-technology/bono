@@ -17,7 +17,9 @@ abstract class RestController extends Controller {
         $this->map('/', 'update')->via('PUT');
         $this->map('/', 'delete')->via('DELETE');
 
-}
+    }
+
+
     abstract function search();
     abstract function create();
     abstract function read($id);

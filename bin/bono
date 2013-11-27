@@ -11,6 +11,7 @@ $app = new \Bono\App(array(
         'bonocli.commands' => array(
             '\\Bono\\CLI\\Command\\Init'
         ),
+        'autorun' => false,
     ));
 
 
