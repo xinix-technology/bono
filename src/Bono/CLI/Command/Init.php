@@ -27,7 +27,7 @@ class Init {
     public function doInit() {
         $skelDir = './vendor/xinix-technology/bono/skel';
         if (!is_dir($skelDir) || !is_readable($skelDir)) {
-            $skelDir = './skel';
+            $skelDir = realpath(dirname(__FILE__).'/../../../../skel');
         }
 
         $this->copy($skelDir, '.');

@@ -20,6 +20,15 @@ class Request extends \Slim\Http\Request {
         return $pathInfo;
     }
 
+    public function getSegments($index = -1) {
+        $segments = explode('/', $this->getResourceUri());
+        if ($index < 0) {
+            return $segments;
+        } else {
+            return $segments[$index];
+        }
+    }
+
     public function getExtension() {
         return pathinfo($this->getPathInfo(), PATHINFO_EXTENSION);
     }

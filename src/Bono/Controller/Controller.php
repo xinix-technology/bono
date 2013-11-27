@@ -35,10 +35,11 @@ abstract class Controller {
                 $controller->response->template('shared/'.$options['method']);
             }
 
-            $post = $app->request->post();
-            if (!empty($post)) {
-                $controller->set('entry', $post);
-            }
+            // FIXME reekoheek:move this to restcontroller
+            // $post = $app->request->post();
+            // if (!empty($post)) {
+            //     $controller->set('entry', $post);
+            // }
         });
 
         $this->app->hook('bono.controller.after', function($options) use ($app, $controller) {
