@@ -34,6 +34,10 @@ class Response extends \Slim\Http\Response {
     }
 
     public function redirect ($url = ':self', $status = 302) {
+        $parsedUrl = parse_url($url);
+        if(isset($parsedUrl['scheme'])) {
+            return parent::redirect($url, $status);
+        }
         if ($url === ':self') {
             $app = \Slim\Slim::getInstance();
             $url = $app->request->getResourceUri();
