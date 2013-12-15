@@ -3,8 +3,6 @@
 namespace Bono\View;
 
 class LayoutedView extends \Slim\View {
-    public $app;
-
     protected $layout = 'layout';
 
     protected $layoutView;

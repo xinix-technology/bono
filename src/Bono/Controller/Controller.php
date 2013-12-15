@@ -4,7 +4,7 @@ namespace Bono\Controller;
 
 use \Reekoheek\Util\Inflector;
 
-abstract class Controller {
+abstract class Controller implements IController {
 
     public $clazz;
 
@@ -25,24 +25,20 @@ abstract class Controller {
         $exploded = explode('/', $baseUri);
         $this->clazz = Inflector::classify(end($exploded));
 
-        $this->data['_controller'] = $controller = $this;
+        // DEPRECATED reekoheek: remove inside dependency of _controller to view
+        // $this->data['_controller'] = $controller = $this;
 
-        $this->app->hook('bono.controller.before', function($options) use ($app, $controller) {
+        $controller = $this;
 
+        $app->hook('bono.controller.before', function($options) use ($app, $controller) {
             if (is_readable($app->config('templates.path') . $controller->getBaseUri() .'/' . $options['method'] . '.php')) {
                 $controller->response->template($controller->getBaseUri().'/'.$options['method']);
             } else {
                 $controller->response->template('shared/'.$options['method']);
             }
-
-            // FIXME reekoheek:move this to restcontroller
-            // $post = $app->request->post();
-            // if (!empty($post)) {
-            //     $controller->set('entry', $post);
-            // }
         });
 
-        $this->app->hook('bono.controller.after', function($options) use ($app, $controller) {
+        $app->hook('bono.controller.after', function($options) use ($app, $controller) {
             $controller->response->set($controller->data);
         });
 
