@@ -3,3 +3,4 @@
 /project.sublime-*
 /*.sublime-project
 /*.sublime-workspace
+/docs/api
