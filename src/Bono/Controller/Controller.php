@@ -2,7 +2,7 @@
 
 namespace Bono\Controller;
 
-use \Reekoheek\Util\Inflector;
+use \ROH\Util\Inflector;
 
 abstract class Controller implements IController {
 

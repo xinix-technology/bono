@@ -37,7 +37,7 @@ namespace Bono;
 
 use Slim\Slim;
 use Bono\Provider\ProviderRepository;
-use Reekoheek\Util\Inflector;
+use ROH\Util\Inflector;
 
 /**
  * App
