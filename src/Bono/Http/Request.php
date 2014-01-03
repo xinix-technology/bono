@@ -24,9 +24,10 @@ class Request extends \Slim\Http\Request {
         $segments = explode('/', $this->getResourceUri());
         if ($index < 0) {
             return $segments;
-        } else {
+        } elseif (isset($segments[$index])) {
             return $segments[$index];
         }
+        return NULL;
     }
 
     public function getExtension() {

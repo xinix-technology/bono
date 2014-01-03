@@ -24,10 +24,11 @@ class CLIProvider extends Provider {
             });
 
             $commands = $this->app->config('bonocli.commands');
-
-            foreach ($commands as $commandClass) {
-                $command = new $commandClass();
-                $command->initialize($this->app);
+            if ($commands) {
+                foreach ($commands as $commandClass) {
+                    $command = new $commandClass();
+                    $command->initialize($this->app);
+                }
             }
         }
     }
