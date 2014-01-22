@@ -23,7 +23,7 @@ class CLIProvider extends Provider {
                 echo "Done with errors\n";
             });
 
-            $commands = $this->app->config('bonocli.commands');
+            $commands = $this->app->_config->get('bono.cli.commands');
 
             foreach ($commands as $commandClass) {
                 $command = new $commandClass();

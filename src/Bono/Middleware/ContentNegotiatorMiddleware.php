@@ -4,7 +4,7 @@ namespace Bono\Middleware;
 
 class ContentNegotiatorMiddleware extends \Slim\Middleware {
     public function call() {
-        $config = $this->app->config('bono.contentNegotiator');
+        $config = $this->app->_config->get('bono.contentNegotiator');
 
         if ($config) {
             if ($config['extensions']) {

@@ -21,7 +21,7 @@ class URL {
     public static function site($uri = '') {
         $dir = $_SERVER['SCRIPT_NAME'];
 
-        if (App::getInstance()->config('bono.prettifyURL')) {
+        if (App::getInstance()->_config->get('bono.prettifyURL')) {
             if (substr($dir, -4) === '.php') {
                 $dir = dirname($dir);
             }

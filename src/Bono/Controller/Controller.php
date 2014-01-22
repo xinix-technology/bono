@@ -31,7 +31,7 @@ abstract class Controller implements IController {
         $controller = $this;
 
         $app->hook('bono.controller.before', function($options) use ($app, $controller) {
-            if (is_readable($app->config('templates.path') . $controller->getBaseUri() .'/' . $options['method'] . '.php')) {
+            if (is_readable($app->_config->get('app.templates.path') . $controller->getBaseUri() .'/' . $options['method'] . '.php')) {
                 $controller->response->template($controller->getBaseUri().'/'.$options['method']);
             } else {
                 $controller->response->template('shared/'.$options['method']);

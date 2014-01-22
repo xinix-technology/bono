@@ -80,6 +80,10 @@ class App extends Slim {
             return new \Bono\Http\Request($c['environment']);
         });
 
+        $this->container->singleton('_config', function ($c) {
+            return new \Bono\Config\Config();
+        });
+
         $this->container->singleton('response', function ($c) {
             return new \Bono\Http\Response();
         });
@@ -92,7 +96,7 @@ class App extends Slim {
 
         $this->configureMiddleware();
 
-        if ($this->config('autorun')) {
+        if ($this->_config->get('app.autorun')) {
             $this->run();
         }
     }
@@ -115,6 +119,7 @@ class App extends Slim {
      * Configure life cycle
      */
     protected function configure() {
+
         if (is_readable($configFile = $this->config('config.path') . '/config.php')) {
             $c = include($configFile);
             if (!is_array($c)) {
@@ -140,7 +145,7 @@ class App extends Slim {
         $onNotFound = function () use ($that) {
             $that->view = new \Slim\View();
 
-            $errorTemplate = $that->config('templates.path').'/notFound.php';
+            $errorTemplate = $that->_config->get('app.templates.path').'/notFound.php';
 
             if (is_readable($errorTemplate)) {
                 $templateToRender = preg_replace('/\.php?/', '', $errorTemplate);
@@ -193,7 +198,7 @@ class App extends Slim {
                 'line' => $e->getLine(),
             );
 
-            $errorTemplate = $that->config('templates.path').'/error.php';
+            $errorTemplate = $that->_config->get('app.templates.path').'/error.php';
 
             if (is_readable($errorTemplate)) {
                 $templateToRender = preg_replace('/\.php?/', '', $errorTemplate);
@@ -251,8 +256,7 @@ class App extends Slim {
      */
     protected function configureProvider() {
         $this->providerRepository = new ProviderRepository($this);
-
-        $providers = $this->config('bono.providers') ?: array();
+        $providers = $this->_config->get('bono.providers') ?: array();
         foreach($providers as $Provider) {
             $this->providerRepository->add(new $Provider());
         }
@@ -264,7 +268,7 @@ class App extends Slim {
      * Configure middlewares
      */
     protected function configureMiddleware() {
-        $middlewares = $this->config('bono.middlewares') ?: array();
+        $middlewares = $this->_config->get('bono.middlewares') ?: array();
         foreach ($middlewares as $Middleware) {
             $this->add(new $Middleware());
         }

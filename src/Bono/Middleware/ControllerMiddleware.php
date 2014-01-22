@@ -4,7 +4,7 @@ namespace Bono\Middleware;
 
 class ControllerMiddleware extends \Slim\Middleware {
     public function call() {
-        $config = $this->app->config('bono.controllers');
+        $config = $this->app->_config->get('bono.controllers');
         $mapping = $config['mapping'];
 
         $resourceUri = $this->app->request->getResourceUri();
