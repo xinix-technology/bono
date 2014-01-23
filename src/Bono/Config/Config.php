@@ -11,20 +11,19 @@ class Config {
     public function __construct() {
         $list = null;
         $app = App::getInstance();
+        $config = array();
 
         try {
             $list = scandir($app->config('config.path'));
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+            throw new \Exception("The path of configuration file doesn't found", 33);
+        }
 
-        $config = array();
-
-        if (! is_null($list)) {
-            foreach ($list as $_index => $_list) {
-                if ($_list != '.' && $_list != '..') {
-                    $_lists = preg_replace('/\.php$/i', '', $_list);
-                    $_content = include($app->config('config.path') . '/' . $_list);
-                    $config[$_lists] = $_content;
-                }
+        foreach ($list as $fileName) {
+            if ($fileName != '.' && $fileName != '..') {
+                $content = require_once($app->config('config.path') . '/' . $fileName);
+                $fileName = preg_replace('/\.php$/i', '', $fileName);
+                $config[$fileName] = $content;
             }
         }
 
@@ -33,37 +32,57 @@ class Config {
 
     /**
      * Get a particular value back from the config array
-     * @global array $config The config array defined in the config files
-     * @param string $index The index to fetch in dot notation
+     * @global array $config   The config array defined in the config files
+     * @param string $index    The index to fetch in dot notation
      * @return mixed
      */
     public function get($index) {
-        $index = explode('.', $index);
-        return $this->getValue($index, $this->config);
+        $config = $this->config;
+        foreach (explode('.', $index) as $key => $value) {
+            $config = $config[$value];
+        }
+        return $config;
     }
 
     /**
-     * Navigate through a config array looking for a particular index
-     * @param array $index The index sequence we are navigating down
-     * @param array $value The portion of the config array to process
+     * Set a particular value from the config array
+     * @global array  $config  The config array defined in the config files
+     * @param  string $index   The index to fetch in dot notation
+     * @param  mixed  $valed    The value you want to set
      * @return mixed
      */
-    private function getValue($index, $value) {
-        if(is_array($index) and
-            count($index)) {
-            $current_index = array_shift($index);
-        }
-        if(is_array($index) and
-            count($index) and
-            is_array($value[$current_index]) and
-            count($value[$current_index])) {
-            return $this->getValue($index, $value[$current_index]);
-        } else {
-            if (isset($value[$current_index])) {
-                return $value[$current_index];
+    public function set($index, $value) {
+        return $this->_set($this->config, $index, $value);
+    }
+
+    /**
+     * Set a particular value from the config array
+     * @global array  $config  The config array defined in the config files
+     * @param  string $index   The index to fetch in dot notation
+     * @param  mixed  $valed    The value you want to set
+     * @return mixed
+     */
+    private function _set(array &$array, $key, $value) {
+        if (is_null($key)) return $array = $value;
+
+        $keys = explode('.', $key);
+
+        while (count($keys) > 1) {
+            $key = array_shift($keys);
+
+            // If the key doesn't exist at this depth, we will just create an empty array
+            // to hold the next value, allowing us to create the arrays to hold final
+            // values at the correct depth. Then we'll keep digging into the array.
+            if ( ! isset($array[$key]) || ! is_array($array[$key])) {
+                $array[$key] = array();
             }
-            return null;
+
+            $array =& $array[$key];
         }
+
+        $array[array_shift($keys)] = $value;
+
+        return $array;
     }
 
 }
