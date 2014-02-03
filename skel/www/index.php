@@ -1,5 +1,5 @@
 <?php
-require '../vendor/autoload.php';
+require '../../vendor/autoload.php';
 
 $app = new \Bono\App(array(
     'autorun' => false,         // avoid autorun to explicit invoke run method
