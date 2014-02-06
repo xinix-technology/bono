@@ -52,6 +52,8 @@ class App extends Slim {
      */
     protected $isRunning = false;
 
+    protected $filters = array();
+
     /**
      * Override default settings
      * @return array
@@ -63,8 +65,13 @@ class App extends Slim {
         $settings['config.path'] = '../config';
         $settings['debug'] = false;
         $settings['autorun'] = true;
-        $settings['bono.debug'] = true;
+
+        if (!isset($settings['bono.debug'])) {
+            $settings['bono.debug'] = ($settings['mode'] == 'development') ? true : false;
+        }
+
         $settings['view'] = '\\Bono\\View\\LayoutedView';
+
         return $settings;
     }
 
@@ -106,9 +113,32 @@ class App extends Slim {
         }
         $this->isRunning = true;
 
+        $this->add(new \Bono\Middleware\ThemeMiddleware());
         $this->add(new \Bono\Middleware\ErrorHandlerMiddleware());
 
+        $this->filter('css', function($file) {
+            return rtrim(dirname($_SERVER['SCRIPT_NAME']), DIRECTORY_SEPARATOR).$file;
+        });
+
         parent::run();
+    }
+
+
+    /**
+     * Check whether application has middleware with class name
+     * @param  string  $Clazz Class name
+     * @return boolean
+     */
+    public function has($Clazz) {
+        if ($Clazz[0] == '\\') {
+            $Clazz = substr($Clazz, 1);
+        }
+        foreach ($this->middleware as $middleware) {
+            if (get_class($middleware) === $Clazz) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -270,4 +300,92 @@ class App extends Slim {
         }
     }
 
+    /********************************************************************************
+    * Filters
+    *******************************************************************************/
+
+    /**
+     * Assign filter
+     * @param  string   $name       The filter name
+     * @param  mixed    $callable   A callable object
+     * @param  int      $priority   The filter priority; 0 = high, 10 = low
+     */
+    public function filter($name, $callable, $priority = 10)
+    {
+        if (!isset($this->filters[$name])) {
+            $this->filters[$name] = array(array());
+        }
+        if (is_callable($callable)) {
+            $this->filters[$name][(int) $priority][] = $callable;
+        }
+    }
+
+    /**
+     * Invoke filter
+     * @param  string   $name       The filter name
+     * @param  mixed    $filterArg    (Optional) Argument for filtered functions
+     */
+    public function applyFilter($name, $filterArg = null)
+    {
+        if (!isset($this->filters[$name])) {
+            $this->filters[$name] = array(array());
+        }
+        if (!empty($this->filters[$name])) {
+            // Sort by priority, low to high, if there's more than one priority
+            if (count($this->filters[$name]) > 1) {
+                ksort($this->filters[$name]);
+            }
+            foreach ($this->filters[$name] as $priority) {
+                if (!empty($priority)) {
+                    foreach ($priority as $callable) {
+                        $filterArg = call_user_func($callable, $filterArg);
+                    }
+                }
+            }
+        }
+        return $filterArg;
+    }
+
+    /**
+     * Get filter listeners
+     *
+     * Return an array of registered filters. If `$name` is a valid
+     * filter name, only the listeners attached to that filter are returned.
+     * Else, all listeners are returned as an associative array whose
+     * keys are filter names and whose values are arrays of listeners.
+     *
+     * @param  string     $name     A filter name (Optional)
+     * @return array|null
+     */
+    public function getFilters($name = null)
+    {
+        if (!is_null($name)) {
+            return isset($this->filters[(string) $name]) ? $this->filters[(string) $name] : null;
+        } else {
+            return $this->filters;
+        }
+    }
+
+    /**
+     * Clear filter listeners
+     *
+     * Clear all listeners for all filters. If `$name` is
+     * a valid filter name, only the listeners attached
+     * to that filter will be cleared.
+     *
+     * @param  string   $name   A filter name (Optional)
+     */
+    public function clearFilters($name = null)
+    {
+        if (!is_null($name) && isset($this->filters[(string) $name])) {
+            $this->filters[(string) $name] = array(array());
+        } else {
+            foreach ($this->filters as $key => $value) {
+                $this->filters[$key] = array(array());
+            }
+        }
+    }
+
 }
+
+require_once dirname(__FILE__).'/../functions.php';

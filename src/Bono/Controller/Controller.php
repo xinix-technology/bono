@@ -3,6 +3,7 @@
 namespace Bono\Controller;
 
 use \ROH\Util\Inflector;
+use \Bono\Helper\URL;
 
 abstract class Controller implements IController {
 
@@ -11,7 +12,7 @@ abstract class Controller implements IController {
     protected $app;
     protected $request;
     // FIXME alam: response seharusnya tidak boleh public, tetapi dibutuhkan
-    // agar bisa diakses dari closure di bawah 
+    // agar bisa diakses dari closure di bawah
     public $response;
 
     protected $baseUri;
@@ -25,19 +26,23 @@ abstract class Controller implements IController {
 
         $this->baseUri = $baseUri;
         $exploded = explode('/', $baseUri);
-        $this->clazz = Inflector::classify(end($exploded));
+        $clazz = $this->clazz = Inflector::classify(end($exploded));
 
         // DEPRECATED reekoheek: remove inside dependency of _controller to view
         // $this->data['_controller'] = $controller = $this;
 
         $controller = $this;
 
+        $app->filter('controller.name', function() use ($clazz) {
+            return $clazz;
+        });
+
+        $app->filter('controller.url', function($uri) use ($controller) {
+            return URL::site($controller->getBaseUri().$uri);
+        });
+
         $app->hook('bono.controller.before', function($options) use ($app, $controller) {
-            if (is_readable($app->config('templates.path') . $controller->getBaseUri() .'/' . $options['method'] . '.php')) {
-                $controller->response->template($controller->getBaseUri().'/'.$options['method']);
-            } else {
-                $controller->response->template('shared/'.$options['method']);
-            }
+            $controller->response->template(substr($controller->getBaseUri(), 1).'/'.$options['method']);
         });
 
         $app->hook('bono.controller.after', function($options) use ($app, $controller) {
