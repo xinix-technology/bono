@@ -11,7 +11,7 @@ abstract class Controller implements IController {
     protected $app;
     protected $request;
     // FIXME alam: response seharusnya tidak boleh public, tetapi dibutuhkan
-    // agar bisa diakses dari closure di bawah
+    // agar bisa diakses dari closure di bawah 
     public $response;
 
     protected $baseUri;
