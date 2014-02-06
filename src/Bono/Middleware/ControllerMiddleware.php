@@ -42,7 +42,17 @@ namespace Bono\Middleware;
  *
  * ControllerMiddleware needs Bono configuration:
  *
- * - bono.controllers
+ * <pre>
+ * array (
+ *     "bono.controllers" => array (
+ *         'default' => '\\\\Your\\\\Default\\\\Controller\\\\Class',
+ *         'mapping' => array (
+ *             '/uri' => NULL, \\\\ use default controller class
+ *             '/another/uri' => '\\\\Another\\\\Controller\\\\Class', \\\\ define specific controller class
+ *         )
+ *     )
+ * )
+ * </pre>
  */
 class ControllerMiddleware extends \Slim\Middleware {
 
@@ -58,7 +68,11 @@ class ControllerMiddleware extends \Slim\Middleware {
             foreach ($mapping as $uri => $Map) {
                 if (strpos($resourceUri, $uri) === 0) {
                     if (is_null($Map)) {
-                        $Map = $config['default'];
+                        if (isset($config['default'])) {
+                            $Map = $config['default'];
+                        } else {
+                            throw new \Exception('URI "'.$uri.'" does not have suitable controller class "'.$Map.'"');
+                        }
                     }
                     $this->app->controller = $controller = new $Map($this->app, $uri);
                     if (!$controller instanceof \Bono\Controller\IController) {
