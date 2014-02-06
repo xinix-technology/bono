@@ -7,23 +7,37 @@ class LayoutedView extends \Slim\View {
 
     protected $layoutView;
 
+    protected $app;
+
     function __construct() {
         parent::__construct();
 
+        $this->app = \Bono\App::getInstance();
         $this->layoutView = new \Slim\View();
+        $this->layoutView->setTemplatesDirectory($this->templatesDirectory);
     }
 
     public function fetch($template) {
+        $theme = $this->app->theme;
         if (empty($template)) {
             return $this->data['body'];
         } else {
+            if ($theme && $t = $theme->getTemplate($template)) {
+                $this->setTemplatesDirectory($theme->getPath());
+                $template = $t;
+            }
             $html = parent::fetch($template.'.php');
 
             if ($this->layout) {
-                $this->layoutView->setTemplatesDirectory($this->templatesDirectory);
+                if ($theme && $t = $theme->getTemplate($this->layout)) {
+                    $this->layoutView->setTemplatesDirectory($theme->getPath());
+                    $template = $t;
+                } else {
+                    $template = $this->layout;
+                }
                 $this->layoutView->replace($this->all());
                 $this->layoutView->set('body', $html);
-                return $this->layoutView->render($this->layout.'.php');
+                return $this->layoutView->render($template.'.php');
             } else {
                 return $html;
             }

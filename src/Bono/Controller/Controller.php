@@ -25,7 +25,7 @@ abstract class Controller implements IController {
 
         $this->baseUri = $baseUri;
         $exploded = explode('/', $baseUri);
-        $this->clazz = Inflector::classify(end($exploded));
+        $clazz = $this->clazz = Inflector::classify(end($exploded));
 
         // DEPRECATED reekoheek: remove inside dependency of _controller to view
         // $this->data['_controller'] = $controller = $this;
@@ -33,6 +33,14 @@ abstract class Controller implements IController {
         $controller = $this;
 
         $response = $this->response;
+
+        $app->filter('controller.name', function() use ($clazz) {
+            return $clazz;
+        });
+
+        $app->filter('controller.url', function($uri) use ($controller) {
+            return URL::site($controller->getBaseUri().$uri);
+        });
 
         $app->hook('bono.controller.before', function($options) use ($app, $controller, $response) {
             if (is_readable($app->config('templates.path') . $controller->getBaseUri() .'/' . $options['method'] . '.php')) {
