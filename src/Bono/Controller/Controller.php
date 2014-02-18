@@ -9,10 +9,10 @@ abstract class Controller implements IController {
     public $clazz;
 
     protected $app;
+
     protected $request;
-    // FIXME alam: response seharusnya tidak boleh public, tetapi dibutuhkan
-    // agar bisa diakses dari closure di bawah 
-    public $response;
+
+    protected $response;
 
     protected $baseUri;
 
@@ -32,19 +32,26 @@ abstract class Controller implements IController {
 
         $controller = $this;
 
-        $app->hook('bono.controller.before', function($options) use ($app, $controller) {
+        $response = $this->response;
+
+        $app->hook('bono.controller.before', function($options) use ($app, $controller, $response) {
             if (is_readable($app->config('templates.path') . $controller->getBaseUri() .'/' . $options['method'] . '.php')) {
-                $controller->response->template($controller->getBaseUri().'/'.$options['method']);
+                $response->template($controller->getBaseUri().'/'.$options['method']);
             } else {
-                $controller->response->template('shared/'.$options['method']);
+                $response->template('shared/'.$options['method']);
             }
         });
 
-        $app->hook('bono.controller.after', function($options) use ($app, $controller) {
-            $controller->response->set($controller->data);
+        $app->hook('bono.controller.after', function($options) use ($app, $controller, $response) {
+
+            $response->set($controller->getData());
         });
 
         $this->mapRoute();
+    }
+
+    public function getData(){
+        return $this->data;
     }
 
     public function set($key, $value) {
