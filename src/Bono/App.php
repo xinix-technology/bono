@@ -61,7 +61,9 @@ class App extends Slim {
     public static function getDefaultSettings() {
         $settings = parent::getDefaultSettings();
 
-        $settings['templates.path'] = '../templates';
+        $settings['templates.path'] = '';
+        $settings['bono.base.path'] = '..';
+        $settings['bono.theme'] = '\\Bono\\Theme\\DefaultTheme';
         $settings['config.path'] = '../config';
         $settings['debug'] = false;
         $settings['autorun'] = true;
@@ -71,6 +73,7 @@ class App extends Slim {
         }
 
         $settings['view'] = '\\Bono\\View\\LayoutedView';
+        $settings['bono.partial.view'] = '\\Slim\\View';
 
         return $settings;
     }
@@ -89,6 +92,18 @@ class App extends Slim {
 
         $this->container->singleton('response', function ($c) {
             return new \Bono\Http\Response();
+        });
+
+        $this->container->singleton('theme', function ($c) {
+            $config = $c['settings']['bono.theme'];
+            if (is_array($config)) {
+                $themeClass = $config['class'];
+            } else {
+                $themeClass = $config;
+                $config = array();
+            }
+
+            return ($themeClass instanceOf \Bono\Theme\Theme) ? $themeClass : new $themeClass($config);
         });
 
         $this->configureHandler();
@@ -113,8 +128,7 @@ class App extends Slim {
         }
         $this->isRunning = true;
 
-        $this->add(new \Bono\Middleware\ThemeMiddleware());
-        $this->add(new \Bono\Middleware\ErrorHandlerMiddleware());
+        $this->add(new \Bono\Middleware\CommonHandlerMiddleware());
 
         $this->filter('css', function($file) {
             return rtrim(dirname($_SERVER['SCRIPT_NAME']), DIRECTORY_SEPARATOR).$file;
@@ -384,6 +398,15 @@ class App extends Slim {
                 $this->filters[$key] = array(array());
             }
         }
+    }
+
+    /**
+     * remove default view method implementation
+     * @param  [type] $viewClass [description]
+     * @return [type]            [description]
+     */
+    public function view($viewClass = null) {
+        return $this->view;
     }
 
 }

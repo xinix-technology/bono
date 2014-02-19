@@ -2,42 +2,41 @@
 
 namespace Bono\View;
 
+use Bono\App;
+
 class LayoutedView extends \Slim\View {
     protected $layout = 'layout';
 
     protected $layoutView;
 
-    protected $app;
-
     function __construct() {
         parent::__construct();
 
-        $this->app = \Bono\App::getInstance();
         $this->layoutView = new \Slim\View();
-        $this->layoutView->setTemplatesDirectory($this->templatesDirectory);
     }
 
     public function fetch($template) {
-        $theme = $this->app->theme;
+
+        $app = App::getInstance();
+
         if (empty($template)) {
             return $this->data['body'];
         } else {
-            if ($theme && $t = $theme->getTemplate($template)) {
-                $this->setTemplatesDirectory($theme->getPath());
-                $template = $t;
+            if ($app->theme) {
+                $template = $app->theme->resolve($template, $this);
             }
-            $html = parent::fetch($template.'.php');
+
+            $html = parent::fetch($template);
 
             if ($this->layout) {
-                if ($theme && $t = $theme->getTemplate($this->layout)) {
-                    $this->layoutView->setTemplatesDirectory($theme->getPath());
-                    $template = $t;
+                if ($app->theme) {
+                    $template = $app->theme->resolve($this->layout, $this->layoutView);
                 } else {
                     $template = $this->layout;
                 }
                 $this->layoutView->replace($this->all());
                 $this->layoutView->set('body', $html);
-                return $this->layoutView->render($template.'.php');
+                return $this->layoutView->render($template);
             } else {
                 return $html;
             }

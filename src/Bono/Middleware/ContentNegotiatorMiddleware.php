@@ -26,7 +26,6 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware {
                 exit;
             }
         }
-        var_dump('expression');
 
     }
 }

@@ -2,6 +2,9 @@
 
 namespace Bono\Middleware;
 
+/**
+ * deprecated
+ */
 class ThemeMiddleware extends \Slim\Middleware {
     public function call() {
         $app = $this->app;
