@@ -23,7 +23,7 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware {
 
             if ($this->app->response->getStatus() == 200) {
                 $this->app->render($this->app->response->template(), $this->app->response->data());
-                exit;
+                $this->app->stop();
             }
         }
 
