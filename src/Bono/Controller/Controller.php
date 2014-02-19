@@ -3,6 +3,7 @@
 namespace Bono\Controller;
 
 use \ROH\Util\Inflector;
+use \Bono\Helper\URL;
 
 abstract class Controller implements IController {
 
@@ -43,11 +44,8 @@ abstract class Controller implements IController {
         });
 
         $app->hook('bono.controller.before', function($options) use ($app, $controller, $response) {
-            if (is_readable($app->config('templates.path') . $controller->getBaseUri() .'/' . $options['method'] . '.php')) {
-                $response->template($controller->getBaseUri().'/'.$options['method']);
-            } else {
-                $response->template('shared/'.$options['method']);
-            }
+            $template = substr($controller->getBaseUri(), 1).'/'.$options['method'];
+            $response->template($template);
         });
 
         $app->hook('bono.controller.after', function($options) use ($app, $controller, $response) {

@@ -62,7 +62,8 @@ class App extends Slim {
         $settings = parent::getDefaultSettings();
 
         $settings['templates.path'] = '';
-        $settings['bono.templates.path'] = '../templates';
+        $settings['bono.base.path'] = '..';
+        $settings['bono.theme'] = '\\Bono\\Theme\\DefaultTheme';
         $settings['config.path'] = '../config';
         $settings['debug'] = false;
         $settings['autorun'] = true;
@@ -72,6 +73,7 @@ class App extends Slim {
         }
 
         $settings['view'] = '\\Bono\\View\\LayoutedView';
+        $settings['bono.partial.view'] = '\\Slim\\View';
 
         return $settings;
     }
@@ -93,7 +95,15 @@ class App extends Slim {
         });
 
         $this->container->singleton('theme', function ($c) {
-            return new \Bono\Theme\DefaultTheme();
+            $config = $c['settings']['bono.theme'];
+            if (is_array($config)) {
+                $themeClass = $config['class'];
+            } else {
+                $themeClass = $config;
+                $config = array();
+            }
+
+            return ($themeClass instanceOf \Bono\Theme\Theme) ? $themeClass : new $themeClass($config);
         });
 
         $this->configureHandler();

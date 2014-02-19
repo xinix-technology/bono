@@ -25,6 +25,7 @@ class LayoutedView extends \Slim\View {
             if ($app->theme) {
                 $template = $app->theme->resolve($template, $this);
             }
+
             $html = parent::fetch($template);
 
             if ($this->layout) {
