@@ -61,7 +61,8 @@ class App extends Slim {
     public static function getDefaultSettings() {
         $settings = parent::getDefaultSettings();
 
-        $settings['templates.path'] = '../templates';
+        $settings['templates.path'] = '';
+        $settings['bono.templates.path'] = '../templates';
         $settings['config.path'] = '../config';
         $settings['debug'] = false;
         $settings['autorun'] = true;
@@ -91,6 +92,10 @@ class App extends Slim {
             return new \Bono\Http\Response();
         });
 
+        $this->container->singleton('theme', function ($c) {
+            return new \Bono\Theme\DefaultTheme();
+        });
+
         $this->configureHandler();
 
         $this->configure();
@@ -113,8 +118,7 @@ class App extends Slim {
         }
         $this->isRunning = true;
 
-        $this->add(new \Bono\Middleware\ThemeMiddleware());
-        $this->add(new \Bono\Middleware\ErrorHandlerMiddleware());
+        $this->add(new \Bono\Middleware\CommonHandlerMiddleware());
 
         $this->filter('css', function($file) {
             return rtrim(dirname($_SERVER['SCRIPT_NAME']), DIRECTORY_SEPARATOR).$file;
@@ -384,6 +388,15 @@ class App extends Slim {
                 $this->filters[$key] = array(array());
             }
         }
+    }
+
+    /**
+     * remove default view method implementation
+     * @param  [type] $viewClass [description]
+     * @return [type]            [description]
+     */
+    public function view($viewClass = null) {
+        return $this->view;
     }
 
 }

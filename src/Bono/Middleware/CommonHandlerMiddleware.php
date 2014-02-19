@@ -2,11 +2,20 @@
 
 namespace Bono\Middleware;
 
-class ErrorHandlerMiddleware extends \Slim\Middleware {
+class CommonHandlerMiddleware extends \Slim\Middleware {
     public function call() {
         try {
             ob_start();
+
             $this->next->call();
+
+            $app = $this->app;
+            $response = $app->response;
+            $template = $response->template();
+
+            if ($response->getStatus() == 200) {
+                $app->render($template, $response->data());
+            }
         } catch (\Slim\Exception\Stop $e) {
             // $body = ob_get_clean();
             // $this->app->response()->write($body);

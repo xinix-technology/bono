@@ -2,44 +2,46 @@
 
 namespace Bono\Theme;
 
+use Bono\App;
+
 abstract class Theme {
-    protected $app;
 
-    protected $baseDir;
+    protected $extension = '.php';
 
-    public function __construct($app, $config) {
+    protected $templateDirectories = array();
+
+    public function __construct($config = array()) {
         foreach ($config as $key => $value) {
-            $this->$key = $value;
+            if (isset($this->$key)) {
+                $this->$key = $value;
+            }
         }
-        $this->app = $app;
+
+        $this->templateDirectories[] = App::getInstance()->config('bono.templates.path');
     }
 
-    public function getTemplate($template, $ext = '.php') {
-        $page = explode('/', $template);
-        $page = end($page);
+    public function resolve($template, $view = null) {
+        $segments = explode('/', $template);
+        $page = end($segments);
 
-        if (is_readable($this->getPath('templates/'.$template.$ext))) {
+        foreach ($this->templateDirectories as $dir) {
+            if ($t = $this->tryWith($dir, $template, $view)) {
+                return $t;
+            }
+
+            if ($t = $this->tryWith($dir, $template.$this->extension, $view)) {
+                return $t;
+            }
+        }
+    }
+
+    public function tryWith($dir, $template, $view) {
+        if (is_readable($f = ltrim($dir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$template)) {
+            if (isset($view)) {
+                $view->setTemplatesDirectory($dir);
+            }
             return $template;
         }
-
-        $p = 'shared/'.$page;
-        if (is_readable($this->getPath('templates/'.$p.$ext))) {
-            return $p;
-        }
-
-        return false;
     }
 
-    public function getPath($p = 'templates') {
-        return $this->baseDir.$p;
-    }
-
-    public function fetchWith($view, $template) {
-        if ($t = $this->getTemplate($template, '')) {
-            $view->setTemplatesDirectory($this->getPath());
-            $template = $t;
-        }
-
-        return $view->fetch($template);
-    }
 }
