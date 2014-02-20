@@ -400,15 +400,6 @@ class App extends Slim {
         }
     }
 
-    /**
-     * remove default view method implementation
-     * @param  [type] $viewClass [description]
-     * @return [type]            [description]
-     */
-    public function view($viewClass = null) {
-        return $this->view;
-    }
-
 }
 
 require_once dirname(__FILE__).'/../functions.php';
