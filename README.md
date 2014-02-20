@@ -8,3 +8,8 @@ Bono application context lifecyle:
 - initialize providers
 - (if no autorun) your custom codes
 - run
+- 
+
+todo:
+
+- component spec
