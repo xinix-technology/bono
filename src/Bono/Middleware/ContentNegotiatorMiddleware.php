@@ -21,8 +21,10 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware {
             $this->app->response->setBody('');
             $this->app->view($config['views'][$mediaType]);
 
+
             $status = $this->app->response->getStatus();
             if ($status >= 200 && $status < 300) {
+                $this->app->response->headers['content-type'] = $mediaType;
                 $this->app->render($this->app->response->template(), $this->app->response->data());
                 $this->app->stop();
             }

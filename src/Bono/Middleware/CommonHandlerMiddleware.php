@@ -18,8 +18,8 @@ class CommonHandlerMiddleware extends \Slim\Middleware {
                 $app->render($template, $response->data());
             }
         } catch (\Slim\Exception\Stop $e) {
-            // $body = ob_get_clean();
-            // $this->app->response()->write($body);
+            $body = ob_get_clean();
+            $this->app->response()->write($body);
             $this->app->applyHook('slim.after');
         } catch(\Exception $e) {
             if (ob_get_level() !== 0) {
