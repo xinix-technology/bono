@@ -54,6 +54,10 @@ class App extends Slim {
 
     protected $filters = array();
 
+    protected $aliases = array(
+        'URL' => '\\Bono\\Helper\\URL',
+    );
+
     /**
      * Override default settings
      * @return array
@@ -109,6 +113,8 @@ class App extends Slim {
         $this->configureHandler();
 
         $this->configure();
+
+        $this->configureAliases();
 
         $this->configureProvider();
 
@@ -172,6 +178,14 @@ class App extends Slim {
                 $c = (array) $c;
             }
             $this->config($c);
+        }
+    }
+
+    protected function configureAliases() {
+        $this->aliases = array_merge($this->aliases, $this->config('bono.aliases') ?: array());
+
+        foreach ($this->aliases as $key => $value) {
+            class_alias($value, $key);
         }
     }
 

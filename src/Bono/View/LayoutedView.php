@@ -23,7 +23,7 @@ class LayoutedView extends \Slim\View {
             return $this->data['body'];
         } else {
             if ($app->theme) {
-                $template = $app->theme->resolve($template, $this);
+                $template = $app->theme->resolve($template, $this) ?: $template;
             }
 
             $html = parent::fetch($template);

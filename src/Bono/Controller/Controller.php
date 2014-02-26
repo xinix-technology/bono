@@ -44,7 +44,7 @@ abstract class Controller implements IController {
         });
 
         $app->hook('bono.controller.before', function($options) use ($app, $controller, $response) {
-            $template = substr($controller->getBaseUri(), 1).'/'.$options['method'];
+            $template = trim($controller->getBaseUri(), '/').'/'.$options['method'];
             $response->template($template);
         });
 
