@@ -12,10 +12,9 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware {
             }
         }
 
-        $this->next->call();
-
         $mediaType = $this->app->request->getMediaType();
         $ext = $this->app->request->getExtension();
+
 
         try {
             $this->next->call();
