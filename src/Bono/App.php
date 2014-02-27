@@ -65,7 +65,7 @@ class App extends Slim {
         $settings['bono.base.path'] = '..';
         $settings['bono.theme'] = '\\Bono\\Theme\\DefaultTheme';
         $settings['config.path'] = '../config';
-        $settings['debug'] = false;
+        $settings['debug'] = true;
         $settings['autorun'] = true;
 
         if (!isset($settings['bono.debug'])) {
