@@ -2,11 +2,14 @@
 
 namespace Bono\View;
 
+use \Bono\App;
+
 class JsonView extends \Slim\View {
-    public $app;
     public $contentType = 'application/json';
 
     public function display($template) {
+        $app = App::getInstance();
+
         $data = $this->data->all();
         unset($data['flash']);
         foreach ($data as $key => $value) {
@@ -15,7 +18,7 @@ class JsonView extends \Slim\View {
             }
         }
 
-        $this->app->response->headers['Content-Type'] = $this->contentType;
+        $app->response->headers['content-type'] = $this->contentType;
         echo \JsonKit\JsonKit::encode($data);
     }
 }
