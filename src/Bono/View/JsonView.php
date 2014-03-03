@@ -9,7 +9,6 @@ class JsonView extends \Slim\View {
 
     public function display($template) {
         $app = App::getInstance();
-
         $data = $this->data->all();
         unset($data['flash']);
         foreach ($data as $key => $value) {
