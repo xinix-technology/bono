@@ -30,13 +30,16 @@ class LayoutedView extends \Slim\View {
 
             if ($this->layout) {
                 if ($app->theme) {
-                    $template = $app->theme->resolve($this->layout, $this->layoutView);
+                    $layoutTemplate = $app->theme->resolve($this->layout, $this->layoutView);
                 } else {
-                    $template = $this->layout;
+                    $layoutTemplate = $this->layout;
                 }
+            }
+
+            if ($layoutTemplate) {
                 $this->layoutView->replace($this->all());
                 $this->layoutView->set('body', $html);
-                return $this->layoutView->render($template);
+                return $this->layoutView->render($layoutTemplate);
             } else {
                 return $html;
             }

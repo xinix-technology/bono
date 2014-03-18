@@ -4,12 +4,12 @@ namespace Bono\Middleware;
 
 class ContentNegotiatorMiddleware extends \Slim\Middleware {
     public function call() {
-        $config = $this->app->config('bono.contentNegotiator');
+        if (empty($this->options)) {
+            $this->options = $this->app->config('bono.contentNegotiator');
+        }
 
-        if ($config) {
-            if ($config['extensions']) {
-                $this->app->request->addMediaTypeExtensions($config['extensions']);
-            }
+        if ($this->options['extensions']) {
+            $this->app->request->addMediaTypeExtensions($this->options['extensions']);
         }
 
         $mediaType = $this->app->request->getMediaType();
@@ -18,14 +18,14 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware {
         try {
             $this->next->call();
         } catch (\Bono\Exception\RestException $e) {
-            if (!isset($config['views'][$mediaType])) {
+            if (!isset($this->options['views'][$mediaType])) {
                 throw $e;
             }
             $this->app->response->status($e->getCode());
             $this->app->response->set('errors', $e.'');
         }
 
-        if (isset($config['views'][$mediaType])) {
+        if (isset($this->options['views'][$mediaType])) {
 
             $include = $this->app->request->get('!include');
             if (!empty($include)) {
@@ -33,7 +33,7 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware {
             }
 
             $this->app->response->setBody('');
-            $this->app->view($config['views'][$mediaType]);
+            $this->app->view($this->options['views'][$mediaType]);
 
 
             $status = $this->app->response->getStatus();

@@ -11,6 +11,10 @@ class Request extends \Slim\Http\Request {
         $this->mediaTypeExtensions = array_merge($this->mediaTypeExtensions, $mediaTypeExtensions);
     }
 
+    public function getPathInfo() {
+        return rtrim(parent::getPathInfo(), '/');
+    }
+
     public function getResourceUri() {
         $extensionLength = strlen($this->getExtension());
         $pathInfo = $this->getPathInfo();

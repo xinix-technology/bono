@@ -55,7 +55,9 @@ class App extends Slim {
     protected $filters = array();
 
     protected $aliases = array(
+        'App' => '\\Bono\\App',
         'URL' => '\\Bono\\Helper\\URL',
+        'Theme' => '\\Bono\\Theme\\Theme',
     );
 
     /**
@@ -311,8 +313,16 @@ class App extends Slim {
         $this->providerRepository = new ProviderRepository($this);
 
         $providers = $this->config('bono.providers') ?: array();
-        foreach($providers as $Provider) {
-            $this->providerRepository->add(new $Provider());
+        foreach($providers as $k => $v) {
+
+            $Provider = $v;
+            $options = null;
+            if (is_string($k)) {
+                $Provider = $k;
+                $options = $v;
+            }
+
+            $this->providerRepository->add(new $Provider($options));
         }
 
         $this->providerRepository->initialize();
@@ -323,8 +333,16 @@ class App extends Slim {
      */
     protected function configureMiddleware() {
         $middlewares = $this->config('bono.middlewares') ?: array();
-        foreach ($middlewares as $Middleware) {
-            $this->add(new $Middleware());
+        foreach ($middlewares as $k => $v) {
+            $Middleware = $v;
+            $options = null;
+            if (is_string($k)) {
+                $Middleware = $k;
+                $options = $v;
+            }
+            $m = new $Middleware();
+            $m->options = $options;
+            $this->add($m);
         }
     }
 
