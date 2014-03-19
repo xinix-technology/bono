@@ -187,7 +187,9 @@ class App extends Slim {
         $this->aliases = array_merge($this->aliases, $this->config('bono.aliases') ?: array());
 
         foreach ($this->aliases as $key => $value) {
-            class_alias($value, $key);
+            if (! class_exists($key)) {
+                class_alias($value, $key);
+            }
         }
     }
 
