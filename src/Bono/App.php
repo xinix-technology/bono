@@ -136,6 +136,9 @@ class App extends Slim {
         }
         $this->isRunning = true;
 
+        if ($this->config('bono.debug')) {
+            $this->add(new \Zeuxisoo\Whoops\Provider\Slim\WhoopsMiddleware());
+        }
         $this->add(new \Bono\Middleware\CommonHandlerMiddleware());
 
         $this->filter('css', function($file) {
