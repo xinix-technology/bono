@@ -204,13 +204,14 @@ class App extends Slim {
         $that = $this;
         $onNotFound = function () use ($that) {
             $that->view = new \Slim\View();
+            $templatesPath = $that->config('app.templates.path');
 
-            $errorTemplate = $that->config('templates.path').'/notFound.php';
+            $that->view->setTemplatesDirectory($templatesPath);
+
+            $errorTemplate = $templatesPath . DIRECTORY_SEPARATOR . 'notFound.php';
 
             if (is_readable($errorTemplate)) {
-                $templateToRender = preg_replace('/\.php?/', '', $errorTemplate);
-                $that->view->setLayout(NULL);
-                $that->render($templateToRender, array(), 404);
+                $that->view->display($errorTemplate, array(), 404);
             } else {
                 $that->response->setStatus(404);
                 echo '<html>
