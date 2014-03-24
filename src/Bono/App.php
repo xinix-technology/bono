@@ -203,14 +203,12 @@ class App extends Slim {
     protected function configureHandler() {
         $that = $this;
         $onNotFound = function () use ($that) {
-            $that->view = new \Slim\View();
+            $that->view    = new \Slim\View();
             $templatesPath = $that->config('app.templates.path');
-
-            $that->view->setTemplatesDirectory($templatesPath);
-
             $errorTemplate = $templatesPath . DIRECTORY_SEPARATOR . 'notFound.php';
 
             if (is_readable($errorTemplate)) {
+                $that->view->setTemplatesDirectory($templatesPath);
                 $that->view->display($errorTemplate, array(), 404);
             } else {
                 $that->response->setStatus(404);
@@ -249,23 +247,23 @@ class App extends Slim {
                 return;
             }
 
-            $that->view = new \Slim\View();
-
-            $errorData = array(
+            $that->view    = new \Slim\View();
+            $templatesPath = $that->config('app.templates.path');
+            $errorTemplate = $templatesPath . DIRECTORY_SEPARATOR . 'error.php';
+            $errorData     = array(
                 'stackTrace' => $e->getTraceAsString(),
-                'code' => $e->getCode(),
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
+                'code'       => $e->getCode(),
+                'message'    => $e->getMessage(),
+                'file'       => $e->getFile(),
+                'line'       => $e->getLine(),
             );
 
-            $errorTemplate = $that->config('templates.path').'/error.php';
-
             if (is_readable($errorTemplate)) {
-                $templateToRender = preg_replace('/\.php?/', '', $errorTemplate);
-                $that->render($templateToRender, $errorData, $errorCode);
+                $that->view->setTemplatesDirectory($templatesPath);
+                $that->view->display($errorTemplate, $errorData, $errorCode);
             } else {
                 $that->response->setStatus($errorCode);
+
                 echo '<html>
                 <head>
                     <title>Ugly Error!</title>
