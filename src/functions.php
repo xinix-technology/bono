@@ -1,25 +1,99 @@
 <?php
 
+/**
+ * Bono - PHP5 Web Framework
+ *
+ * MIT LICENSE
+ *
+ * Copyright (c) 2013 PT Sagara Xinix Solusitama
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * @category  PHP_Framework
+ * @package   Bono
+ * @author    Ganesha <reekoheek@gmail.com>
+ * @copyright 2013 PT Sagara Xinix Solusitama
+ * @license   https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
+ * @version   0.10.0
+ * @link      http://xinix.co.id/products/bono
+ */
+
 if (!function_exists('f')) {
-    function f($name, $arg = NULL) {
+    /**
+     * Some f description
+     *
+     * @param [type] $name [description]
+     * @param [type] $arg  [description]
+     *
+     * @return [type] [description]
+     */
+    function f($name, $arg = null)
+    {
         return \Bono\App::getInstance()->applyFilter($name, $arg);
     }
 }
 
 if (!function_exists('h')) {
-    function h($name, $arg = NULL) {
+    /**
+     * Some h description
+     *
+     * @param [type] $name [description]
+     * @param [type] $arg  [description]
+     *
+     * @return [type] [description]
+     */
+    function h($name, $arg = null)
+    {
         return \Bono\App::getInstance()->applyHook($name, $arg);
     }
 }
 
 if (!function_exists('l')) {
-    function l($words, $arg1 = NULL, $arg2 = NULL, $arg3 = NULL, $arg4 = NULL, $arg5 = NULL) {
+    /**
+     * [l description]
+     *
+     * @param [type] $words [description]
+     *
+     * @return [type] [description]
+     */
+    function l($words)
+    {
         return $words;
     }
 }
 
 if (!function_exists('ll')) {
-    function ll($words, $arg1 = NULL, $arg2 = NULL, $arg3 = NULL, $arg4 = NULL, $arg5 = NULL) {
+    /**
+     * [ll description]
+     *
+     * @param [type] $words [description]
+     * @param [type] $arg1  [description]
+     * @param [type] $arg2  [description]
+     * @param [type] $arg3  [description]
+     * @param [type] $arg4  [description]
+     * @param [type] $arg5  [description]
+     *
+     * @return [type] [description]
+     */
+    function ll($words, $arg1 = null, $arg2 = null, $arg3 = null, $arg4 = null, $arg5 = null)
+    {
         echo l($words, $arg1, $arg2, $arg3, $arg4, $arg5);
     }
 }

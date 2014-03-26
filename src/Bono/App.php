@@ -26,26 +26,33 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @author      Ganesha <reekoheek@gmail.com>
- * @copyright   2013 PT Sagara Xinix Solusitama
- * @link        http://xinix.co.id/products/bono
- * @license     https://raw.github.com/xinix-technology/bono/master/LICENSE
- * @package     Bono
- *
+ * @category  PHP_Framework
+ * @package   Bono
+ * @author    Ganesha <reekoheek@gmail.com>
+ * @copyright 2013 PT Sagara Xinix Solusitama
+ * @license   https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
+ * @version   0.10.0
+ * @link      http://xinix.co.id/products/bono
  */
 namespace Bono;
 
 use Slim\Slim;
 use Bono\Provider\ProviderRepository;
-use ROH\Util\Inflector;
 
 /**
  * App
  * Bono default application context
  *
+ * @category  PHP_Framework
+ * @package   Bono
+ * @author    Ganesha <reekoheek@gmail.com>
+ * @copyright 2013 PT Sagara Xinix Solusitama
+ * @license   https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
+ * @version   0.10.0
+ * @link      http://xinix.co.id/products/bono
  */
-class App extends Slim {
-
+class App extends Slim
+{
     /**
      * Application context state whether it is running or not
      * @var boolean
@@ -62,9 +69,11 @@ class App extends Slim {
 
     /**
      * Override default settings
+     *
      * @return array
      */
-    public static function getDefaultSettings() {
+    public static function getDefaultSettings()
+    {
         $settings = parent::getDefaultSettings();
 
         $settings['templates.path'] = '';
@@ -86,31 +95,39 @@ class App extends Slim {
 
     /**
      * Constructor
-     * @param array $userSettings override settings from parameter
+     *
+     * @param array $userSettings Override settings from parameter
      */
-    public function __construct(array $userSettings = array()) {
+    public function __construct(array $userSettings = array())
+    {
 
         parent::__construct($userSettings);
 
-        $this->container->singleton('request', function ($c) {
-            return new \Bono\Http\Request($c['environment']);
-        });
-
-        $this->container->singleton('response', function ($c) {
-            return new \Bono\Http\Response();
-        });
-
-        $this->container->singleton('theme', function ($c) {
-            $config = $c['settings']['bono.theme'];
-            if (is_array($config)) {
-                $themeClass = $config['class'];
-            } else {
-                $themeClass = $config;
-                $config = array();
+        $this->container->singleton(
+            'request', function ($c) {
+                return new \Bono\Http\Request($c['environment']);
             }
+        );
 
-            return ($themeClass instanceOf \Bono\Theme\Theme) ? $themeClass : new $themeClass($config);
-        });
+        $this->container->singleton(
+            'response', function ($c) {
+                return new \Bono\Http\Response();
+            }
+        );
+
+        $this->container->singleton(
+            'theme', function ($c) {
+                $config = $c['settings']['bono.theme'];
+                if (is_array($config)) {
+                    $themeClass = $config['class'];
+                } else {
+                    $themeClass = $config;
+                    $config = array();
+                }
+
+                return ($themeClass instanceOf \Bono\Theme\Theme) ? $themeClass : new $themeClass($config);
+            }
+        );
 
         $this->configureHandler();
 
@@ -129,9 +146,13 @@ class App extends Slim {
 
     /**
      * Override run method
+     *
+     * @return void
      */
-    public function run() {
-        if($this->isRunning) {
+    public function run()
+    {
+
+        if ($this->isRunning) {
             return;
         }
         $this->isRunning = true;
@@ -141,20 +162,24 @@ class App extends Slim {
         }
         $this->add(new \Bono\Middleware\CommonHandlerMiddleware());
 
-        $this->filter('css', function($file) {
-            return rtrim(dirname($_SERVER['SCRIPT_NAME']), DIRECTORY_SEPARATOR).$file;
-        });
+        $this->filter(
+            'css', function ($file) {
+                return rtrim(dirname($_SERVER['SCRIPT_NAME']), DIRECTORY_SEPARATOR).$file;
+            }
+        );
 
         parent::run();
     }
 
-
     /**
      * Check whether application has middleware with class name
-     * @param  string  $Clazz Class name
+     *
+     * @param string $Clazz Class name
+     *
      * @return boolean
      */
-    public function has($Clazz) {
+    public function has($Clazz)
+    {
         if ($Clazz[0] == '\\') {
             $Clazz = substr($Clazz, 1);
         }
@@ -163,30 +188,40 @@ class App extends Slim {
                 return true;
             }
         }
+
         return false;
     }
 
     /**
      * Configure life cycle
+     *
+     * @return void
      */
-    protected function configure() {
+    protected function configure()
+    {
         if (is_readable($configFile = $this->config('config.path') . '/config.php')) {
-            $c = include($configFile);
-            if (!is_array($c)) {
-                $c = (array) $c;
+            $config = include $configFile;
+            if (!is_array($config)) {
+                $config = (array) $config;
             }
-            $this->config($c);
+            $this->config($config);
         }
         if (is_readable($configFile = $this->config('config.path') . '/config-' . $this->config('mode') . '.php')) {
-            $c = include($configFile);
-            if (!is_array($c)) {
-                $c = (array) $c;
+            $config = include $configFile;
+            if (!is_array($config)) {
+                $config = (array) $config;
             }
-            $this->config($c);
+            $this->config($config);
         }
     }
 
-    protected function configureAliases() {
+    /**
+     * Configure the alias class name
+     *
+     * @return void
+     */
+    protected function configureAliases()
+    {
         $this->aliases = array_merge($this->aliases, $this->config('bono.aliases') ?: array());
 
         foreach ($this->aliases as $key => $value) {
@@ -199,8 +234,11 @@ class App extends Slim {
     /**
      * Configure handler
      * Right now there are 2 handlers: onNotFound and onError
+     *
+     * @return void
      */
-    protected function configureHandler() {
+    protected function configureHandler()
+    {
         $that = $this;
         $onNotFound = function () use ($that) {
             $that->view    = new \Slim\View();
@@ -235,15 +273,16 @@ class App extends Slim {
             }
 
         };
-        $onError = function (\Exception $e) use ($that, $onNotFound) {
+        $onError = function (\Exception $exception) use ($that, $onNotFound) {
 
             $errorCode = 500;
-            if ($e instanceof \Bono\Exception\RestException) {
-                $errorCode = $e->getCode();
+            if ($exception instanceof \Bono\Exception\RestException) {
+                $errorCode = $exception->getCode();
             }
 
             if ($errorCode == 404) {
                 $onNotFound();
+
                 return;
             }
 
@@ -251,11 +290,11 @@ class App extends Slim {
             $templatesPath = $that->config('app.templates.path');
             $errorTemplate = $templatesPath . DIRECTORY_SEPARATOR . 'error.php';
             $errorData     = array(
-                'stackTrace' => $e->getTraceAsString(),
-                'code'       => $e->getCode(),
-                'message'    => $e->getMessage(),
-                'file'       => $e->getFile(),
-                'line'       => $e->getLine(),
+                'stackTrace' => $exception->getTraceAsString(),
+                'code'       => $exception->getCode(),
+                'message'    => $exception->getMessage(),
+                'file'       => $exception->getFile(),
+                'line'       => $exception->getLine(),
             );
 
             if (is_readable($errorTemplate)) {
@@ -312,12 +351,15 @@ class App extends Slim {
 
     /**
      * Configure providers
+     *
+     * @return void
      */
-    protected function configureProvider() {
+    protected function configureProvider()
+    {
         $this->providerRepository = new ProviderRepository($this);
 
         $providers = $this->config('bono.providers') ?: array();
-        foreach($providers as $k => $v) {
+        foreach ($providers as $k => $v) {
 
             $Provider = $v;
             $options = null;
@@ -334,8 +376,11 @@ class App extends Slim {
 
     /**
      * Configure middlewares
+     *
+     * @return void
      */
-    protected function configureMiddleware() {
+    protected function configureMiddleware()
+    {
         $middlewares = $this->config('bono.middlewares') ?: array();
         foreach ($middlewares as $k => $v) {
             $Middleware = $v;
@@ -356,9 +401,12 @@ class App extends Slim {
 
     /**
      * Assign filter
-     * @param  string   $name       The filter name
-     * @param  mixed    $callable   A callable object
-     * @param  int      $priority   The filter priority; 0 = high, 10 = low
+     *
+     * @param string $name     The filter name
+     * @param mixed  $callable A callable object
+     * @param int    $priority The filter priority; 0 = high, 10 = low
+     *
+     * @return void
      */
     public function filter($name, $callable, $priority = 10)
     {
@@ -372,8 +420,11 @@ class App extends Slim {
 
     /**
      * Invoke filter
-     * @param  string   $name       The filter name
-     * @param  mixed    $filterArg    (Optional) Argument for filtered functions
+     *
+     * @param string $name      The filter name
+     * @param mixed  $filterArg (Optional) Argument for filtered functions
+     *
+     * @return void
      */
     public function applyFilter($name, $filterArg = null)
     {
@@ -393,6 +444,7 @@ class App extends Slim {
                 }
             }
         }
+
         return $filterArg;
     }
 
@@ -404,7 +456,8 @@ class App extends Slim {
      * Else, all listeners are returned as an associative array whose
      * keys are filter names and whose values are arrays of listeners.
      *
-     * @param  string     $name     A filter name (Optional)
+     * @param string $name A filter name (Optional)
+     *
      * @return array|null
      */
     public function getFilters($name = null)
@@ -423,14 +476,16 @@ class App extends Slim {
      * a valid filter name, only the listeners attached
      * to that filter will be cleared.
      *
-     * @param  string   $name   A filter name (Optional)
+     * @param string $name A filter name (Optional)
+     *
+     * @return void
      */
     public function clearFilters($name = null)
     {
         if (!is_null($name) && isset($this->filters[(string) $name])) {
             $this->filters[(string) $name] = array(array());
         } else {
-            foreach ($this->filters as $key => $value) {
+            foreach (array_keys($this->filters) as $key) {
                 $this->filters[$key] = array(array());
             }
         }

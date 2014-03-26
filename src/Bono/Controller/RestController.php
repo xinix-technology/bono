@@ -26,12 +26,14 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @author      Ganesha <reekoheek@gmail.com>
- * @copyright   2013 PT Sagara Xinix Solusitama
- * @link        http://xinix.co.id/products/bono
- * @license     https://raw.github.com/xinix-technology/bono/master/LICENSE
- * @package     Bono\Controller
- *
+ * @category   PHP_Framework
+ * @package    Bono
+ * @subpackage Controller
+ * @author     Ganesha <reekoheek@gmail.com>
+ * @copyright  2013 PT Sagara Xinix Solusitama
+ * @license    https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
+ * @version    0.10.0
+ * @link       http://xinix.co.id/products/bono
  */
 namespace Bono\Controller;
 
@@ -41,13 +43,25 @@ namespace Bono\Controller;
  * The class cannot be used directly since it is abstract class. Developer who
  * wants to use RestController should extend the RestController and implements
  * the <b>search, create, read, update, delete</b> methods.
+ *
+ * @category   PHP_Framework
+ * @package    Bono
+ * @subpackage Controller
+ * @author     Ganesha <reekoheek@gmail.com>
+ * @copyright  2013 PT Sagara Xinix Solusitama
+ * @license    https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
+ * @version    0.10.0
+ * @link       http://xinix.co.id/products/bono
  */
-abstract class RestController extends Controller {
-
+abstract class RestController extends Controller
+{
     /**
      * Map routes to available method
+     *
+     * @return [type] [description]
      */
-    public function mapRoute() {
+    public function mapRoute()
+    {
         $this->map('/null/create', 'create')->via('GET', 'POST');
         $this->map('/:id/read', 'read')->via('GET');
         $this->map('/:id/update', 'update')->via('GET', 'POST');
@@ -63,27 +77,43 @@ abstract class RestController extends Controller {
 
     /**
      * Search method map to / group route
+     *
+     * @return [type] [description]
      */
-    abstract function search();
+    abstract public function search();
 
     /**
      * Create method map to /null/create group route
+     *
+     * @return [type] [description]
      */
-    abstract function create();
+    abstract public function create();
 
     /**
      * Read method map to /:id group route
+     *
+     * @param [type] $id [description]
+     *
+     * @return [type] [description]
      */
-    abstract function read($id);
+    abstract public function read($id);
 
     /**
      * Update method map to /:id/update group route
+     *
+     * @param [type] $id [description]
+     *
+     * @return [type] [description]
      */
-    abstract function update($id);
+    abstract public function update($id);
 
     /**
      * Delete method map to /:id/delete group route
+     *
+     * @param [type] $id [description]
+     *
+     * @return [type] [description]
      */
-    abstract function delete($id);
+    abstract public function delete($id);
 
 }

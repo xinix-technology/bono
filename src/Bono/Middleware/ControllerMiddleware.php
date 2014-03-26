@@ -26,40 +26,39 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @author      Ganesha <reekoheek@gmail.com>
- * @copyright   2013 PT Sagara Xinix Solusitama
- * @link        http://xinix.co.id/products/bono
- * @license     https://raw.github.com/xinix-technology/bono/master/LICENSE
- * @package     Bono
- *
+ * @category   PHP_Framework
+ * @package    Bono
+ * @subpackage Middleware
+ * @author     Ganesha <reekoheek@gmail.com>
+ * @copyright  2013 PT Sagara Xinix Solusitama
+ * @license    https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
+ * @version    0.10.0
+ * @link       http://xinix.co.id/products/bono
  */
 namespace Bono\Middleware;
 
 /**
  * ControllerMiddleware
  *
- * Middleware to enable controller mechanism
- *
- * ControllerMiddleware needs Bono configuration:
- *
- * <pre>
- * array (
- *     "bono.controllers" => array (
- *         'default' => '\\\\Your\\\\Default\\\\Controller\\\\Class',
- *         'mapping' => array (
- *             '/uri' => NULL, \\\\ use default controller class
- *             '/another/uri' => '\\\\Another\\\\Controller\\\\Class', \\\\ define specific controller class
- *         )
- *     )
- * )
- * </pre>
+ * @category   PHP_Framework
+ * @package    Bono
+ * @subpackage Middleware
+ * @author     Ganesha <reekoheek@gmail.com>
+ * @copyright  2013 PT Sagara Xinix Solusitama
+ * @license    https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
+ * @version    0.10.0
+ * @link       http://xinix.co.id/products/bono
  */
-class ControllerMiddleware extends \Slim\Middleware {
+class ControllerMiddleware extends \Slim\Middleware
+{
 
     /**
      * Instantiating controllers from configuration
+     *
+     * @return [type] [description]
      */
-    public function call() {
+    public function call()
+    {
         $config = $this->app->config('bono.controllers');
         $mapping = $config['mapping'];
 
