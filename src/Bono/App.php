@@ -162,12 +162,6 @@ class App extends Slim
         }
         $this->add(new \Bono\Middleware\CommonHandlerMiddleware());
 
-        $this->filter(
-            'css', function ($file) {
-                return rtrim(dirname($_SERVER['SCRIPT_NAME']), DIRECTORY_SEPARATOR).$file;
-            }
-        );
-
         parent::run();
     }
 
@@ -396,6 +390,19 @@ class App extends Slim
     }
 
     /********************************************************************************
+    * Hooks
+    *******************************************************************************/
+
+    public function hook($name, $callable, $priority = 10, $override = false)
+    {
+        if ($override) {
+            $this->clearHooks($name);
+        }
+
+        return parent::hook($name, $callable, $priority);
+    }
+
+    /********************************************************************************
     * Filters
     *******************************************************************************/
 
@@ -408,8 +415,12 @@ class App extends Slim
      *
      * @return void
      */
-    public function filter($name, $callable, $priority = 10)
+    public function filter($name, $callable, $priority = 10, $override = false)
     {
+        if ($override) {
+            $this->clearFilters($name);
+        }
+
         if (!isset($this->filters[$name])) {
             $this->filters[$name] = array(array());
         }

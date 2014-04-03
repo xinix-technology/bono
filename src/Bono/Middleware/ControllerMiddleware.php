@@ -60,6 +60,11 @@ class ControllerMiddleware extends \Slim\Middleware
     public function call()
     {
         $config = $this->app->config('bono.controllers');
+
+        if (empty($config['mapping'])) {
+            return $this->next->call();
+        }
+
         $mapping = $config['mapping'];
 
         $resourceUri = $this->app->request->getResourceUri();

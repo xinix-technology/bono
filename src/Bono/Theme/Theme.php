@@ -54,6 +54,13 @@ use Bono\App;
 abstract class Theme
 {
 
+    public $resources = array(
+        'head.css' => array(),
+        'head.js' => array(),
+        'foot.css' => array(),
+        'foot.js' => array(),
+    );
+
     protected $extension = '.php';
 
     protected $overwrite = false;
@@ -91,6 +98,7 @@ abstract class Theme
     public function __construct($config = array())
     {
         $app = App::getInstance();
+        $that = $this;
 
         $app->filter(
             'about', function ($key) use ($app) {
@@ -112,6 +120,46 @@ abstract class Theme
 
         $d = explode(DIRECTORY_SEPARATOR.'src', __DIR__);
         $this->addBaseDirectory($d[0]);
+
+        $app->filter('theme.head.css', function($data) use ($that) {
+            $html = array(
+                "\n<!-- head.css -->",
+            );
+            foreach ($that->resources['head.css'] as $res) {
+                $html[] = '<link rel="stylesheet" href="'.Theme::base($res).'">';
+            }
+            return implode("\n", $html)."\n";
+        });
+
+        $app->filter('theme.foot.css', function($data) use ($that) {
+            $html = array(
+                "\n<!-- foot.css -->",
+            );
+            foreach ($that->resources['foot.css'] as $res) {
+                $html[] = '<link rel="stylesheet" href="'.Theme::base($res).'">';
+            }
+            return implode("\n", $html)."\n";
+        });
+
+        $app->filter('theme.head.js', function($data) use ($that) {
+            $html = array(
+                "\n<!-- head.js -->",
+            );
+            foreach ($that->resources['head.js'] as $res) {
+                $html[] = '<script type"text/javascript" src="'.Theme::base($res).'"></script>';
+            }
+            return implode("\n", $html)."\n";
+        });
+
+        $app->filter('theme.foot.js', function($data) use ($that) {
+            $html = array(
+                "\n<!-- foot.js -->",
+            );
+            foreach ($that->resources['foot.js'] as $res) {
+                $html[] = '<script type"text/javascript" src="'.Theme::base($res).'"></script>';
+            }
+            return implode("\n", $html)."\n";
+        });
 
     }
 
@@ -233,6 +281,10 @@ abstract class Theme
 
                 $srcDir = dirname($file);
                 $destDir = dirname($cwd.'/'.$path);
+
+                if (!is_dir($srcDir)) {
+                    continue;
+                }
 
                 if ($srcDir != $destDir) {
                     $this->copy($srcDir, $destDir);

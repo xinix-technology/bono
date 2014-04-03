@@ -57,8 +57,22 @@ class SessionMiddleware extends \Slim\Middleware
      *
      * @return [type] [description]
      */
-    public function call()
+    public function call() 
     {
+        $defaultOptions = array(
+            'name' => 'BSESS',
+            'lifetime' => 0,
+            'path' => \URL::base('', false),
+            'domain' => '',
+            'secure' => false,
+            'httpOnly' => false,
+        );
+
+        if (is_array($this->options)) {
+            $this->options = array_merge($defaultOptions, $this->options);
+        } else {
+            $this->options = $defaultOptions;
+        }
         $this->app->session = $this;
 
         $this->start();
@@ -66,34 +80,23 @@ class SessionMiddleware extends \Slim\Middleware
         $this->next->call();
     }
 
-    /**
-     * [start description]
-     *
-     * @return [type] [description]
-     */
-    public function start()
+    public function start() 
     {
+        session_set_cookie_params($this->options['lifetime'], $this->options['path'], $this->options['domain'], $this->options['secure'], $this->options['httpOnly']);
+        session_name($this->options['name']);
         session_start();
     }
 
-    /**
-     * [stop description]
-     *
-     * @return [type] [description]
-     */
-    public function stop()
+    public function destroy() 
     {
+        unset($_SESSION);
         session_destroy();
     }
 
-    /**
-     * [restart description]
-     *
-     * @return [type] [description]
-     */
-    public function restart()
+    public function reset() 
     {
-        $this->stop();
+        $this->destroy();
         $this->start();
+        // session_regenerate_id(true);
     }
 }

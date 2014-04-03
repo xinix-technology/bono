@@ -122,8 +122,8 @@ class Response extends \Slim\Http\Response
      */
     public function redirect($url = ':self', $status = 302)
     {
-        $parsedUrl = parse_url($url);
-        if (isset($parsedUrl['scheme'])) {
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        if(isset($scheme)) {
             return parent::redirect($url, $status);
         }
         if ($url === ':self') {
@@ -131,7 +131,6 @@ class Response extends \Slim\Http\Response
             $url = $app->request->getResourceUri();
         }
         $url = \Bono\Helper\URL::site($url);
-
         return parent::redirect($url, $status);
     }
 

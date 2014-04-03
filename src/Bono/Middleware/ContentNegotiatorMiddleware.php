@@ -69,6 +69,8 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
 
         $mediaType = $this->app->request->getMediaType();
 
+        $ext = $this->app->request->getExtension();
+
         try {
             $this->next->call();
         } catch (\Bono\Exception\RestException $e) {
@@ -86,12 +88,18 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
                 \Norm\Norm::options('include', true);
             }
 
+
             $this->app->response->setBody('');
             $this->app->view($this->options['views'][$mediaType]);
 
-            $this->app->response->headers['content-type'] = $mediaType;
-            $this->app->render($this->app->response->template(), $this->app->response->data());
-            $this->app->stop();
+
+            $status = $this->app->response->getStatus();
+            // if ($status >= 200 && $status < 300) {
+                $this->app->response->headers['content-type'] = $mediaType;
+                $this->app->render($this->app->response->template(), $this->app->response->data());
+                $this->app->stop();
+            // } else
+
         }
 
     }

@@ -61,10 +61,15 @@ class URL
      *
      * @return [type] [description]
      */
-    public static function base($uri = '')
+    public static function base($uri = '', $relativeTo = '') 
     {
-        $dir = $_SERVER['SCRIPT_NAME'];
+        $scheme = parse_url($uri, PHP_URL_SCHEME);
+        if (isset($scheme)) {
+            return $uri;
+        }
 
+
+        $dir = $_SERVER['SCRIPT_NAME'];
         if (substr($dir, -4) === '.php') {
             $dir = dirname($dir);
         }
@@ -72,8 +77,14 @@ class URL
         if ($dir === '/') {
             $dir = '';
         }
+        
+        if ($relativeTo === false) {
+            $relativeTo = $dir;
+        } elseif (!$relativeTo) {
+            $relativeTo = ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$dir;
+        }
 
-        return $dir.'/'.trim($uri, '/');
+        return $relativeTo.'/'.trim($uri, '/');
     }
 
     /**
@@ -83,8 +94,14 @@ class URL
      *
      * @return [type] [description]
      */
-    public static function site($uri = '')
+    public static function site($uri = '', $relativeTo = '') 
     {
+        $scheme = parse_url($uri, PHP_URL_SCHEME);
+        if (isset($scheme)) {
+            return $uri;
+        }
+
+        $dir = $_SERVER['SCRIPT_NAME'];
         $dir = $_SERVER['SCRIPT_NAME'];
 
         if (App::getInstance()->config('bono.prettifyURL')) {
@@ -96,6 +113,46 @@ class URL
             }
         }
 
-        return $dir.'/'.trim($uri, '/');
+        if ($relativeTo === false) {
+            $relativeTo = $dir;
+        } elseif (!$relativeTo) {
+            $relativeTo = ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$dir;
+        }
+
+        return $relativeTo.'/'.trim($uri, '/');
+    }
+
+    public static function create($uri, $qs = '', $relativeTo = '') 
+    {
+        if (empty($qs)) {
+            $qs = array();
+        }
+
+        if (is_string($qs)) {
+            $arrqs = array();
+            parse_str($qs, $arrqs);
+            $qs = $arrqs;
+        }
+
+        $uri = static::site($uri, $relativeTo);
+        $q = parse_url($uri, PHP_URL_QUERY);
+        if (empty($q)) {
+            $uri = explode('?'.$q, $uri);
+            $uri = $uri[0];
+            $arrq = array();
+            parse_str($q, $arrq);
+            $q = $arrq;
+        } else {
+            $q = array();
+        }
+
+        $q = array_merge($q, $qs);
+
+        return $uri.(($q) ? '?'.http_build_query($q) : '');
+    }
+
+    public static function current() 
+    {
+        return ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
     }
 }
