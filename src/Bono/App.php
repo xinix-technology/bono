@@ -39,6 +39,10 @@ namespace Bono;
 use Slim\Slim;
 use Bono\Provider\ProviderRepository;
 
+use Whoops\Run;
+use Whoops\Handler\PrettyPageHandler;
+use Whoops\Handler\JsonResponseHandler;
+
 /**
  * App
  * Bono default application context
@@ -101,47 +105,119 @@ class App extends Slim
     public function __construct(array $userSettings = array())
     {
 
-        parent::__construct($userSettings);
+        try {
+            parent::__construct($userSettings);
+            $this->container->singleton(
+                'request', function ($c) {
+                    return new \Bono\Http\Request($c['environment']);
+                }
+            );
 
-        $this->container->singleton(
-            'request', function ($c) {
-                return new \Bono\Http\Request($c['environment']);
+            $this->container->singleton(
+                'response', function ($c) {
+                    return new \Bono\Http\Response();
+                }
+            );
+
+            $this->container->singleton(
+                'theme', function ($c) {
+                    $config = $c['settings']['bono.theme'];
+                    if (is_array($config)) {
+                        $themeClass = $config['class'];
+                    } else {
+                        $themeClass = $config;
+                        $config = array();
+                    }
+
+                    return ($themeClass instanceOf \Bono\Theme\Theme) ? $themeClass : new $themeClass($config);
+                }
+            );
+
+            $this->configureHandler();
+
+            $this->configure();
+
+            $this->configureAliases();
+
+            $this->configureProvider();
+
+            $this->configureMiddleware();
+
+            if ($this->config('autorun')) {
+
+                $this->run();
             }
-        );
+        } catch (\Slim\Exception\Stop $e) {
+            exit;
+        } catch (\Exception $e) {
+            if ($this->config('bono.debug')) {
+                $app = $this;
+                $app->config('whoops.error_page_handler', new PrettyPageHandler);
+                $app->config('whoops.error_json_handler', new JsonResponseHandler);
+                $app->config('whoops.error_json_handler')->onlyForAjaxRequests(true);
+                $app->config('whoops.slim_info_handler', function() use ($app) {
+                    try {
+                        $request = $app->request();
+                    } catch (RuntimeException $e) {
+                        return;
+                    }
 
-        $this->container->singleton(
-            'response', function ($c) {
-                return new \Bono\Http\Response();
-            }
-        );
+                    $current_route = $app->router()->getCurrentRoute();
+                    $route_details = array();
+                    if ($current_route !== null) {
+                        $route_details = array(
+                            'Route Name'       => $current_route->getName() ?: '<none>',
+                            'Route Pattern'    => $current_route->getPattern() ?: '<none>',
+                            'Route Middleware' => $current_route->getMiddleware() ?: '<none>',
+                        );
+                    }
 
-        $this->container->singleton(
-            'theme', function ($c) {
-                $config = $c['settings']['bono.theme'];
-                if (is_array($config)) {
-                    $themeClass = $config['class'];
-                } else {
-                    $themeClass = $config;
-                    $config = array();
+                    $app->config('whoops.error_page_handler')->addDataTable('Slim Application', array_merge(array(
+                        'Charset'          => $request->headers('ACCEPT_CHARSET'),
+                        'Locale'           => $request->getContentCharset() ?: '<none>',
+                        'Application Class'=> get_class($app)
+                    ), $route_details));
+
+                    $app->config('whoops.error_page_handler')->addDataTable('Slim Application (Request)', array(
+                        'URI'         => $request->getRootUri(),
+                        'Request URI' => $request->getResourceUri(),
+                        'Path'        => $request->getPath(),
+                        'Query String'=> $request->params() ?: '<none>',
+                        'HTTP Method' => $request->getMethod(),
+                        'Script Name' => $request->getScriptName(),
+                        'Base URL'    => $request->getUrl(),
+                        'Scheme'      => $request->getScheme(),
+                        'Port'        => $request->getPort(),
+                        'Host'        => $request->getHost(),
+                    ));
+                });
+
+                // Open with editor if editor is set
+                $whoops_editor = $app->config('whoops.editor');
+                if ($whoops_editor !== null) {
+                    $app->config('whoops.error_page_handler')->setEditor($whoops_editor);
                 }
 
-                return ($themeClass instanceOf \Bono\Theme\Theme) ? $themeClass : new $themeClass($config);
+                $app->config('whoops', new Run);
+                $app->config('whoops')->pushHandler($app->config('whoops.error_page_handler'));
+                $app->config('whoops')->pushHandler($app->config('whoops.error_json_handler'));
+                $app->config('whoops')->pushHandler($app->config('whoops.slim_info_handler'));
+                $app->error(array($app->config('whoops'), Run::EXCEPTION_HANDLER));
+
+                try {
+                    $app->error($e);
+                } catch (\Slim\Exception\Stop $e) {
+                    // Do nothing
+                }
+            } else {
+                try {
+                    $this->error($e);
+                } catch (\Slim\Exception\Stop $e) {
+                    // Do nothing
+                }
             }
-        );
-
-        $this->configureHandler();
-
-        $this->configure();
-
-        $this->configureAliases();
-
-        $this->configureProvider();
-
-        $this->configureMiddleware();
-
-        if ($this->config('autorun')) {
-            $this->run();
         }
+
     }
 
     /**
