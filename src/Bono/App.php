@@ -108,19 +108,22 @@ class App extends Slim
         try {
             parent::__construct($userSettings);
             $this->container->singleton(
-                'request', function ($c) {
+                'request',
+                function ($c) {
                     return new \Bono\Http\Request($c['environment']);
                 }
             );
 
             $this->container->singleton(
-                'response', function ($c) {
+                'response',
+                function ($c) {
                     return new \Bono\Http\Response();
                 }
             );
 
             $this->container->singleton(
-                'theme', function ($c) {
+                'theme',
+                function ($c) {
                     $config = $c['settings']['bono.theme'];
                     if (is_array($config)) {
                         $themeClass = $config['class'];
@@ -129,7 +132,7 @@ class App extends Slim
                         $config = array();
                     }
 
-                    return ($themeClass instanceOf \Bono\Theme\Theme) ? $themeClass : new $themeClass($config);
+                    return ($themeClass instanceof \Bono\Theme\Theme) ? $themeClass : new $themeClass($config);
                 }
             );
 
@@ -155,42 +158,45 @@ class App extends Slim
                 $app->config('whoops.error_page_handler', new PrettyPageHandler);
                 $app->config('whoops.error_json_handler', new JsonResponseHandler);
                 $app->config('whoops.error_json_handler')->onlyForAjaxRequests(true);
-                $app->config('whoops.slim_info_handler', function() use ($app) {
-                    try {
-                        $request = $app->request();
-                    } catch (RuntimeException $e) {
-                        return;
+                $app->config(
+                    'whoops.slim_info_handler',
+                    function () use ($app) {
+                        try {
+                            $request = $app->request();
+                        } catch (RuntimeException $e) {
+                            return;
+                        }
+
+                        $current_route = $app->router()->getCurrentRoute();
+                        $route_details = array();
+                        if ($current_route !== null) {
+                            $route_details = array(
+                                'Route Name'       => $current_route->getName() ?: '<none>',
+                                'Route Pattern'    => $current_route->getPattern() ?: '<none>',
+                                'Route Middleware' => $current_route->getMiddleware() ?: '<none>',
+                            );
+                        }
+
+                        $app->config('whoops.error_page_handler')->addDataTable('Slim Application', array_merge(array(
+                            'Charset'          => $request->headers('ACCEPT_CHARSET'),
+                            'Locale'           => $request->getContentCharset() ?: '<none>',
+                            'Application Class'=> get_class($app)
+                        ), $route_details));
+
+                        $app->config('whoops.error_page_handler')->addDataTable('Slim Application (Request)', array(
+                            'URI'         => $request->getRootUri(),
+                            'Request URI' => $request->getResourceUri(),
+                            'Path'        => $request->getPath(),
+                            'Query String'=> $request->params() ?: '<none>',
+                            'HTTP Method' => $request->getMethod(),
+                            'Script Name' => $request->getScriptName(),
+                            'Base URL'    => $request->getUrl(),
+                            'Scheme'      => $request->getScheme(),
+                            'Port'        => $request->getPort(),
+                            'Host'        => $request->getHost(),
+                        ));
                     }
-
-                    $current_route = $app->router()->getCurrentRoute();
-                    $route_details = array();
-                    if ($current_route !== null) {
-                        $route_details = array(
-                            'Route Name'       => $current_route->getName() ?: '<none>',
-                            'Route Pattern'    => $current_route->getPattern() ?: '<none>',
-                            'Route Middleware' => $current_route->getMiddleware() ?: '<none>',
-                        );
-                    }
-
-                    $app->config('whoops.error_page_handler')->addDataTable('Slim Application', array_merge(array(
-                        'Charset'          => $request->headers('ACCEPT_CHARSET'),
-                        'Locale'           => $request->getContentCharset() ?: '<none>',
-                        'Application Class'=> get_class($app)
-                    ), $route_details));
-
-                    $app->config('whoops.error_page_handler')->addDataTable('Slim Application (Request)', array(
-                        'URI'         => $request->getRootUri(),
-                        'Request URI' => $request->getResourceUri(),
-                        'Path'        => $request->getPath(),
-                        'Query String'=> $request->params() ?: '<none>',
-                        'HTTP Method' => $request->getMethod(),
-                        'Script Name' => $request->getScriptName(),
-                        'Base URL'    => $request->getUrl(),
-                        'Scheme'      => $request->getScheme(),
-                        'Port'        => $request->getPort(),
-                        'Host'        => $request->getHost(),
-                    ));
-                });
+                );
 
                 // Open with editor if editor is set
                 $whoops_editor = $app->config('whoops.editor');
@@ -231,12 +237,32 @@ class App extends Slim
         if ($this->isRunning) {
             return;
         }
+
         $this->isRunning = true;
 
         if ($this->config('bono.debug')) {
             $this->add(new \Zeuxisoo\Whoops\Provider\Slim\WhoopsMiddleware());
         }
         $this->add(new \Bono\Middleware\CommonHandlerMiddleware());
+
+        $app = $this;
+
+        $this->filter(
+            'app', function () use ($app) {
+                return $app;
+            }
+        );
+
+        $this->filter(
+            'config', function ($key) use ($app) {
+                var_dump($key);
+                if ($key) {
+                    return $app->config($key);
+                } else {
+                    return $app->settings;
+                }
+            }
+        );
 
         parent::run();
     }
@@ -572,7 +598,7 @@ class App extends Slim
         if (!is_null($name) && isset($this->filters[(string) $name])) {
             $this->filters[(string) $name] = array(array());
         } else {
-            foreach (array_keys($this->filters) as $key) {
+            foreach ($this->filters as $key => $value) {
                 $this->filters[$key] = array(array());
             }
         }

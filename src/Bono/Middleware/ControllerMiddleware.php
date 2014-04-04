@@ -59,21 +59,23 @@ class ControllerMiddleware extends \Slim\Middleware
      */
     public function call()
     {
-        $config = $this->app->config('bono.controllers');
+        if (empty($this->options)) {
+            $this->options = $this->app->config('bono.controllers');
+        }
 
-        if (empty($config['mapping'])) {
+        if (empty($this->options['mapping'])) {
             return $this->next->call();
         }
 
-        $mapping = $config['mapping'];
+        $mapping = $this->options['mapping'];
 
         $resourceUri = $this->app->request->getResourceUri();
         if ($mapping) {
             foreach ($mapping as $uri => $Map) {
                 if (strpos($resourceUri, $uri) === 0) {
                     if (is_null($Map)) {
-                        if (isset($config['default'])) {
-                            $Map = $config['default'];
+                        if (isset($this->options['default'])) {
+                            $Map = $this->options['default'];
                         } else {
                             throw new \Exception('URI "'.$uri.'" does not have suitable controller class "'.$Map.'"');
                         }

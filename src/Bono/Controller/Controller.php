@@ -90,26 +90,37 @@ abstract class Controller implements IController
         $response = $this->response;
 
         $app->filter(
-            'controller.name', function () use ($clazz) {
+            'controller',
+            function () use ($controller) {
+                return $controller;
+            }
+        );
+
+        $app->filter(
+            'controller.name',
+            function () use ($clazz) {
                 return $clazz;
             }
         );
 
         $app->filter(
-            'controller.url', function ($uri) use ($controller) {
+            'controller.url',
+            function ($uri) use ($controller) {
                 return URL::site($controller->getBaseUri().$uri);
             }
         );
 
         $app->hook(
-            'bono.controller.before', function ($options) use ($app, $controller, $response) {
+            'bono.controller.before',
+            function ($options) use ($app, $controller, $response) {
                 $template = trim($controller->getBaseUri(), '/').'/'.$options['method'];
                 $response->template($template);
             }
         );
 
         $app->hook(
-            'bono.controller.after', function ($options) use ($app, $controller, $response) {
+            'bono.controller.after',
+            function ($options) use ($app, $controller, $response) {
                 $response->set($controller->getData());
             }
         );
@@ -160,26 +171,26 @@ abstract class Controller implements IController
 
         $argCount = count($args);
         switch ($argCount) {
-        case 0:
-            $this->$method();
-            break;
-        case 1:
-            $this->$method($args[0]);
-            break;
-        case 2:
-            $this->$method($args[0], $args[1]);
-            break;
-        case 3:
-            $this->$method($args[0], $args[1], $args[2]);
-            break;
-        case 4:
-            $this->$method($args[0], $args[1], $args[2], $args[3]);
-            break;
-        case 5:
-            $this->$method($args[0], $args[1], $args[2], $args[3], $args[4]);
-            break;
-        default:
-            call_user_func_array(array($this, $method), $args);
+            case 0:
+                $this->$method();
+                break;
+            case 1:
+                $this->$method($args[0]);
+                break;
+            case 2:
+                $this->$method($args[0], $args[1]);
+                break;
+            case 3:
+                $this->$method($args[0], $args[1], $args[2]);
+                break;
+            case 4:
+                $this->$method($args[0], $args[1], $args[2], $args[3]);
+                break;
+            case 5:
+                $this->$method($args[0], $args[1], $args[2], $args[3], $args[4]);
+                break;
+            default:
+                call_user_func_array(array($this, $method), $args);
         }
         $this->app->applyHook('bono.controller.after', $options, 20);
     }
@@ -201,7 +212,8 @@ abstract class Controller implements IController
         $controller = $this;
 
         return $this->app->map(
-            $this->baseUri.$uri, function () use ($controller, $method) {
+            $this->baseUri.$uri,
+            function () use ($controller, $method) {
                 $controller->delegate($method, func_get_args());
             }
         );
@@ -272,5 +284,4 @@ abstract class Controller implements IController
      * @return [type] [description]
      */
     abstract public function mapRoute();
-
 }
