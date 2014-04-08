@@ -1,4 +1,4 @@
-<h2>Create <?php echo f('controller.name') ?></h2>
+<h2>Update <?php echo f('controller.name') ?></h2>
 
 <form method="post">
 

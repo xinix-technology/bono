@@ -1,4 +1,4 @@
-<h2>Create <?php echo f('controller.name') ?></h2>
+<h2>Show <?php echo f('controller.name') ?></h2>
 
 <form method="post">
 
@@ -8,15 +8,16 @@
 
         <?php echo $field->label() ?>
 
-        <?php echo $field->input(@$entry[$name]) ?>
+        <?php echo $field->set('readonly', true)->input(@$entry[$name]) ?>
 
     </div>
 
     <?php endforeach ?>
 
     <div class="command-bar">
-        <input type="submit">
         <a href="<?php echo f('controller.url') ?>">List</a>
+        <a href="<?php echo f('controller.url', '/:id/update') ?>">Update</a>
+        <a href="<?php echo f('controller.url', '/:id/delete') ?>">Delete</a>
     </div>
 
 </form>

@@ -248,13 +248,15 @@ class App extends Slim
         $app = $this;
 
         $this->filter(
-            'app', function () use ($app) {
+            'app',
+            function () use ($app) {
                 return $app;
             }
         );
 
         $this->filter(
-            'config', function ($key) use ($app) {
+            'config',
+            function ($key) use ($app) {
                 var_dump($key);
                 if ($key) {
                     return $app->config($key);

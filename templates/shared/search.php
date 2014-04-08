@@ -1,19 +1,42 @@
-<?php var_dump(f('controller.name')) ?>
+<h2>List <?php echo f('controller.name') ?></h2>
 
-<div>
+<div class="command-bar">
     <a href="<?php echo f('controller.url', '/null/create') ?>">Create</a>
 </div>
 
 <div class="table-placeholder">
 
     <table>
+        <thead>
+            <tr>
+
+                <?php foreach(f('app')->controller->schema() as $name => $field): ?>
+
+                    <th><?php echo $field->label() ?></th>
+
+                    <?php break; ?>
+                <?php endforeach ?>
+
+            </tr>
+        </thead>
         <tbody>
 
             <?php if ($entries->count()): ?>
             <?php foreach($entries as $entry): ?>
 
             <tr>
-                <td><?php echo $entry['$id'] ?></td>
+
+                <?php foreach(f('app')->controller->schema() as $name => $field): ?>
+
+                <td>
+                    <a href="<?php echo f('controller.url', '/'.$entry['$id']) ?>">
+                    <?php echo $entry[$name] ?>
+                    </a>
+                </td>
+
+                <?php break; ?>
+                <?php endforeach ?>
+
             </tr>
 
             <?php endforeach ?>

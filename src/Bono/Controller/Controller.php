@@ -105,7 +105,12 @@ abstract class Controller implements IController
 
         $app->filter(
             'controller.url',
-            function ($uri) use ($controller) {
+            function ($uri) use ($controller, $app) {
+                // TODO right now placeholder variable of uri only :id
+                if (strpos($uri, ':id')) {
+                    $params = $app->router->getCurrentRoute()->getParams();
+                    $uri = str_replace(':id', $params['id'] ?: 'null', $uri);
+                }
                 return URL::site($controller->getBaseUri().$uri);
             }
         );
