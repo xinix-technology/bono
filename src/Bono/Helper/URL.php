@@ -61,7 +61,7 @@ class URL
      *
      * @return [type] [description]
      */
-    public static function base($uri = '', $relativeTo = '') 
+    public static function base($uri = '', $relativeTo = '')
     {
         $scheme = parse_url($uri, PHP_URL_SCHEME);
         if (isset($scheme)) {
@@ -77,7 +77,7 @@ class URL
         if ($dir === '/') {
             $dir = '';
         }
-        
+
         if ($relativeTo === false) {
             $relativeTo = $dir;
         } elseif (!$relativeTo) {
@@ -94,7 +94,7 @@ class URL
      *
      * @return [type] [description]
      */
-    public static function site($uri = '', $relativeTo = '') 
+    public static function site($uri = '', $relativeTo = '')
     {
         $scheme = parse_url($uri, PHP_URL_SCHEME);
         if (isset($scheme)) {
@@ -116,13 +116,13 @@ class URL
         if ($relativeTo === false) {
             $relativeTo = $dir;
         } elseif (!$relativeTo) {
-            $relativeTo = ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$dir;
+            $relativeTo = (!empty($_SERVER['HTTPS']) ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$dir;
         }
 
         return $relativeTo.'/'.trim($uri, '/');
     }
 
-    public static function create($uri, $qs = '', $relativeTo = '') 
+    public static function create($uri, $qs = '', $relativeTo = '')
     {
         if (empty($qs)) {
             $qs = array();
@@ -151,7 +151,7 @@ class URL
         return $uri.(($q) ? '?'.http_build_query($q) : '');
     }
 
-    public static function current() 
+    public static function current()
     {
         return ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
     }
