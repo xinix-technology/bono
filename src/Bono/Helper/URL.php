@@ -81,7 +81,7 @@ class URL
         if ($relativeTo === false) {
             $relativeTo = $dir;
         } elseif (!$relativeTo) {
-            $relativeTo = ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$dir;
+            $relativeTo = (!empty($_SERVER['HTTPS']) ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$dir;
         }
 
         return $relativeTo.'/'.trim($uri, '/');
@@ -153,6 +153,6 @@ class URL
 
     public static function current()
     {
-        return ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+        return (!empty($_SERVER['HTTPS']) ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
     }
 }
