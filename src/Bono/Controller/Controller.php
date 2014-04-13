@@ -5,7 +5,7 @@
  *
  * MIT LICENSE
  *
- * Copyright (c) 2013 PT Sagara Xinix Solusitama
+ * Copyright (c) 2014 PT Sagara Xinix Solusitama
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -30,7 +30,7 @@
  * @package    Bono
  * @subpackage Controller
  * @author     Ganesha <reekoheek@gmail.com>
- * @copyright  2013 PT Sagara Xinix Solusitama
+ * @copyright  2014 PT Sagara Xinix Solusitama
  * @license    https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
  * @version    0.10.0
  * @link       http://xinix.co.id/products/bono
@@ -47,7 +47,7 @@ use \Bono\Helper\URL;
  * @package    Bono
  * @subpackage Controller
  * @author     Ganesha <reekoheek@gmail.com>
- * @copyright  2013 PT Sagara Xinix Solusitama
+ * @copyright  2014 PT Sagara Xinix Solusitama
  * @license    https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
  * @version    0.10.0
  * @link       http://xinix.co.id/products/bono

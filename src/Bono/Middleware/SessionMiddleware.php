@@ -5,7 +5,7 @@
  *
  * MIT LICENSE
  *
- * Copyright (c) 2013 PT Sagara Xinix Solusitama
+ * Copyright (c) 2014 PT Sagara Xinix Solusitama
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -30,7 +30,7 @@
  * @package    Bono
  * @subpackage Middleware
  * @author     Ganesha <reekoheek@gmail.com>
- * @copyright  2013 PT Sagara Xinix Solusitama
+ * @copyright  2014 PT Sagara Xinix Solusitama
  * @license    https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
  * @version    0.10.0
  * @link       http://xinix.co.id/products/bono
@@ -38,13 +38,13 @@
 namespace Bono\Middleware;
 
 /**
- * ControllerMiddleware
+ * SessionMiddleware
  *
  * @category   PHP_Framework
  * @package    Bono
  * @subpackage Middleware
  * @author     Ganesha <reekoheek@gmail.com>
- * @copyright  2013 PT Sagara Xinix Solusitama
+ * @copyright  2014 PT Sagara Xinix Solusitama
  * @license    https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
  * @version    0.10.0
  * @link       http://xinix.co.id/products/bono
@@ -53,11 +53,11 @@ class SessionMiddleware extends \Slim\Middleware
 {
 
     /**
-     * [call description]
+     * Call method of SessionMiddleware
      *
-     * @return [type] [description]
+     * @return void
      */
-    public function call() 
+    public function call()
     {
         $defaultOptions = array(
             'name' => 'BSESS',
@@ -80,20 +80,26 @@ class SessionMiddleware extends \Slim\Middleware
         $this->next->call();
     }
 
-    public function start() 
+    public function start()
     {
-        session_set_cookie_params($this->options['lifetime'], $this->options['path'], $this->options['domain'], $this->options['secure'], $this->options['httpOnly']);
+        session_set_cookie_params(
+            $this->options['lifetime'],
+            $this->options['path'],
+            $this->options['domain'],
+            $this->options['secure'],
+            $this->options['httpOnly']
+        );
         session_name($this->options['name']);
         session_start();
     }
 
-    public function destroy() 
+    public function destroy()
     {
         unset($_SESSION);
         session_destroy();
     }
 
-    public function reset() 
+    public function reset()
     {
         $this->destroy();
         $this->start();

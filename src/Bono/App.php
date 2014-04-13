@@ -5,7 +5,7 @@
  *
  * MIT LICENSE
  *
- * Copyright (c) 2013 PT Sagara Xinix Solusitama
+ * Copyright (c) 2014 PT Sagara Xinix Solusitama
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,7 +29,7 @@
  * @category  PHP_Framework
  * @package   Bono
  * @author    Ganesha <reekoheek@gmail.com>
- * @copyright 2013 PT Sagara Xinix Solusitama
+ * @copyright 2014 PT Sagara Xinix Solusitama
  * @license   https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
  * @version   0.10.0
  * @link      http://xinix.co.id/products/bono
@@ -38,6 +38,7 @@ namespace Bono;
 
 use Slim\Slim;
 use Bono\Provider\ProviderRepository;
+use Bono\Exception\FatalException;
 
 use Whoops\Run;
 use Whoops\Handler\PrettyPageHandler;
@@ -50,7 +51,7 @@ use Whoops\Handler\JsonResponseHandler;
  * @category  PHP_Framework
  * @package   Bono
  * @author    Ganesha <reekoheek@gmail.com>
- * @copyright 2013 PT Sagara Xinix Solusitama
+ * @copyright 2014 PT Sagara Xinix Solusitama
  * @license   https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
  * @version   0.10.0
  * @link      http://xinix.co.id/products/bono
@@ -107,6 +108,9 @@ class App extends Slim
 
         try {
             parent::__construct($userSettings);
+
+            register_shutdown_function(array($this, 'registerFatalHandler'));
+
             $this->container->singleton(
                 'request',
                 function ($c) {
@@ -153,77 +157,101 @@ class App extends Slim
         } catch (\Slim\Exception\Stop $e) {
             exit;
         } catch (\Exception $e) {
-            if ($this->config('bono.debug')) {
-                $app = $this;
-                $app->config('whoops.error_page_handler', new PrettyPageHandler);
-                $app->config('whoops.error_json_handler', new JsonResponseHandler);
-                $app->config('whoops.error_json_handler')->onlyForAjaxRequests(true);
-                $app->config(
-                    'whoops.slim_info_handler',
-                    function () use ($app) {
-                        try {
-                            $request = $app->request();
-                        } catch (RuntimeException $e) {
-                            return;
-                        }
-
-                        $current_route = $app->router()->getCurrentRoute();
-                        $route_details = array();
-                        if ($current_route !== null) {
-                            $route_details = array(
-                                'Route Name'       => $current_route->getName() ?: '<none>',
-                                'Route Pattern'    => $current_route->getPattern() ?: '<none>',
-                                'Route Middleware' => $current_route->getMiddleware() ?: '<none>',
-                            );
-                        }
-
-                        $app->config('whoops.error_page_handler')->addDataTable('Slim Application', array_merge(array(
-                            'Charset'          => $request->headers('ACCEPT_CHARSET'),
-                            'Locale'           => $request->getContentCharset() ?: '<none>',
-                            'Application Class'=> get_class($app)
-                        ), $route_details));
-
-                        $app->config('whoops.error_page_handler')->addDataTable('Slim Application (Request)', array(
-                            'URI'         => $request->getRootUri(),
-                            'Request URI' => $request->getResourceUri(),
-                            'Path'        => $request->getPath(),
-                            'Query String'=> $request->params() ?: '<none>',
-                            'HTTP Method' => $request->getMethod(),
-                            'Script Name' => $request->getScriptName(),
-                            'Base URL'    => $request->getUrl(),
-                            'Scheme'      => $request->getScheme(),
-                            'Port'        => $request->getPort(),
-                            'Host'        => $request->getHost(),
-                        ));
-                    }
-                );
-
-                // Open with editor if editor is set
-                $whoops_editor = $app->config('whoops.editor');
-                if ($whoops_editor !== null) {
-                    $app->config('whoops.error_page_handler')->setEditor($whoops_editor);
-                }
-
-                $app->config('whoops', new Run);
-                $app->config('whoops')->pushHandler($app->config('whoops.error_page_handler'));
-                $app->config('whoops')->pushHandler($app->config('whoops.error_json_handler'));
-                $app->config('whoops')->pushHandler($app->config('whoops.slim_info_handler'));
-                $app->error(array($app->config('whoops'), Run::EXCEPTION_HANDLER));
-
-                try {
-                    $app->error($e);
-                } catch (\Slim\Exception\Stop $e) {
-                    // Do nothing
-                }
-            } else {
-                try {
-                    $this->error($e);
-                } catch (\Slim\Exception\Stop $e) {
-                    // Do nothing
-                }
-            }
+            $this->lastErrorHandler($e);
         }
 
+    }
+
+    public function registerFatalHandler()
+    {
+        $e = error_get_last();
+        if ($e) {
+            $this->lastErrorHandler(new FatalException($e));
+        }
+    }
+
+    public function lastErrorHandler(\Exception $e)
+    {
+        if ($this->config('bono.debug')) {
+            $app = $this;
+            $app->config('whoops.error_page_handler', new PrettyPageHandler);
+            $app->config('whoops.error_json_handler', new JsonResponseHandler);
+            $app->config('whoops.error_json_handler')->onlyForAjaxRequests(true);
+            $app->config(
+                'whoops.slim_info_handler',
+                function () use ($app) {
+                    try {
+                        $request = $app->request();
+                    } catch (RuntimeException $e) {
+                        return;
+                    }
+
+                    $current_route = $app->router()->getCurrentRoute();
+                    $route_details = array();
+                    if ($current_route !== null) {
+                        $route_details = array(
+                            'Route Name'       => $current_route->getName() ?: '<none>',
+                            'Route Pattern'    => $current_route->getPattern() ?: '<none>',
+                            'Route Middleware' => $current_route->getMiddleware() ?: '<none>',
+                        );
+                    }
+
+                    $app->config('whoops.error_page_handler')->addDataTable('Slim Application', array_merge(array(
+                        'Charset'          => $request->headers('ACCEPT_CHARSET'),
+                        'Locale'           => $request->getContentCharset() ?: '<none>',
+                        'Application Class'=> get_class($app)
+                    ), $route_details));
+
+                    $app->config('whoops.error_page_handler')->addDataTable('Slim Application (Request)', array(
+                        'URI'         => $request->getRootUri(),
+                        'Request URI' => $request->getResourceUri(),
+                        'Path'        => $request->getPath(),
+                        'Query String'=> $request->params() ?: '<none>',
+                        'HTTP Method' => $request->getMethod(),
+                        'Script Name' => $request->getScriptName(),
+                        'Base URL'    => $request->getUrl(),
+                        'Scheme'      => $request->getScheme(),
+                        'Port'        => $request->getPort(),
+                        'Host'        => $request->getHost(),
+                    ));
+                }
+            );
+
+            // Open with editor if editor is set
+            $whoops_editor = $app->config('whoops.editor');
+            if ($whoops_editor !== null) {
+                $app->config('whoops.error_page_handler')->setEditor($whoops_editor);
+            }
+
+            $app->config('whoops', new Run);
+            $app->config('whoops')->pushHandler($app->config('whoops.error_page_handler'));
+            $app->config('whoops')->pushHandler($app->config('whoops.error_json_handler'));
+            $app->config('whoops')->pushHandler($app->config('whoops.slim_info_handler'));
+            $app->error(array($app->config('whoops'), Run::EXCEPTION_HANDLER));
+
+            try {
+                $app->error($e);
+            } catch (\Slim\Exception\Stop $e) {
+                // Do nothing
+            }
+        } else {
+            try {
+                $this->error($e);
+            } catch (\Slim\Exception\Stop $e) {
+                // Do nothing
+            }
+        }
+    }
+
+    /**
+     * Overrude callErrorHandler
+     * @param  [type] $argument [description]
+     * @return [type]           [description]
+     */
+    protected function callErrorHandler($argument = null)
+    {
+        ob_end_clean();
+        return parent::callErrorHandler($argument);
     }
 
     /**

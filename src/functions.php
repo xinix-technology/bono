@@ -5,7 +5,7 @@
  *
  * MIT LICENSE
  *
- * Copyright (c) 2013 PT Sagara Xinix Solusitama
+ * Copyright (c) 2014 PT Sagara Xinix Solusitama
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,7 +29,7 @@
  * @category  PHP_Framework
  * @package   Bono
  * @author    Ganesha <reekoheek@gmail.com>
- * @copyright 2013 PT Sagara Xinix Solusitama
+ * @copyright 2014 PT Sagara Xinix Solusitama
  * @license   https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
  * @version   0.10.0
  * @link      http://xinix.co.id/products/bono
@@ -47,6 +47,31 @@ if (!function_exists('f')) {
     function f($name, $arg = null)
     {
         return \Bono\App::getInstance()->applyFilter($name, $arg);
+    }
+}
+
+if (!function_exists('salt')) {
+    function salt($value)
+    {
+        $config = \Bono\App::getInstance()->config('bono.salt');
+
+        if (is_string($config)) {
+            $config = array(
+                'salt' => $config,
+                'method' => 'md5',
+            );
+        } else {
+            $config['method'] = (isset($config['method'])) ? $config['method'] : 'md5';
+        }
+
+        if (empty($config['salt'])) {
+            throw new \Exception('You should define config bono.salt in order to use salt.');
+        }
+
+        if ($value) {
+            $hash = $config['method'];
+            return $hash($value.$config['salt']);
+        }
     }
 }
 
