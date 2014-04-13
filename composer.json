@@ -36,9 +36,6 @@
         "phpunit/phpunit": "3.7.22",
         "phpdocumentor/phpdocumentor": "2.*"
     },
-    "bin": [
-        "bin/bono"
-    ],
     "autoload": {
         "psr-0": {
             "Bono": "src/"
