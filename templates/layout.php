@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <title><?php echo f('about', 'title') ?: 'Application Title' ?></title>
 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
     <style>
         body {
             font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
