@@ -1,15 +1,9 @@
-Bono is php framework
-=====================
+Bono
+====
+
+Bono is PHP framework
+
+![Bono PHP](https://raw.githubusercontent.com/xinix-technology/bono/master/img/bono-logo.png "Bono PHP")
 
 
-Bono application context lifecyle:
-
-- construct
-- initialize providers
-- (if no autorun) your custom codes
-- run
-- 
-
-todo:
-
-- component spec
+Please help me to fulfill the documentation. :)
