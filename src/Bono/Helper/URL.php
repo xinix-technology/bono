@@ -63,6 +63,8 @@ class URL
      */
     public static function base($uri = '', $relativeTo = '')
     {
+        $app = App::getInstance();
+
         $scheme = parse_url($uri, PHP_URL_SCHEME);
         if (isset($scheme)) {
             return $uri;
@@ -81,7 +83,7 @@ class URL
         if ($relativeTo === false) {
             $relativeTo = $dir;
         } elseif (!$relativeTo) {
-            $relativeTo = (!empty($_SERVER['HTTPS']) ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$dir;
+            $relativeTo = $app->environment['slim.url_scheme'].'://'.$_SERVER['HTTP_HOST'].$dir;
         }
 
         return $relativeTo.'/'.trim($uri, '/');
@@ -96,6 +98,8 @@ class URL
      */
     public static function site($uri = '', $relativeTo = '')
     {
+        $app = App::getInstance();
+
         $scheme = parse_url($uri, PHP_URL_SCHEME);
         if (isset($scheme)) {
             return $uri;
@@ -104,7 +108,7 @@ class URL
         $dir = $_SERVER['SCRIPT_NAME'];
         $dir = $_SERVER['SCRIPT_NAME'];
 
-        if (App::getInstance()->config('bono.prettifyURL')) {
+        if ($app->config('bono.prettifyURL')) {
             if (substr($dir, -4) === '.php') {
                 $dir = dirname($dir);
             }
@@ -116,7 +120,7 @@ class URL
         if ($relativeTo === false) {
             $relativeTo = $dir;
         } elseif (!$relativeTo) {
-            $relativeTo = (!empty($_SERVER['HTTPS']) ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$dir;
+            $relativeTo = $app->environment['slim.url_scheme'].'://'.$_SERVER['HTTP_HOST'].$dir;
         }
 
         return $relativeTo.'/'.trim($uri, '/');
@@ -153,6 +157,7 @@ class URL
 
     public static function current()
     {
-        return (!empty($_SERVER['HTTPS']) ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+        $app = App::getInstance();
+        return $app->environment['slim.url_scheme'].'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
     }
 }

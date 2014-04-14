@@ -107,6 +107,14 @@ class App extends Slim
     {
 
         try {
+            if (isset($_SERVER['X_FORWARDED_PROTO'])) {
+                if ($_SERVER['X_FORWARDED_PROTO'] === 'http') {
+                    unset($_SERVER['HTTPS']);
+                } else {
+                    $_SERVER['HTTPS'] = 'on';
+                }
+            }
+
             parent::__construct($userSettings);
 
             register_shutdown_function(array($this, 'registerFatalHandler'));
