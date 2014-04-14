@@ -107,8 +107,8 @@ class App extends Slim
     {
 
         try {
-            if (isset($_SERVER['X_FORWARDED_PROTO'])) {
-                if ($_SERVER['X_FORWARDED_PROTO'] === 'http') {
+            if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+                if ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'http') {
                     unset($_SERVER['HTTPS']);
                 } else {
                     $_SERVER['HTTPS'] = 'on';
