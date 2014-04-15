@@ -248,14 +248,15 @@ class App extends Slim
         $app = $this;
 
         $this->filter(
-            'app', function () use ($app) {
+            'app',
+            function () use ($app) {
                 return $app;
             }
         );
 
         $this->filter(
-            'config', function ($key) use ($app) {
-                var_dump($key);
+            'config',
+            function ($key) use ($app) {
                 if ($key) {
                     return $app->config($key);
                 } else {
@@ -603,7 +604,6 @@ class App extends Slim
             }
         }
     }
-
 }
 
 require_once dirname(__FILE__).'/../functions.php';

@@ -1,0 +1,7 @@
+<phpunit bootstrap="./test/testcase/bootstrap.php">
+    <testsuites>
+        <testsuite name="Bono PHP Framework Unit testing">
+            <directory>./test/testcase</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

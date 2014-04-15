@@ -5,7 +5,7 @@
  *
  * MIT LICENSE
  *
- * Copyright (c) 2013 PT Sagara Xinix Solusitama
+ * Copyright (c) 2014 PT Sagara Xinix Solusitama
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -30,7 +30,7 @@
  * @package    Bono
  * @subpackage Helper
  * @author     Ganesha <reekoheek@gmail.com>
- * @copyright  2013 PT Sagara Xinix Solusitama
+ * @copyright  2014 PT Sagara Xinix Solusitama
  * @license    https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
  * @version    0.10.0
  * @link       http://xinix.co.id/products/bono
@@ -46,7 +46,7 @@ use \Bono\App;
  * @package    Bono
  * @subpackage Helper
  * @author     Ganesha <reekoheek@gmail.com>
- * @copyright  2013 PT Sagara Xinix Solusitama
+ * @copyright  2014 PT Sagara Xinix Solusitama
  * @license    https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
  * @version    0.10.0
  * @link       http://xinix.co.id/products/bono
@@ -61,8 +61,10 @@ class URL
      *
      * @return [type] [description]
      */
-    public static function base($uri = '', $relativeTo = '') 
+    public static function base($uri = '', $relativeTo = '')
     {
+        $app = App::getInstance();
+
         $scheme = parse_url($uri, PHP_URL_SCHEME);
         if (isset($scheme)) {
             return $uri;
@@ -77,11 +79,11 @@ class URL
         if ($dir === '/') {
             $dir = '';
         }
-        
+
         if ($relativeTo === false) {
             $relativeTo = $dir;
         } elseif (!$relativeTo) {
-            $relativeTo = ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$dir;
+            $relativeTo = $app->environment['slim.url_scheme'].'://'.$_SERVER['HTTP_HOST'].$dir;
         }
 
         return $relativeTo.'/'.trim($uri, '/');
@@ -94,17 +96,18 @@ class URL
      *
      * @return [type] [description]
      */
-    public static function site($uri = '', $relativeTo = '') 
+    public static function site($uri = '', $relativeTo = '')
     {
+        $app = App::getInstance();
+
         $scheme = parse_url($uri, PHP_URL_SCHEME);
         if (isset($scheme)) {
             return $uri;
         }
 
         $dir = $_SERVER['SCRIPT_NAME'];
-        $dir = $_SERVER['SCRIPT_NAME'];
 
-        if (App::getInstance()->config('bono.prettifyURL')) {
+        if ($app->config('bono.prettifyURL')) {
             if (substr($dir, -4) === '.php') {
                 $dir = dirname($dir);
             }
@@ -116,13 +119,13 @@ class URL
         if ($relativeTo === false) {
             $relativeTo = $dir;
         } elseif (!$relativeTo) {
-            $relativeTo = ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$dir;
+            $relativeTo = $app->environment['slim.url_scheme'].'://'.$_SERVER['HTTP_HOST'].$dir;
         }
 
         return $relativeTo.'/'.trim($uri, '/');
     }
 
-    public static function create($uri, $qs = '', $relativeTo = '') 
+    public static function create($uri, $qs = '', $relativeTo = '')
     {
         if (empty($qs)) {
             $qs = array();
@@ -151,8 +154,9 @@ class URL
         return $uri.(($q) ? '?'.http_build_query($q) : '');
     }
 
-    public static function current() 
+    public static function current()
     {
-        return ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+        $app = App::getInstance();
+        return $app->environment['slim.url_scheme'].'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
     }
 }

@@ -69,6 +69,7 @@ class CommonHandlerMiddleware extends \Slim\Middleware
             $template = $response->template();
 
             $status = $response->getStatus();
+
             if ($status >= 200 && $status < 300) {
                 $app->render($template, $response->data());
             }
@@ -80,10 +81,11 @@ class CommonHandlerMiddleware extends \Slim\Middleware
             if (ob_get_level() !== 0) {
                 ob_clean();
             }
+
             try {
                 $this->app->error($e);
             } catch (\Slim\Exception\Stop $e) {
-                // Do nothing
+                // Do Nothing
             }
         }
     }
