@@ -72,6 +72,10 @@ class ControllerMiddleware extends \Slim\Middleware
         $resourceUri = $this->app->request->getResourceUri();
         if ($mapping) {
             foreach ($mapping as $uri => $Map) {
+                if (is_int($uri)) {
+                    $uri = $Map;
+                    $Map = null;
+                }
                 if (strpos($resourceUri, $uri) === 0) {
                     if (is_null($Map)) {
                         if (isset($this->options['default'])) {
@@ -82,7 +86,9 @@ class ControllerMiddleware extends \Slim\Middleware
                     }
                     $this->app->controller = $controller = new $Map($this->app, $uri);
                     if (!$controller instanceof \Bono\Controller\IController) {
-                        throw new \Exception('Controller "'.$Map.'" should be instance of \Bono\Controller\IController.');
+                        throw new \Exception(
+                            'Controller "'.$Map.'" should be instance of \Bono\Controller\IController.'
+                        );
                     }
                     break;
                 }

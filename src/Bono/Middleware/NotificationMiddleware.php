@@ -81,6 +81,8 @@ class NotificationMiddleware extends \Slim\Middleware
             }
         );
 
+        $this->app->notification = $this;
+
         $this->next->call();
     }
 

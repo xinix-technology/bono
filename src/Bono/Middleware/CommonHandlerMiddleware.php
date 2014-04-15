@@ -78,7 +78,7 @@ class CommonHandlerMiddleware extends \Slim\Middleware
             $this->app->applyHook('slim.after');
         } catch (\Exception $e) {
             if (ob_get_level() !== 0) {
-                ob_clean();
+                ob_end_clean();
             }
             try {
                 $this->app->error($e);
