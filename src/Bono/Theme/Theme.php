@@ -101,7 +101,8 @@ abstract class Theme
         $that = $this;
 
         $app->filter(
-            'about', function ($key) use ($app) {
+            'about',
+            function ($key) use ($app) {
                 $about = $app->config('app.about');
 
                 return @$about[$key];
@@ -121,7 +122,7 @@ abstract class Theme
         $d = explode(DIRECTORY_SEPARATOR.'src', __DIR__);
         $this->addBaseDirectory($d[0]);
 
-        $app->filter('theme.head.css', function($data) use ($that) {
+        $app->filter('theme.head.css', function ($data) use ($that) {
             $html = array(
                 "\n<!-- head.css -->",
             );
@@ -131,7 +132,7 @@ abstract class Theme
             return implode("\n", $html)."\n";
         });
 
-        $app->filter('theme.foot.css', function($data) use ($that) {
+        $app->filter('theme.foot.css', function ($data) use ($that) {
             $html = array(
                 "\n<!-- foot.css -->",
             );
@@ -141,7 +142,7 @@ abstract class Theme
             return implode("\n", $html)."\n";
         });
 
-        $app->filter('theme.head.js', function($data) use ($that) {
+        $app->filter('theme.head.js', function ($data) use ($that) {
             $html = array(
                 "\n<!-- head.js -->",
             );
@@ -151,7 +152,7 @@ abstract class Theme
             return implode("\n", $html)."\n";
         });
 
-        $app->filter('theme.foot.js', function($data) use ($that) {
+        $app->filter('theme.foot.js', function ($data) use ($that) {
             $html = array(
                 "\n<!-- foot.js -->",
             );

@@ -57,7 +57,7 @@ class SessionMiddleware extends \Slim\Middleware
      *
      * @return [type] [description]
      */
-    public function call() 
+    public function call()
     {
         $defaultOptions = array(
             'name' => 'BSESS',
@@ -80,20 +80,26 @@ class SessionMiddleware extends \Slim\Middleware
         $this->next->call();
     }
 
-    public function start() 
+    public function start()
     {
-        session_set_cookie_params($this->options['lifetime'], $this->options['path'], $this->options['domain'], $this->options['secure'], $this->options['httpOnly']);
+        session_set_cookie_params(
+            $this->options['lifetime'],
+            $this->options['path'],
+            $this->options['domain'],
+            $this->options['secure'],
+            $this->options['httpOnly']
+        );
         session_name($this->options['name']);
         session_start();
     }
 
-    public function destroy() 
+    public function destroy()
     {
         unset($_SESSION);
         session_destroy();
     }
 
-    public function reset() 
+    public function reset()
     {
         $this->destroy();
         $this->start();

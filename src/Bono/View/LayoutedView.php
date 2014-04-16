@@ -75,7 +75,6 @@ class LayoutedView extends \Slim\View
      */
     public function fetch($template)
     {
-
         $app = App::getInstance();
 
         if (empty($template)) {

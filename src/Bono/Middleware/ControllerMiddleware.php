@@ -82,7 +82,9 @@ class ControllerMiddleware extends \Slim\Middleware
                     }
                     $this->app->controller = $controller = new $Map($this->app, $uri);
                     if (!$controller instanceof \Bono\Controller\IController) {
-                        throw new \Exception('Controller "'.$Map.'" should be instance of \Bono\Controller\IController.');
+                        throw new \Exception(
+                            'Controller "'.$Map.'" should be instance of \Bono\Controller\IController.'
+                        );
                     }
                     break;
                 }

@@ -88,10 +88,8 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
                 \Norm\Norm::options('include', true);
             }
 
-
             $this->app->response->setBody('');
             $this->app->view($this->options['views'][$mediaType]);
-
 
             $status = $this->app->response->getStatus();
             // if ($status >= 200 && $status < 300) {
