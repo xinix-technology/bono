@@ -258,7 +258,7 @@ class App extends Slim
      */
     protected function callErrorHandler($argument = null)
     {
-        ob_end_clean();
+        @ob_end_clean();
         return parent::callErrorHandler($argument);
     }
 
