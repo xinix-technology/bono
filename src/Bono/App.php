@@ -208,7 +208,15 @@ class App extends Slim
                 $app->config('whoops')->pushHandler($app->config('whoops.error_page_handler'));
                 $app->config('whoops')->pushHandler($app->config('whoops.error_json_handler'));
                 $app->config('whoops')->pushHandler($app->config('whoops.slim_info_handler'));
-                $app->error(array($app->config('whoops'), Run::EXCEPTION_HANDLER));
+
+                $app->error(function ($exception) use ($app) {
+                    // Log error if it's enabled
+                    if ($app->config('log.enabled')) {
+                        $app->log->error((string) $exception);
+                    }
+                    // Throw whoops exception
+                    $app->config('whoops')->handleException($exception);
+                });
 
                 try {
                     $app->error($e);
@@ -241,8 +249,9 @@ class App extends Slim
         $this->isRunning = true;
 
         if ($this->config('bono.debug')) {
-            $this->add(new \Zeuxisoo\Whoops\Provider\Slim\WhoopsMiddleware());
+            $this->add(new \Bono\Middleware\WhoopsMiddleware());
         }
+
         $this->add(new \Bono\Middleware\CommonHandlerMiddleware());
 
         $app = $this;
