@@ -1,0 +1,18 @@
+{
+  "name": "bono",
+  "version": "0.0.0",
+  "description": "",
+  "main": "",
+  "scripts": {
+    "test": "xpax test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@xinix-117.remote:22033/home/git/internal/account.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "pax-php": "^0.1.0"
+  }
+}

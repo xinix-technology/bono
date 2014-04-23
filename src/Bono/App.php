@@ -269,6 +269,7 @@ class App extends Slim
      */
     public function run()
     {
+        require_once dirname(__FILE__).'/../functions.php';
 
         if ($this->isRunning) {
             return;
@@ -641,7 +642,4 @@ class App extends Slim
             }
         }
     }
-
 }
-
-require_once dirname(__FILE__).'/../functions.php';
