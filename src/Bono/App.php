@@ -373,7 +373,7 @@ class App extends Slim
         } else {
             $settings = $this->settings;
             if (is_array($value)) {
-                if (empty($settings[$name])) {
+                if (empty($settings[$name]) || !is_array($settings[$name])) {
                     $settings[$name] = array();
                 }
                 $settings[$name] = array_merge($settings[$name], $value);
