@@ -71,6 +71,9 @@ class URL
         }
 
 
+        // We use server script name instead from slim env script name
+        // because slim env script name truncate the index.php file from the
+        // result
         $dir = $_SERVER['SCRIPT_NAME'];
         if (substr($dir, -4) === '.php') {
             $dir = dirname($dir);
@@ -83,7 +86,7 @@ class URL
         if ($relativeTo === false) {
             $relativeTo = $dir;
         } elseif (!$relativeTo) {
-            $relativeTo = $app->environment['slim.url_scheme'].'://'.$_SERVER['HTTP_HOST'].$dir;
+            $relativeTo = $app->environment['slim.url_scheme'].'://'.$app->environment['HTTP_HOST'].$dir;
         }
 
         return $relativeTo.'/'.trim($uri, '/');
@@ -105,7 +108,9 @@ class URL
             return $uri;
         }
 
-        $dir = $_SERVER['SCRIPT_NAME'];
+        // We use server script name instead from slim env script name
+        // because slim env script name truncate the index.php file from the
+        // result
         $dir = $_SERVER['SCRIPT_NAME'];
 
         if ($app->config('bono.prettifyURL')) {
@@ -120,7 +125,7 @@ class URL
         if ($relativeTo === false) {
             $relativeTo = $dir;
         } elseif (!$relativeTo) {
-            $relativeTo = $app->environment['slim.url_scheme'].'://'.$_SERVER['HTTP_HOST'].$dir;
+            $relativeTo = $app->environment['slim.url_scheme'].'://'.$app->environment['HTTP_HOST'].$dir;
         }
 
         return $relativeTo.'/'.trim($uri, '/');
@@ -158,6 +163,7 @@ class URL
     public static function current()
     {
         $app = App::getInstance();
-        return $app->environment['slim.url_scheme'].'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+        return $app->environment['slim.url_scheme'].'://'.$app->environment['HTTP_HOST'].
+            $app->environment['REQUEST_URI'];
     }
 }

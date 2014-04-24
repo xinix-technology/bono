@@ -87,6 +87,7 @@ class App extends Slim
         $settings['config.path'] = '../config';
         $settings['debug'] = true;
         $settings['autorun'] = true;
+        $settings['bono.cli'] = (PHP_SAPI === 'cli');
 
         if (!isset($settings['bono.debug'])) {
             $settings['bono.debug'] = ($settings['mode'] == 'development') ? true : false;
@@ -113,6 +114,10 @@ class App extends Slim
                 } else {
                     $_SERVER['HTTPS'] = 'on';
                 }
+            }
+
+            if (PHP_SAPI === 'cli') {
+                \Bono\CLI\Environment::getInstance();
             }
 
             parent::__construct($userSettings);
@@ -148,6 +153,7 @@ class App extends Slim
                 }
             );
 
+
             $this->configureHandler();
 
             $this->configure();
@@ -159,7 +165,6 @@ class App extends Slim
             $this->configureMiddleware();
 
             if ($this->config('autorun')) {
-
                 $this->run();
             }
         } catch (\Slim\Exception\Stop $e) {
@@ -180,7 +185,7 @@ class App extends Slim
 
     public function lastErrorHandler(\Exception $e)
     {
-        if ($this->config('bono.debug')) {
+        if ($this->config('bono.debug') && !$this->config('bono.cli')) {
             $app = $this;
             $app->config('whoops.error_page_handler', new PrettyPageHandler);
             $app->config('whoops.error_json_handler', new JsonResponseHandler);
@@ -294,7 +299,6 @@ class App extends Slim
         $this->filter(
             'config',
             function ($key) use ($app) {
-                var_dump($key);
                 if ($key) {
                     return $app->config($key);
                 } else {
@@ -350,6 +354,30 @@ class App extends Slim
         }
     }
 
+    public function config($name, $value = null)
+    {
+        if (func_num_args() === 1) {
+            if (is_array($name)) {
+                foreach ($name as $key => $value) {
+                    $this->config($key, $value);
+                }
+            } else {
+                return parent::config($name);
+            }
+        } else {
+            $settings = $this->settings;
+            if (is_array($value)) {
+                if (empty($settings[$name])) {
+                    $settings[$name] = array();
+                }
+                $settings[$name] = array_merge($settings[$name], $value);
+            } else {
+                $settings[$name] = $value;
+            }
+            $this->settings = $settings;
+        }
+    }
+
     /**
      * Configure the alias class name
      *
@@ -395,7 +423,8 @@ class App extends Slim
                         label { margin-top: 10px; display: block; font-size: .8em; font-weight: bold; }
                         pre { margin: 0}
                         blockquote { font-size: .8em; font-style: italic; margin: 0; }
-                        .row, .stack-trace { border: 1px solid #f88; padding: 5px; border-radius: 5px; background-color: #fee; overflow: auto; }
+                        .row, .stack-trace { border: 1px solid #f88; padding: 5px; border-radius: 5px;
+                            background-color: #fee; overflow: auto; }
                     </style>
                 </head>
                 <body>
@@ -494,6 +523,7 @@ class App extends Slim
         $this->providerRepository = new ProviderRepository($this);
 
         $providers = $this->config('bono.providers') ?: array();
+
         foreach ($providers as $k => $v) {
 
             $Provider = $v;

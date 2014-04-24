@@ -59,9 +59,10 @@ class CLIProvider extends Provider
      */
     public function initialize()
     {
-        if (PHP_SAPI === 'cli') {
+        if ($this->app->config('bono.cli')) {
             $this->app->container->singleton(
-                'environment', function () {
+                'environment',
+                function () {
                     return \Bono\CLI\Environment::getInstance();
                 }
             );
@@ -69,8 +70,8 @@ class CLIProvider extends Provider
             $this->app->notFound(
                 function () {
                     $argv = $GLOBALS['argv'];
-
                     echo "Undefined command\n";
+                    exit(1);
                 }
             );
 
@@ -79,6 +80,7 @@ class CLIProvider extends Provider
                     echo $err->getTraceAsString();
                     echo "\n\n";
                     echo "Done with errors\n";
+                    exit(2);
                 }
             );
 
@@ -91,5 +93,4 @@ class CLIProvider extends Provider
             }
         }
     }
-
 }

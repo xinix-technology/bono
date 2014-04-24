@@ -74,6 +74,7 @@ class Environment extends \Slim\Environment
                 array(
                     'SCRIPT_NAME'   => $_SERVER['SCRIPT_NAME'],
                     'PATH_INFO'     => '/'.implode('/', $argv),
+                    // 'HTTP_HOST'     =>
                 )
             );
 
