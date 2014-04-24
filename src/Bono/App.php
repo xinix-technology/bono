@@ -88,6 +88,7 @@ class App extends Slim
         $settings['debug'] = true;
         $settings['autorun'] = true;
         $settings['bono.cli'] = (PHP_SAPI === 'cli');
+        $settings['bono.timezone'] = 'UTC';
 
         if (!isset($settings['bono.debug'])) {
             $settings['bono.debug'] = ($settings['mode'] == 'development') ? true : false;
@@ -106,7 +107,7 @@ class App extends Slim
      */
     public function __construct(array $userSettings = array())
     {
-
+        date_default_timezone_set('UTC');
         try {
             if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
                 if ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'http') {
@@ -351,6 +352,11 @@ class App extends Slim
                 $config = (array) $config;
             }
             $this->config($config);
+        }
+
+        $timezone = $this->config('bono.timezone');
+        if (isset($timezone)) {
+            date_default_timezone_set($timezone);
         }
     }
 
