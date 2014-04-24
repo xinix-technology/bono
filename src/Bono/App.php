@@ -376,6 +376,9 @@ class App extends Slim
                 if (empty($settings[$name])) {
                     $settings[$name] = array();
                 }
+                if (! is_array($settings[$name])) {
+                    $settings[$name] = (array) $settings[$name];
+                }
                 $settings[$name] = array_merge($settings[$name], $value);
             } else {
                 $settings[$name] = $value;
