@@ -461,6 +461,7 @@ class App extends Slim
                     <blockquote>Edit this page by creating templates/notFound.php</blockquote>
                 </body>
                 </html>';
+                exit(255);
             }
 
         };
