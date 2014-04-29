@@ -163,7 +163,6 @@ class URL
     public static function current()
     {
         $app = App::getInstance();
-        return $app->environment['slim.url_scheme'].'://'.$app->environment['HTTP_HOST'].
-            $app->environment['REQUEST_URI'];
+        return $app->request->getUrl(). $app->request->getScriptName(). $app->request->getResourceUri();
     }
 }

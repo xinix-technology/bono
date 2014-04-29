@@ -69,9 +69,11 @@ class CommonHandlerMiddleware extends \Slim\Middleware
             $template = $response->template();
 
             $status = $response->getStatus();
-            // if ($status >= 200 && $status < 300) {
-            $app->render($template, $response->data());
-            // }
+
+            // will render template if not cli and have template
+            if ($template && !$this->app->config('bono.cli')) {
+                $app->render($template, $response->data());
+            }
         } catch (\Slim\Exception\Stop $e) {
             $body = ob_get_clean();
             $this->app->response()->write($body);

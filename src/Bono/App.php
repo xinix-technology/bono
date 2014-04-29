@@ -258,7 +258,7 @@ class App extends Slim
     }
 
     /**
-     * Overrude callErrorHandler
+     * Override callErrorHandler
      * @param  [type] $argument [description]
      * @return [type]           [description]
      */
@@ -266,6 +266,24 @@ class App extends Slim
     {
         @ob_end_clean();
         return parent::callErrorHandler($argument);
+    }
+
+    /**
+     * Override error
+     * @param  [type] $argument [description]
+     * @return
+     */
+    public function error($argument = null)
+    {
+        if (is_callable($argument)) {
+            return parent::error($argument);
+        } else {
+            try {
+                return parent::error($argument);
+            } catch (\Slim\Exception\Stop $e) {
+                exit(1);
+            }
+        }
     }
 
     /**
@@ -283,7 +301,7 @@ class App extends Slim
 
         $this->isRunning = true;
 
-        if ($this->config('bono.debug')) {
+        if ($this->config('bono.debug') && !$this->config('bono.cli')) {
             $this->add(new \Zeuxisoo\Whoops\Provider\Slim\WhoopsMiddleware());
         }
         $this->add(new \Bono\Middleware\CommonHandlerMiddleware());
@@ -529,6 +547,10 @@ class App extends Slim
         $this->providerRepository = new ProviderRepository($this);
 
         $providers = $this->config('bono.providers') ?: array();
+
+        if ($this->config('bono.cli')) {
+            $this->providerRepository->add(new \Bono\Provider\CLIProvider);
+        }
 
         foreach ($providers as $k => $v) {
 

@@ -60,6 +60,8 @@ class CLIProvider extends Provider
     public function initialize()
     {
         if ($this->app->config('bono.cli')) {
+            $app = $this->app;
+
             $this->app->container->singleton(
                 'environment',
                 function () {
@@ -68,19 +70,23 @@ class CLIProvider extends Provider
             );
 
             $this->app->notFound(
-                function () {
+                function () use ($app) {
                     $argv = $GLOBALS['argv'];
-                    echo "Undefined command\n";
-                    exit(1);
+                    $app->log->error('Command not found');
+                    exit(255);
                 }
             );
 
             $this->app->error(
-                function ($err) {
-                    echo $err->getTraceAsString();
-                    echo "\n\n";
-                    echo "Done with errors\n";
-                    exit(2);
+                function ($err) use ($app) {
+                    $app->log->error('');
+                    $app->log->error('Error :'. $err->getMessage());
+                    $app->log->error('File  :'. $err->getFile().':'.$err->getLine());
+                    $app->log->error('');
+                    $app->log->error($err->getTraceAsString());
+                    $app->log->error('');
+                    $app->log->error('Done with errors');
+                    exit(1);
                 }
             );
 

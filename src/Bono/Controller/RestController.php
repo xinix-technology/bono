@@ -115,5 +115,4 @@ abstract class RestController extends Controller
      * @return [type] [description]
      */
     abstract public function delete($id);
-
 }

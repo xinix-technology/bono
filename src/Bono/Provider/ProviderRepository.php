@@ -76,7 +76,10 @@ class ProviderRepository
     public function add(Provider $provider)
     {
         $provider->setApplication($this->app);
-        $this->providers[get_class($provider)] = $provider;
+        $providerName = get_class($provider);
+        if (!isset($this->providers[$providerName])) {
+            $this->providers[$providerName] = $provider;
+        }
     }
 
     /**

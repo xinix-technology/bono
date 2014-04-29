@@ -69,7 +69,8 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
 
         $mediaType = $this->app->request->getMediaType();
 
-        $ext = $this->app->request->getExtension();
+        // TODO ext not use anymore?
+        // $ext = $this->app->request->getExtension();
 
         try {
             $this->next->call();
@@ -88,10 +89,8 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
                 \Norm\Norm::options('include', true);
             }
 
-
             $this->app->response->setBody('');
             $this->app->view($this->options['views'][$mediaType]);
-
 
             $status = $this->app->response->getStatus();
             // if ($status >= 200 && $status < 300) {
