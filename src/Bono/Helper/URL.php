@@ -165,4 +165,19 @@ class URL
         $app = App::getInstance();
         return $app->request->getUrl(). $app->request->getScriptName(). $app->request->getResourceUri();
     }
+
+    public static function redirect($default = '')
+    {
+        $app = App::getInstance();
+        $continue = $app->request->get('!continue');
+        if (empty($continue)) {
+            if (empty($default)) {
+                return static::base();
+            } else {
+                return static::site($default);
+            }
+        } else {
+            return static::site($continue);
+        }
+    }
 }
