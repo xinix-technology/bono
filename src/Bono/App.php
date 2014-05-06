@@ -115,6 +115,10 @@ class App extends Slim
                 } else {
                     $_SERVER['HTTPS'] = 'on';
                 }
+
+                if (isset($_SERVER['HTTP_X_FORWARDED_PORT'])) {
+                    $_SERVER['SERVER_PORT'] = $_SERVER['HTTP_X_FORWARDED_PORT'];
+                }
             }
 
             if (PHP_SAPI === 'cli') {
