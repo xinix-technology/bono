@@ -116,6 +116,13 @@ abstract class Controller implements IController
             }
         );
 
+        $app->filter(
+            'controller.redirectUrl',
+            function ($uri) use ($controller) {
+                return $controller->getRedirectUri();
+            }
+        );
+
         $app->hook(
             'bono.controller.before',
             function ($options) use ($app, $controller, $response) {
@@ -282,6 +289,11 @@ abstract class Controller implements IController
     public function flashKeep()
     {
         $this->app->flashKeep();
+    }
+
+    public function getRedirectUri()
+    {
+        return URL::redirect($this->getBaseUri());
     }
 
     /**
