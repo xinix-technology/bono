@@ -180,4 +180,11 @@ class URL
             return static::site($continue);
         }
     }
+
+    public static function parameter($key)
+    {
+        $app = App::getInstance();
+        $params = $app->router->getCurrentRoute()->getParams();
+        return isset($params[$key]) ? $params[$key] : null;
+    }
 }
