@@ -51,6 +51,8 @@ namespace Bono\Middleware;
  */
 class ContentNegotiatorMiddleware extends \Slim\Middleware
 {
+    protected $handler;
+    protected $mediaType;
 
     /**
      * [call description]
@@ -59,47 +61,92 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
      */
     public function call()
     {
-        if (empty($this->options)) {
-            $this->options = $this->app->config('bono.contentNegotiator');
-        }
+        $app = $this->app;
 
-        if ($this->options['extensions']) {
-            $this->app->request->addMediaTypeExtensions($this->options['extensions']);
-        }
+        $this->init();
 
-        $mediaType = $this->app->request->getMediaType();
-
-        // TODO ext not use anymore?
-        // $ext = $this->app->request->getExtension();
-
-        try {
+        if ($this->hasHandler()) {
+            $app->error(array($this, 'error'));
+            $app->notFound(array($this, 'notFound'));
             $this->next->call();
-        } catch (\Bono\Exception\RestException $e) {
-            if (!isset($this->options['views'][$mediaType])) {
-                throw $e;
-            }
-            $this->app->response->status($e->getCode());
-            $this->app->response->set('errors', $e.'');
+            $this->render();
+        } else {
+            $this->next->call();
         }
 
-        if (isset($this->options['views'][$mediaType])) {
+    }
 
-            $include = $this->app->request->get('!include');
-            if (!empty($include)) {
-                \Norm\Norm::options('include', true);
-            }
+    public function init()
+    {
+        $app = $this->app;
 
-            $this->app->response->setBody('');
-            $this->app->view($this->options['views'][$mediaType]);
-
-            $status = $this->app->response->getStatus();
-            // if ($status >= 200 && $status < 300) {
-                $this->app->response->headers['content-type'] = $mediaType;
-                $this->app->render($this->app->response->template(), $this->app->response->data());
-                $this->app->stop();
-            // } else
-
+        if (empty($this->options)) {
+            $this->options = $app->config('bono.contentNegotiator');
         }
 
+        if (isset($this->options['extensions'])) {
+            $app->request->addMediaTypeExtensions($this->options['extensions']);
+        }
+
+        $this->mediaType = $app->request->getMediaType();
+
+        if (isset($this->options['views'][$this->mediaType])) {
+            $this->handler = $this->options['views'][$this->mediaType];
+        }
+    }
+
+    public function hasHandler()
+    {
+        return isset($this->handler);
+    }
+
+    public function render()
+    {
+        $app = $this->app;
+
+        $include = $app->request->get('!include');
+        if (!empty($include)) {
+            \Norm\Norm::options('include', true);
+        }
+
+        $app->response->setBody('');
+        $app->view($this->handler);
+
+        $app->response->headers['content-type'] = $this->mediaType;
+        $app->render($app->response->template(), $app->response->data());
+        $app->stop();
+    }
+
+    public function error($e)
+    {
+        header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
+        $this->app->response->status(500);
+
+        $error = array(
+            'code' => $e->getCode(),
+            'message' => $e->getMessage(),
+        );
+        if ($this->app->config('bono.debug') === true) {
+            $error['file'] = $e->getFile();
+            $error['line'] = $e->getLine();
+            $error['trace'] = $e->getTrace();
+
+        }
+        $this->app->response->set('error', $error);
+
+        $this->render();
+    }
+
+    public function notFound()
+    {
+
+        $this->app->response->status(404);
+        $error = array(
+            'code' => 404,
+            'message' => 'Resource not found',
+        );
+        $this->app->response->set('error', $error);
+
+        $this->render();
     }
 }

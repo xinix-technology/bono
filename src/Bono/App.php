@@ -39,6 +39,8 @@ namespace Bono;
 use Slim\Slim;
 use Bono\Provider\ProviderRepository;
 use Bono\Exception\FatalException;
+use Bono\Handler\ErrorHandler;
+use Bono\Handler\NotFoundHandler;
 
 use Whoops\Run;
 use Whoops\Handler\PrettyPageHandler;
@@ -107,8 +109,12 @@ class App extends Slim
      */
     public function __construct(array $userSettings = array())
     {
-        date_default_timezone_set('UTC');
+        register_shutdown_function(array($this, 'shutdownHandler'));
+        set_error_handler(array($this, 'handleErrors'));
+
         try {
+            date_default_timezone_set('UTC');
+
             if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
                 if ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'http') {
                     unset($_SERVER['HTTPS']);
@@ -126,8 +132,6 @@ class App extends Slim
             }
 
             parent::__construct($userSettings);
-
-            register_shutdown_function(array($this, 'registerFatalHandler'));
 
             $this->container->singleton(
                 'request',
@@ -169,95 +173,21 @@ class App extends Slim
 
             $this->configureMiddleware();
 
+
             if ($this->config('autorun')) {
                 $this->run();
             }
         } catch (\Slim\Exception\Stop $e) {
-            exit;
-        } catch (\Exception $e) {
-            $this->lastErrorHandler($e);
+            // noop
         }
 
     }
 
-    public function registerFatalHandler()
+    public function shutdownHandler()
     {
         $e = error_get_last();
         if ($e) {
-            $this->lastErrorHandler(new FatalException($e));
-        }
-    }
-
-    public function lastErrorHandler(\Exception $e)
-    {
-        if ($this->config('bono.debug') && !$this->config('bono.cli')) {
-            $app = $this;
-            $app->config('whoops.error_page_handler', new PrettyPageHandler);
-            $app->config('whoops.error_json_handler', new JsonResponseHandler);
-            $app->config('whoops.error_json_handler')->onlyForAjaxRequests(true);
-            $app->config(
-                'whoops.slim_info_handler',
-                function () use ($app) {
-                    try {
-                        $request = $app->request();
-                    } catch (RuntimeException $e) {
-                        return;
-                    }
-
-                    $current_route = $app->router()->getCurrentRoute();
-                    $route_details = array();
-                    if ($current_route !== null) {
-                        $route_details = array(
-                            'Route Name'       => $current_route->getName() ?: '<none>',
-                            'Route Pattern'    => $current_route->getPattern() ?: '<none>',
-                            'Route Middleware' => $current_route->getMiddleware() ?: '<none>',
-                        );
-                    }
-
-                    $app->config('whoops.error_page_handler')->addDataTable('Slim Application', array_merge(array(
-                        'Charset'          => $request->headers('ACCEPT_CHARSET'),
-                        'Locale'           => $request->getContentCharset() ?: '<none>',
-                        'Application Class'=> get_class($app)
-                    ), $route_details));
-
-                    $app->config('whoops.error_page_handler')->addDataTable('Slim Application (Request)', array(
-                        'URI'         => $request->getRootUri(),
-                        'Request URI' => $request->getResourceUri(),
-                        'Path'        => $request->getPath(),
-                        'Query String'=> $request->params() ?: '<none>',
-                        'HTTP Method' => $request->getMethod(),
-                        'Script Name' => $request->getScriptName(),
-                        'Base URL'    => $request->getUrl(),
-                        'Scheme'      => $request->getScheme(),
-                        'Port'        => $request->getPort(),
-                        'Host'        => $request->getHost(),
-                    ));
-                }
-            );
-
-            // Open with editor if editor is set
-            $whoops_editor = $app->config('whoops.editor');
-            if ($whoops_editor !== null) {
-                $app->config('whoops.error_page_handler')->setEditor($whoops_editor);
-            }
-
-            $app->config('whoops', new Run);
-            $app->config('whoops')->pushHandler($app->config('whoops.error_page_handler'));
-            $app->config('whoops')->pushHandler($app->config('whoops.error_json_handler'));
-            $app->config('whoops')->pushHandler($app->config('whoops.slim_info_handler'));
-            $app->error(array($app->config('whoops'), Run::EXCEPTION_HANDLER));
-
-            try {
-                $app->error($e);
-            } catch (\Slim\Exception\Stop $e) {
-                // Do nothing
-            }
-        } else {
-            try {
-                $this->error($e);
-            } catch (\Slim\Exception\Stop $e) {
-                // Do nothing
-            }
+            $this->configureHandler()->error(new FatalException($e));
         }
     }
 
@@ -284,9 +214,14 @@ class App extends Slim
         if (is_callable($argument)) {
             return parent::error($argument);
         } else {
-            try {
-                return parent::error($argument);
-            } catch (\Slim\Exception\Stop $e) {
+            if (isset($this->container['response'])) {
+                try {
+                    return parent::error($argument);
+                } catch (\Slim\Exception\Stop $e) {
+                    exit(1);
+                }
+            } else {
+                echo $this->callErrorHandler($argument);
                 exit(1);
             }
         }
@@ -307,9 +242,6 @@ class App extends Slim
 
         $this->isRunning = true;
 
-        if ($this->config('bono.debug') && !$this->config('bono.cli')) {
-            $this->add(new \Zeuxisoo\Whoops\Provider\Slim\WhoopsMiddleware());
-        }
         $this->add(new \Bono\Middleware\CommonHandlerMiddleware());
 
         $app = $this;
@@ -435,116 +367,18 @@ class App extends Slim
      */
     protected function configureHandler()
     {
-        $that = $this;
-        $onNotFound = function () use ($that) {
-            $that->view    = new \Slim\View();
-            $templatesPath = $that->config('app.templates.path');
-            $errorTemplate = $templatesPath . DIRECTORY_SEPARATOR . 'notFound.php';
+        if ($this->config('_handlerConfigured') !== true) {
+            $app = $this;
 
-            if (is_readable($errorTemplate)) {
-                $that->view->setTemplatesDirectory($templatesPath);
-                $that->view->display($errorTemplate, array(), 404);
-            } else {
-                $that->response->setStatus(404);
-                echo '<html>
-                <head>
-                    <title>Ugly Not Found!</title>
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-                    <style>
-                        body { font-family: Arial; font-size: 14px; line-height: 1.5; color: #333 }
-                        h1 { border-bottom: 1px solid #88f; font-weight: normal; }
-                        label { margin-top: 10px; display: block; font-size: .8em; font-weight: bold; }
-                        pre { margin: 0}
-                        blockquote { font-size: .8em; font-style: italic; margin: 0; }
-                        .row, .stack-trace { border: 1px solid #f88; padding: 5px; border-radius: 5px;
-                            background-color: #fee; overflow: auto; }
-                    </style>
-                </head>
-                <body>
-                    <h1>Ugly Not Found!</h1>
-
-                    <p>Whoops! Apparently this is not the page you are looking for.</p>
-                    <blockquote>Edit this page by creating templates/notFound.php</blockquote>
-                </body>
-                </html>';
-                exit(255);
+            if ($this->config('bono.cli') !== true) {
+                $this->notFound(array(new NotFoundHandler($this), 'handle'));
+                $this->error(array(new ErrorHandler($this), 'handle'));
             }
 
-        };
-        $onError = function (\Exception $exception) use ($that, $onNotFound) {
+            $this->config('_handlerConfigured', true);
+        }
 
-            $errorCode = 500;
-            if ($exception instanceof \Bono\Exception\RestException) {
-                $errorCode = $exception->getCode();
-            }
-
-            if ($errorCode == 404) {
-                $onNotFound();
-
-                return;
-            }
-
-            $that->view    = new \Slim\View();
-            $templatesPath = $that->config('app.templates.path');
-            $errorTemplate = $templatesPath . DIRECTORY_SEPARATOR . 'error.php';
-            $errorData     = array(
-                'stackTrace' => $exception->getTraceAsString(),
-                'code'       => $exception->getCode(),
-                'message'    => $exception->getMessage(),
-                'file'       => $exception->getFile(),
-                'line'       => $exception->getLine(),
-            );
-
-            if (is_readable($errorTemplate)) {
-                $that->view->setTemplatesDirectory($templatesPath);
-                $that->view->display($errorTemplate, $errorData, $errorCode);
-            } else {
-                $that->response->setStatus($errorCode);
-
-                echo '<html>
-                <head>
-                    <title>Ugly Error!</title>
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-                    <style>
-                        body { font-family: Arial; font-size: 14px; line-height: 1.5; color: #333 }
-                        h1 { border-bottom: 1px solid #f88; font-weight: normal; }
-                        label { margin-top: 10px; display: block; font-size: .8em; font-weight: bold; }
-                        pre { margin: 0}
-                        blockquote { font-size: .8em; font-style: italic; margin: 0; }
-                        .row, .stack-trace { border: 1px solid #f88; padding: 5px; border-radius: 5px; background-color: #fee; overflow: auto; }
-                    </style>
-                </head>
-                <body>
-                    <h1>Ugly Error!</h1>
-
-                    <p>Something wrong happened.</p>
-                    <blockquote>Edit this page by creating templates/error.php</blockquote>
-
-                    <label>Code</label>
-                    <div class="row">'.
-                        '<code>'. $errorData['code'] .'</code>'.
-                    '</div>
-
-                    <label>Message</label>
-                    <div class="row"><code>'.$errorData['message'].'</code></div>
-
-                    <label>File</label>
-                    <div class="row"><code>'. $errorData['file'] .'</code></div>
-                    <label>Line</label>
-                    <div class="row"><code>'. $errorData['line'] .'</code></div>
-
-                    <label>Stack Trace</label>
-                    <div class="stack-trace">
-                        <pre>'. $errorData['stackTrace'] .'</pre>
-                    </div>
-
-                </body>
-                </html>';
-            }
-        };
-
-        $this->error($onError);
-        $this->notFound($onNotFound);
+        return $this;
     }
 
     /**
