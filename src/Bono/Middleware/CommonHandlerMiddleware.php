@@ -66,9 +66,13 @@ class CommonHandlerMiddleware extends \Slim\Middleware
 
             $app = $this->app;
             $response = $app->response;
-            $template = $response->template();
 
             $status = $response->getStatus();
+            if ($status >= 300 && $status < 400) {
+                return;
+            }
+
+            $template = $response->template();
 
             // will render template if not cli and have template
             if (/*$template && */!$this->app->config('bono.cli')) {
@@ -77,7 +81,8 @@ class CommonHandlerMiddleware extends \Slim\Middleware
         } catch (\Slim\Exception\Stop $e) {
             $body = ob_get_clean();
             $this->app->response()->write($body);
-            $this->app->applyHook('slim.after');
+            // TODO harusnya ga perlu run slim.after
+            // $this->app->applyHook('slim.after');
         } catch (\Exception $e) {
             if (ob_get_level() !== 0) {
                 ob_end_clean();

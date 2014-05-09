@@ -60,6 +60,12 @@ class NotificationMiddleware extends \Slim\Middleware
     {
         $that = $this;
 
+        if (session_id() === '') {
+            throw new \Exception(
+                'NotificationMiddleware needs \\Bono\\Middleware\\SessionMiddleware or php native session'
+            );
+        }
+
         $this->app->hook(
             'notification.error',
             function ($options) use ($that) {
@@ -83,7 +89,16 @@ class NotificationMiddleware extends \Slim\Middleware
 
         $this->app->notification = $this;
 
+        $this->populate();
+
         $this->next->call();
+
+        $this->save();
+    }
+
+    public function save()
+    {
+        $_SESSION['notification'] = $this->messages;
     }
 
     public function notify($level, $options)
@@ -122,6 +137,9 @@ class NotificationMiddleware extends \Slim\Middleware
 
     public function show($options = null)
     {
+
+        unset($_SESSION['notification']);
+
         if (is_null($options)) {
             return $this->show(array('level' => 'error')) . "\n" . $this->show(array('level' => 'info'));
         }
@@ -139,6 +157,14 @@ class NotificationMiddleware extends \Slim\Middleware
             return $result;
         }
 
+    }
+
+    public function populate()
+    {
+        if (isset($_SESSION['notification'])) {
+            $this->messages = array_merge_recursive($this->messages, $_SESSION['notification']);
+            unset($_SESSION['notification']);
+        }
     }
 
     public function query($options)

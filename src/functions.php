@@ -122,3 +122,18 @@ if (!function_exists('ll')) {
         echo l($words, $arg1, $arg2, $arg3, $arg4, $arg5);
     }
 }
+
+if (!function_exists('val')) {
+    /**
+     * Get value from data
+     * @param  [type] $data [description]
+     * @return [type]       [description]
+     */
+    function val($data)
+    {
+        if (is_callable($data)) {
+            return $data();
+        }
+        return $data;
+    }
+}
