@@ -80,29 +80,43 @@ class SessionMiddleware extends \Slim\Middleware
         $this->next->call();
     }
 
-    public function start()
+    public function start($options = array())
     {
+        $options = array_merge($this->options, $options);
+
+        if (isset($_COOKIE['keep'])) {
+            $options['lifetime'] = $_COOKIE['keep'];
+        }
+
         session_set_cookie_params(
-            $this->options['lifetime'],
-            $this->options['path'],
-            $this->options['domain'],
-            $this->options['secure'],
-            $this->options['httpOnly']
+            $options['lifetime'],
+            $options['path'],
+            $options['domain'],
+            $options['secure'],
+            $options['httpOnly']
         );
-        session_name($this->options['name']);
+        session_name($options['name']);
         session_start();
+
+        if (!empty($options['lifetime'])) {
+            setcookie(session_name(), session_id(), time() + $options['lifetime'], $options['path']);
+            setcookie('keep', $options['lifetime'], time() + $options['lifetime'], $options['path']);
+        }
     }
 
     public function destroy()
     {
         unset($_SESSION);
         session_destroy();
+        unset($_COOKIE['keep']);
+        setcookie($this->options['name'], '', time() - 3600, $this->options['path']);
+        setcookie('keep', '', time() - 3600, $this->options['path']);
     }
 
-    public function reset()
+    public function reset($options = array())
     {
         $this->destroy();
-        $this->start();
+        $this->start($options);
         // session_regenerate_id(true);
     }
 }
