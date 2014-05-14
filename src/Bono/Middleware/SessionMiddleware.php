@@ -101,6 +101,8 @@ class SessionMiddleware extends \Slim\Middleware
         if (!empty($options['lifetime'])) {
             setcookie(session_name(), session_id(), time() + $options['lifetime'], $options['path']);
             setcookie('keep', $options['lifetime'], time() + $options['lifetime'], $options['path']);
+        } else {
+            setcookie(session_name(), session_id(), 0, $options['path']);
         }
     }
 
