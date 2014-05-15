@@ -73,6 +73,7 @@ class CommonHandlerMiddleware extends \Slim\Middleware
             }
 
             $template = $response->template();
+            $response->set('app', $app);
 
             // will render template if not cli and have template
             if (/*$template && */!$this->app->config('bono.cli')) {
