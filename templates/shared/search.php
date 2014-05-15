@@ -14,7 +14,6 @@
 
                     <th><?php echo $field->label() ?></th>
 
-                    <?php break; ?>
                 <?php endforeach ?>
 
             </tr>
@@ -30,11 +29,10 @@
 
                 <td>
                     <a href="<?php echo f('controller.url', '/'.$entry['$id']) ?>">
-                    <?php echo $entry[$name] ?>
+                    <?php echo $field->format('readonly', $entry[$name]) ?>
                     </a>
                 </td>
 
-                <?php break; ?>
                 <?php endforeach ?>
 
             </tr>

@@ -8,7 +8,7 @@
 
         <?php echo $field->label() ?>
 
-        <?php echo $field->input(@$entry[$name]) ?>
+        <?php echo $field->format('input', @$entry[$name]) ?>
 
     </div>
 
