@@ -12,7 +12,7 @@
 
                 <?php foreach(f('app')->controller->schema() as $name => $field): ?>
 
-                    <th><?php echo $field->label() ?></th>
+                    <th><?php echo $field->label(true) ?></th>
 
                 <?php endforeach ?>
 

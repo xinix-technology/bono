@@ -8,7 +8,7 @@
 
         <?php echo $field->label() ?>
 
-        <?php echo $field->set('readonly', true)->input(@$entry[$name]) ?>
+        <?php echo $field->format('readonly', @$entry[$name]) ?>
 
     </div>
 

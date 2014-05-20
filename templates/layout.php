@@ -16,14 +16,15 @@
             color: #333;
             padding: 0;
             margin: 0;
-            background-color: #eef;
+            background-color: #fefeff;
         }
 
         h1, h2 {
             padding: 0;
             margin: 0;
-            border-bottom: 1px solid #99f;
+            border-bottom: 1px solid #0096C9;
             margin-bottom: 1rem;
+            color: #0096C9;
         }
 
         h2 {
@@ -46,11 +47,11 @@
 
         table, td, th {
             border-collapse: collapse;
-            border: 1px solid #99f;
+            border: 1px solid #0096C9;
         }
 
         table th {
-            background-color: #99f;
+            background-color: #0096C9;
             color: #fff;
         }
 
@@ -60,7 +61,7 @@
         }
 
         header {
-            background-color: #99f;
+            background-color: #0096C9;
             color: #fff;
         }
 
@@ -68,6 +69,7 @@
             text-align: center;
             font-size: 1.5rem;
             margin: 0;
+            color: #fff;
 
         }
 
@@ -89,7 +91,7 @@
         .alert.info {
             color: #336;
             border: 1px solid #336;
-            background-color: #99f;
+            background-color: #0096C9;
         }
 
         .alert p {
@@ -106,7 +108,7 @@
             cursor: pointer;
             padding: .3rem 1rem;
             display: inline-block;
-            border: 1px solid #99f;
+            border: 1px solid #0096C9;
             background-color: transparent;
             line-height: 1rem;
             font-size: 1em;
