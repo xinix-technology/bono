@@ -160,10 +160,14 @@ class URL
         return $uri.(($q) ? '?'.http_build_query($q) : '');
     }
 
-    public static function current()
+    public static function current($full = false)
     {
         $app = App::getInstance();
-        return $app->request->getUrl(). $app->request->getScriptName(). $app->request->getResourceUri();
+        $url = $app->request->getUrl(). $app->request->getScriptName(). $app->request->getResourceUri();
+        if ($full) {
+            $url = static::create($url, $_SERVER['QUERY_STRING']);
+        }
+        return $url;
     }
 
     public static function redirect($default = '')
