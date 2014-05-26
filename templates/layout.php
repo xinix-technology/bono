@@ -140,7 +140,7 @@
                     M462,256.001l-27.148,27.149L257.18,125.366L77.084,283.213L50,256L257.244,71.132L462,256.001z"/>
             </svg>
         </a>
-        <h1><?php echo f('page.header', 'Bono Application') ?></h1>
+        <h1><?php echo f('page.title', 'Bono Application') ?></h1>
     </header>
 
     <main>
