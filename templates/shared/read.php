@@ -3,14 +3,14 @@
 <form method="post">
 
     <?php foreach(f('app')->controller->schema() as $name => $field): ?>
+        <?php if (!$field['hidden']): ?>
+        <div>
+            <?php echo $field->label() ?>
 
-    <div>
+            <?php echo $field->format('readonly', @$entry[$name]) ?>
 
-        <?php echo $field->label() ?>
-
-        <?php echo $field->format('readonly', @$entry[$name]) ?>
-
-    </div>
+        </div>
+        <?php endif ?>
 
     <?php endforeach ?>
 
