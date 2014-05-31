@@ -68,17 +68,17 @@ class CommonHandlerMiddleware extends \Slim\Middleware
             $response = $app->response;
 
             $status = $response->getStatus();
-            if ($status >= 300 && $status < 400) {
+
+            // if status is not 404 (already handled on App::notFound)
+            if ($this->app->config('bono.cli') || $status === 404 || ($status >= 300 && $status < 400)) {
                 return;
             }
 
             $template = $response->template();
             $response->set('app', $app);
 
-            // will render template if not cli and have template
-            if (/*$template && */!$this->app->config('bono.cli')) {
-                $app->render($template, $response->data());
-            }
+            $app->render($template, $response->data());
+
         } catch (\Slim\Exception\Stop $e) {
             $body = ob_get_clean();
             $this->app->response()->write($body);

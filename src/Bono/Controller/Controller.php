@@ -89,54 +89,36 @@ abstract class Controller implements IController
 
         $response = $this->response;
 
-        $app->filter(
-            'controller',
-            function () use ($controller) {
-                return $controller;
-            }
-        );
+        $app->filter('controller', function () use ($controller) {
+            return $controller;
+        });
 
-        $app->filter(
-            'controller.name',
-            function () use ($clazz) {
-                return $clazz;
-            }
-        );
+        $app->filter('controller.name', function () use ($clazz) {
+            return $clazz;
+        });
 
-        $app->filter(
-            'controller.url',
-            function ($uri) use ($controller, $app) {
-                // TODO right now placeholder variable of uri only :id
-                if (strpos($uri, ':id')) {
-                    $params = $app->router->getCurrentRoute()->getParams();
-                    $uri = str_replace(':id', $params['id'] ?: 'null', $uri);
-                }
-                return URL::site($controller->getBaseUri().$uri).
-                    ($app->environment['QUERY_STRING'] ? '?'.$app->environment['QUERY_STRING'] : '');
+        $app->filter('controller.url', function ($uri) use ($controller, $app) {
+            // TODO right now placeholder variable of uri only :id
+            if (strpos($uri, ':id')) {
+                $params = $app->router->getCurrentRoute()->getParams();
+                $uri = str_replace(':id', $params['id'] ?: 'null', $uri);
             }
-        );
+            return URL::site($controller->getBaseUri().$uri).
+                ($app->environment['QUERY_STRING'] ? '?'.$app->environment['QUERY_STRING'] : '');
+        });
 
-        $app->filter(
-            'controller.redirectUrl',
-            function ($uri) use ($controller) {
-                return $controller->getRedirectUri();
-            }
-        );
+        $app->filter('controller.redirectUrl', function ($uri) use ($controller) {
+            return $controller->getRedirectUri();
+        });
 
-        $app->hook(
-            'bono.controller.before',
-            function ($options) use ($app, $controller, $response) {
-                $template = trim($controller->getBaseUri(), '/').'/'.$options['method'];
-                $response->template($template);
-            }
-        );
+        $app->hook('bono.controller.before', function ($options) use ($app, $controller, $response) {
+            $template = trim($controller->getBaseUri(), '/').'/'.$options['method'];
+            $response->template($template);
+        });
 
-        $app->hook(
-            'bono.controller.after',
-            function ($options) use ($app, $controller, $response) {
-                $response->set($controller->getData());
-            }
-        );
+        $app->hook('bono.controller.after', function ($options) use ($app, $controller, $response) {
+            $response->set($controller->getData());
+        });
 
         $this->mapRoute();
     }
