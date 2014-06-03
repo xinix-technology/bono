@@ -233,7 +233,7 @@ abstract class Theme
     {
         $dir = rtrim($dir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'templates';
 
-        if (is_readable($dir.DIRECTORY_SEPARATOR.$template)) {
+        if (is_readable($dir.DIRECTORY_SEPARATOR.$template) && is_file($dir.DIRECTORY_SEPARATOR.$template)) {
             if (isset($view)) {
                 $view->setTemplatesDirectory($dir);
             }
