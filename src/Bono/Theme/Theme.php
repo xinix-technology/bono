@@ -187,6 +187,10 @@ abstract class Theme
      */
     public function resolve($template, $view = null)
     {
+        if (!$template) {
+            return '';
+        }
+
         $segments = explode('/', $template);
         $page = end($segments);
 
@@ -252,17 +256,18 @@ abstract class Theme
      */
     public function partial($template, $data)
     {
-        if (empty($template)) {
-            throw new \Exception('Cannot render null partial template.');
-        }
         $app = App::getInstance();
         $Clazz = $app->config('bono.partial.view');
 
         $view = new $Clazz;
-        $template = $this->resolve($template, $view);
+        $t = $this->resolve($template, $view);
+
+        if (empty($t)) {
+            throw new \Exception('Cant resolve template "'.$template.'"');
+        }
         $view->replace($data);
 
-        return $view->fetch($template);
+        return $view->fetch($t);
     }
 
     /**

@@ -109,6 +109,11 @@ class App extends Slim
      */
     public function __construct(array $userSettings = array())
     {
+
+        // FIXME ob started by php automatically but not skip on error
+    // thats why i put line below
+        ob_start();
+
         register_shutdown_function(array($this, 'shutdownHandler'));
         set_error_handler(array($this, 'handleErrors'));
 

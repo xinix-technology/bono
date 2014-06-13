@@ -75,6 +75,11 @@ abstract class RestController extends Controller
 
     }
 
+    public function schema()
+    {
+        return array();
+    }
+
     /**
      * Search method map to / group route
      *
