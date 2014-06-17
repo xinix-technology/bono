@@ -251,23 +251,17 @@ class App extends Slim
 
         $app = $this;
 
-        $this->filter(
-            'app',
-            function () use ($app) {
-                return $app;
-            }
-        );
+        $this->filter('app', function () use ($app) {
+            return $app;
+        });
 
-        $this->filter(
-            'config',
-            function ($key) use ($app) {
-                if ($key) {
-                    return $app->config($key);
-                } else {
-                    return $app->settings;
-                }
+        $this->filter('config', function ($key) use ($app) {
+            if ($key) {
+                return $app->config($key);
+            } else {
+                return $app->settings;
             }
-        );
+        });
 
         parent::run();
     }
