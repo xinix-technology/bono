@@ -78,6 +78,22 @@ abstract class Provider
         $this->app = $app;
     }
 
+    public function option($key = '', $value = '')
+    {
+        $numArgs = func_num_args();
+        if ($numArgs === 0) {
+            return $this->options;
+        } elseif ($numArgs === 1) {
+            if (isset($this->options[$key])) {
+                return $this->options[$key];
+            } else {
+                return null;
+            }
+        } else {
+            $this->options[$key] = $value;
+        }
+    }
+
     /**
      * [initialize description]
      *
