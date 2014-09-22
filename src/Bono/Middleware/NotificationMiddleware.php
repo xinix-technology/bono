@@ -109,6 +109,7 @@ class NotificationMiddleware extends \Slim\Middleware
                 foreach ($sub as $e) {
                     $this->notify($level, $e);
                 }
+
                 return;
             }
 
@@ -154,6 +155,7 @@ class NotificationMiddleware extends \Slim\Middleware
                 $result .= '<p>'.$message['message'].'</p>';
             }
             $result .= '</div>';
+
             return $result;
         }
 

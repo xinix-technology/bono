@@ -106,6 +106,7 @@ abstract class Theme
             if (isset($appConfig['title'])) {
                 return $appConfig['title'];
             }
+
             return $key;
         });
 
@@ -129,6 +130,7 @@ abstract class Theme
             foreach ($that->resources['head.css'] as $res) {
                 $html[] = '<link rel="stylesheet" href="'.Theme::base($res).'">';
             }
+
             return implode("\n", $html)."\n";
         });
 
@@ -139,6 +141,7 @@ abstract class Theme
             foreach ($that->resources['foot.css'] as $res) {
                 $html[] = '<link rel="stylesheet" href="'.Theme::base($res).'">';
             }
+
             return implode("\n", $html)."\n";
         });
 
@@ -149,6 +152,7 @@ abstract class Theme
             foreach ($that->resources['head.js'] as $res) {
                 $html[] = '<script type"text/javascript" src="'.Theme::base($res).'"></script>';
             }
+
             return implode("\n", $html)."\n";
         });
 
@@ -159,6 +163,7 @@ abstract class Theme
             foreach ($that->resources['foot.js'] as $res) {
                 $html[] = '<script type"text/javascript" src="'.Theme::base($res).'"></script>';
             }
+
             return implode("\n", $html)."\n";
         });
 
@@ -259,7 +264,7 @@ abstract class Theme
         $app = App::getInstance();
         $Clazz = $app->config('bono.partial.view');
 
-        $view = new $Clazz;
+        $view = new $Clazz();
         $t = $this->resolve($template, $view);
 
         if (empty($t)) {
@@ -352,5 +357,16 @@ abstract class Theme
         $dir->close();
 
         return true;
+    }
+
+    public function getView()
+    {
+        if (is_null($this->view)) {
+            $app = \App::getInstance();
+            $viewClass = $app->config('view');
+            $this->view = ($viewClass instanceof \Slim\View) ? $viewClass : new $viewClass();
+        }
+
+        return $this->view;
     }
 }

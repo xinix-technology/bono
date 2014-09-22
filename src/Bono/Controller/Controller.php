@@ -102,6 +102,7 @@ abstract class Controller implements IController
                 $params = $app->router->getCurrentRoute()->getParams();
                 $uri = str_replace(':id', $params['id'] ?: 'null', $uri);
             }
+
             return $controller->getBaseUri().$uri;
         });
 

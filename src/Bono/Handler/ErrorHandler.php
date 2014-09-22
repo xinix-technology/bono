@@ -16,14 +16,14 @@ class ErrorHandler
         $this->app = $app;
 
         if ($app->config('bono.debug') !== false) {
-            $this->run = new Run;
+            $this->run = new Run();
 
-            $handler = new PrettyPageHandler;
+            $handler = new PrettyPageHandler();
             $path = explode('/src/', __DIR__);
             $path = $path[0].'/templates/_whoops';
             $handler->setResourcesPath($path);
 
-            $jsonResponseHandler = new JsonResponseHandler;
+            $jsonResponseHandler = new JsonResponseHandler();
             $jsonResponseHandler->onlyForAjaxRequests(true);
 
             $appHandler = function () use ($app, $handler) {

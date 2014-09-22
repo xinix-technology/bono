@@ -70,7 +70,6 @@ class URL
             return $uri;
         }
 
-
         // We use server script name instead from slim env script name
         // because slim env script name truncate the index.php file from the
         // result
@@ -167,6 +166,7 @@ class URL
         if ($full) {
             $url = static::create($url, $_SERVER['QUERY_STRING']);
         }
+
         return $url;
     }
 
@@ -189,6 +189,7 @@ class URL
     {
         $app = App::getInstance();
         $params = $app->router->getCurrentRoute()->getParams();
+
         return isset($params[$key]) ? $params[$key] : null;
     }
 }

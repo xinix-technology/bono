@@ -43,8 +43,6 @@ use Bono\Handler\ErrorHandler;
 use Bono\Handler\NotFoundHandler;
 
 use Whoops\Run;
-use Whoops\Handler\PrettyPageHandler;
-use Whoops\Handler\JsonResponseHandler;
 
 /**
  * App
@@ -167,6 +165,11 @@ class App extends Slim
                 }
             );
 
+            $app = $this;
+
+            $this->view = function ($c) use ($app) {
+                return $app->theme->getView();
+            };
 
             $this->configureHandler();
 
@@ -177,7 +180,6 @@ class App extends Slim
             $this->configureProvider();
 
             $this->configureMiddleware();
-
 
             if ($this->config('autorun')) {
                 $this->run();
@@ -199,19 +201,20 @@ class App extends Slim
     /**
      * Override callErrorHandler
      * @param  [type] $argument [description]
-     * @return [type]           [description]
+     * @return [type] [description]
      */
     protected function callErrorHandler($argument = null)
     {
         if (ob_get_level()) {
             ob_end_clean();
         }
+
         return parent::callErrorHandler($argument);
     }
 
     /**
      * Override error
-     * @param  [type] $argument [description]
+     * @param [type] $argument [description]
      * @return
      */
     public function error($argument = null)
@@ -392,7 +395,7 @@ class App extends Slim
         $providers = $this->config('bono.providers') ?: array();
 
         if ($this->config('bono.cli')) {
-            $this->providerRepository->add(new \Bono\Provider\CLIProvider);
+            $this->providerRepository->add(new \Bono\Provider\CLIProvider());
         }
 
         foreach ($providers as $k => $v) {

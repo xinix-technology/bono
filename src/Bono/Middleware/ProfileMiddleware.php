@@ -74,6 +74,7 @@ class ProfileMiddleware extends Middleware
     public function display()
     {
         $app = \App::getInstance();
+
         return $app->theme->partial('profile_middleware/display', array(
             '_profile' => $this->data(),
         ));

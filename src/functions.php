@@ -70,6 +70,7 @@ if (!function_exists('salt')) {
 
         if ($value) {
             $hash = $config['method'];
+
             return $hash($value.$config['salt']);
         }
     }
@@ -127,13 +128,14 @@ if (!function_exists('val')) {
     /**
      * Get value from data
      * @param  [type] $data [description]
-     * @return [type]       [description]
+     * @return [type] [description]
      */
     function val($data)
     {
         if (is_callable($data)) {
             return $data();
         }
+
         return $data;
     }
 }
