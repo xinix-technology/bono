@@ -53,6 +53,7 @@ use Bono\App;
  */
 abstract class Theme
 {
+    protected $view = null;
 
     public $resources = array(
         'head.css' => array(),
