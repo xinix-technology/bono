@@ -247,14 +247,14 @@ abstract class Theme
     }
 
     /**
-     * [partial description]
+     * Partial generate view
      *
-     * @param [type] $template [description]
-     * @param [type] $data     [description]
+     * @param string $template Template slug
+     * @param array  $data     Data
      *
      * @return [type] [description]
      */
-    public function partial($template, $data)
+    public function partial($template, array $data = array())
     {
         $app = App::getInstance();
         $Clazz = $app->config('bono.partial.view');
