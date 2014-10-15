@@ -54,7 +54,7 @@ use \Bono\Helper\URL;
  */
 abstract class Controller implements IController
 {
-    public $clazz;
+    protected $clazz;
 
     protected $app;
 
@@ -125,6 +125,15 @@ abstract class Controller implements IController
         });
 
         $this->mapRoute();
+    }
+
+    /**
+     * Get class name of controller
+     * @return string Class name
+     */
+    public function getClass()
+    {
+        return $this->clazz;
     }
 
     /**
