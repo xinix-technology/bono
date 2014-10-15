@@ -54,7 +54,7 @@ use \Bono\App;
  */
 class JsonView extends \Slim\View
 {
-    public $contentType = 'application/json';
+    protected $contentType = 'application/json';
 
     /**
      * [display description]
