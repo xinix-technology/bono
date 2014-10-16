@@ -242,6 +242,7 @@ class App extends Slim
      */
     public function run()
     {
+        // why I put it here because you can override the implementation
         require_once dirname(__FILE__).'/../functions.php';
 
         if ($this->isRunning) {
@@ -401,10 +402,10 @@ class App extends Slim
         foreach ($providers as $k => $v) {
 
             $Provider = $v;
-            $options = null;
+            $options = array();
             if (is_string($k)) {
                 $Provider = $k;
-                $options = $v;
+                $options = $v ?: array();
             }
 
             $this->providerRepository->add(new $Provider($options));

@@ -54,16 +54,16 @@ abstract class Provider
 
     protected $app;
 
-    protected $options;
+    protected $options = array();
 
     /**
-     * [__construct description]
+     * Constructor
      *
-     * @param [type] $options [description]
+     * @param array $options
      */
-    public function __construct($options = null)
+    public function __construct(array $options = array())
     {
-        $this->options = $options;
+        $this->options = array_merge($this->options, $options);
     }
 
     /**
