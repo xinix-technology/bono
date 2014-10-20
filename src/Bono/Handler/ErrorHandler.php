@@ -19,7 +19,7 @@ class ErrorHandler
             $this->run = new Run();
 
             $handler = new PrettyPageHandler();
-            $path = explode('/src/', __DIR__);
+            $path = explode(DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR, __DIR__);
             $path = $path[0].'/templates/_whoops';
             $handler->setResourcesPath($path);
 
