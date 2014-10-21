@@ -175,9 +175,15 @@ abstract class Controller implements IController
             'method' => $method,
             'controller' => $this,
         );
+
         $this->app->applyHook('bono.controller.before', $options, 1);
 
+        $this->app->filter('controller.method', function ($humanize) use ($method) {
+            return ($humanize) ? Inflector::humanize($method) : $method;
+        });
+
         $argCount = count($args);
+
         switch ($argCount) {
             case 0:
                 $this->$method();
