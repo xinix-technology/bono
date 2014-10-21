@@ -66,26 +66,24 @@ class NotificationMiddleware extends \Slim\Middleware
             );
         }
 
-        $this->app->hook(
-            'notification.error',
-            function ($options) use ($that) {
-                $that->notify('error', $options);
-            }
-        );
+        $this->app->hook('notification.error', function ($options) use ($that) {
+            $that->notify('error', $options);
+        });
 
-        $this->app->hook(
-            'notification.info',
-            function ($options) use ($that) {
-                $that->notify('info', $options);
-            }
-        );
+        $this->app->hook('notification.info', function ($options) use ($that) {
+            $that->notify('info', $options);
+        });
 
-        $this->app->filter(
-            'notification.show',
-            function ($options = null) use ($that) {
-                return $that->show($options);
+        $this->app->filter('notification.show', function ($options = null) use ($that) {
+            return $that->show($options);
+        });
+
+        $this->app->filter('notification.message', function ($context) use ($that) {
+            $errors = $that->query(array('level'=>'error', 'context' => $context));
+            if (!empty($errors)) {
+                return $errors[0]['message'];
             }
-        );
+        });
 
         $this->app->notification = $this;
 
@@ -174,7 +172,9 @@ class NotificationMiddleware extends \Slim\Middleware
         $result = array();
         $messages = $this->messages[$options['level']];
         if (isset($options['context'])) {
-            $result = $messages[$options['context']];
+            if (isset($messages[$options['context']])) {
+                $result = $messages[$options['context']];
+            }
         } else {
             foreach ($messages as $messageGroup) {
                 foreach ($messageGroup as $message) {

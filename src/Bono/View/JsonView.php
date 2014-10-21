@@ -37,7 +37,7 @@
  */
 namespace Bono\View;
 
-use \Bono\App;
+use Bono\App;
 
 /**
  * App

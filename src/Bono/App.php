@@ -67,9 +67,9 @@ class App extends Slim
     protected $filters = array();
 
     protected $aliases = array(
-        'App' => '\\Bono\\App',
-        'URL' => '\\Bono\\Helper\\URL',
-        'Theme' => '\\Bono\\Theme\\Theme',
+        'App' => 'Bono\\App',
+        'URL' => 'Bono\\Helper\\URL',
+        'Theme' => 'Bono\\Theme\\Theme',
     );
 
     /**
@@ -83,7 +83,7 @@ class App extends Slim
 
         $settings['templates.path'] = '';
         $settings['bono.base.path'] = '..';
-        $settings['bono.theme'] = '\\Bono\\Theme\\DefaultTheme';
+        $settings['bono.theme'] = 'Bono\\Theme\\DefaultTheme';
         $settings['config.path'] = '../config';
         $settings['debug'] = true;
         $settings['autorun'] = true;
@@ -94,8 +94,8 @@ class App extends Slim
             $settings['bono.debug'] = ($settings['mode'] == 'development') ? true : false;
         }
 
-        $settings['view'] = '\\Bono\\View\\LayoutedView';
-        $settings['bono.partial.view'] = '\\Slim\\View';
+        $settings['view'] = 'Bono\\View\\LayoutedView';
+        $settings['bono.partial.view'] = 'Slim\\View';
 
         return $settings;
     }

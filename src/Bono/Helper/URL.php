@@ -37,7 +37,7 @@
  */
 namespace Bono\Helper;
 
-use \Bono\App;
+use Bono\App;
 
 /**
  * URL

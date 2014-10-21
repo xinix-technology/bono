@@ -37,8 +37,8 @@
  */
 namespace Bono\Controller;
 
-use \ROH\Util\Inflector;
-use \Bono\Helper\URL;
+use Bono\Helper\URL;
+use ROH\Util\Inflector;
 
 /**
  * Controller
@@ -67,7 +67,7 @@ abstract class Controller implements IController
     protected $data = array();
 
     /**
-     * [__construct description]
+     * Constructor
      *
      * @param [type] $app     [description]
      * @param [type] $baseUri [description]
