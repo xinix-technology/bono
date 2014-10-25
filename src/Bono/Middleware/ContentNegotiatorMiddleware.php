@@ -130,8 +130,9 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
             $error['file'] = $e->getFile();
             $error['line'] = $e->getLine();
             $error['trace'] = $e->getTrace();
-
         }
+
+        $this->app->response->reset();
         $this->app->response->set('error', $error);
 
         $this->render();
@@ -145,6 +146,8 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
             'code' => 404,
             'message' => 'Resource not found',
         );
+
+        $this->app->response->reset();
         $this->app->response->set('error', $error);
 
         $this->render();

@@ -75,15 +75,28 @@ class Response extends \Slim\Http\Response
     }
 
     /**
+     * [reset description]
+     * @return [type] [description]
+     */
+    public function reset()
+    {
+        $this->data = array();
+    }
+
+    /**
      * [get description]
      *
      * @param [type] $key [description]
      *
      * @return [type] [description]
      */
-    public function get($key)
+    public function get($key = null)
     {
-        return $this->data[$key] ?: null;
+        if (0 === func_num_args()) {
+            return $this->data;
+        } elseif (isset($this->data[$key])) {
+            return $this->data[$key];
+        }
     }
 
     /**

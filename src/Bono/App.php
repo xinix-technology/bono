@@ -38,11 +38,11 @@ namespace Bono;
 
 use Slim\Slim;
 use Bono\Provider\ProviderRepository;
-use Bono\Exception\FatalException;
 use Bono\Handler\ErrorHandler;
 use Bono\Handler\NotFoundHandler;
-
 use Whoops\Run;
+use Whoops\Handler\PrettyPageHandler;
+use Whoops\Handler\JsonResponseHandler;
 
 /**
  * App
@@ -85,7 +85,7 @@ class App extends Slim
         $settings['bono.base.path'] = '..';
         $settings['bono.theme'] = 'Bono\\Theme\\DefaultTheme';
         $settings['config.path'] = '../config';
-        $settings['debug'] = true;
+        $settings['debug'] = false;
         $settings['autorun'] = true;
         $settings['bono.cli'] = (PHP_SAPI === 'cli');
         $settings['bono.timezone'] = 'UTC';
@@ -109,61 +109,55 @@ class App extends Slim
     {
 
         // FIXME ob started by php automatically but not skip on error
-    // thats why i put line below
+        // thats why i put line below
         ob_start();
 
+        // this scope should not trigger any error {
         register_shutdown_function(array($this, 'shutdownHandler'));
-        set_error_handler(array($this, 'handleErrors'));
+        set_error_handler(array('Slim\Slim', 'handleErrors'));
+
+        date_default_timezone_set('UTC');
+
+        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+            if ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'http') {
+                unset($_SERVER['HTTPS']);
+            } else {
+                $_SERVER['HTTPS'] = 'on';
+            }
+
+            if (isset($_SERVER['HTTP_X_FORWARDED_PORT'])) {
+                $_SERVER['SERVER_PORT'] = $_SERVER['HTTP_X_FORWARDED_PORT'];
+            }
+        }
+
+        if (PHP_SAPI === 'cli') {
+            \Bono\CLI\Environment::getInstance();
+        }
+        // }
 
         try {
-            date_default_timezone_set('UTC');
-
-            if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-                if ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'http') {
-                    unset($_SERVER['HTTPS']);
-                } else {
-                    $_SERVER['HTTPS'] = 'on';
-                }
-
-                if (isset($_SERVER['HTTP_X_FORWARDED_PORT'])) {
-                    $_SERVER['SERVER_PORT'] = $_SERVER['HTTP_X_FORWARDED_PORT'];
-                }
-            }
-
-            if (PHP_SAPI === 'cli') {
-                \Bono\CLI\Environment::getInstance();
-            }
-
+            // DO NOT add something above except you sure that it wont break
             parent::__construct($userSettings);
 
-            $this->container->singleton(
-                'request',
-                function ($c) {
-                    return new \Bono\Http\Request($c['environment']);
-                }
-            );
+            $this->container->singleton('request', function ($c) {
+                return new \Bono\Http\Request($c['environment']);
+            });
 
-            $this->container->singleton(
-                'response',
-                function ($c) {
-                    return new \Bono\Http\Response();
-                }
-            );
+            $this->container->singleton('response', function ($c) {
+                return new \Bono\Http\Response();
+            });
 
-            $this->container->singleton(
-                'theme',
-                function ($c) {
-                    $config = $c['settings']['bono.theme'];
-                    if (is_array($config)) {
-                        $themeClass = $config['class'];
-                    } else {
-                        $themeClass = $config;
-                        $config = array();
-                    }
-
-                    return ($themeClass instanceof \Bono\Theme\Theme) ? $themeClass : new $themeClass($config);
+            $this->container->singleton('theme', function ($c) {
+                $config = $c['settings']['bono.theme'];
+                if (is_array($config)) {
+                    $themeClass = $config['class'];
+                } else {
+                    $themeClass = $config;
+                    $config = array();
                 }
-            );
+
+                return ($themeClass instanceof \Bono\Theme\Theme) ? $themeClass : new $themeClass($config);
+            });
 
             $app = $this;
 
@@ -171,9 +165,9 @@ class App extends Slim
                 return $app->theme->getView();
             };
 
-            $this->configureHandler();
-
             $this->configure();
+
+            $this->configureHandler();
 
             $this->configureAliases();
 
@@ -181,11 +175,15 @@ class App extends Slim
 
             $this->configureMiddleware();
 
+            $this->configureFilters();
+
             if ($this->config('autorun')) {
                 $this->run();
             }
         } catch (\Slim\Exception\Stop $e) {
             // noop
+        } catch (\Exception $e) {
+            $this->configureHandler()->error($e);
         }
 
     }
@@ -193,8 +191,13 @@ class App extends Slim
     public function shutdownHandler()
     {
         $e = error_get_last();
+
         if ($e) {
-            $this->configureHandler()->error(new FatalException($e));
+            if (!($e['type'] & error_reporting())) {
+                return;
+            }
+
+            $this->configureHandler()->error(new \ErrorException($e['message'], $e['type'], 0, $e['file'], $e['line']));
         }
     }
 
@@ -205,9 +208,7 @@ class App extends Slim
      */
     protected function callErrorHandler($argument = null)
     {
-        if (ob_get_level()) {
-            ob_end_clean();
-        }
+        while (ob_get_level() > 0) ob_end_clean();
 
         return parent::callErrorHandler($argument);
     }
@@ -226,11 +227,11 @@ class App extends Slim
                 try {
                     return parent::error($argument);
                 } catch (\Slim\Exception\Stop $e) {
-                    exit(1);
+                    // noop
                 }
             } else {
-                echo $this->callErrorHandler($argument);
-                exit(1);
+                $this->callErrorHandler($argument);
+                // noop
             }
         }
     }
@@ -252,20 +253,6 @@ class App extends Slim
         $this->isRunning = true;
 
         $this->add(new \Bono\Middleware\CommonHandlerMiddleware());
-
-        $app = $this;
-
-        $this->filter('app', function () use ($app) {
-            return $app;
-        });
-
-        $this->filter('config', function ($key) use ($app) {
-            if ($key) {
-                return $app->config($key);
-            } else {
-                return $app->settings;
-            }
-        });
 
         parent::run();
     }
@@ -289,6 +276,14 @@ class App extends Slim
         }
 
         return false;
+    }
+
+    public function debugMiddlewares() {
+        $middlewares = array();
+        foreach ($this->middleware as $key => $value) {
+            $middlewares[] = get_class($value);
+        }
+        return $middlewares;
     }
 
     /**
@@ -374,6 +369,64 @@ class App extends Slim
             $app = $this;
 
             if ($this->config('bono.cli') !== true) {
+                $this->whoops = new Run();
+
+                $handler = new PrettyPageHandler();
+                $path = explode(DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR, __DIR__);
+                $path = $path[0].'/templates/_whoops';
+                $handler->setResourcesPath($path);
+
+                $jsonResponseHandler = new JsonResponseHandler();
+                $jsonResponseHandler->onlyForAjaxRequests(true);
+
+                $appHandler = function ($err) use ($app, $handler) {
+                    if (!isset($app->request)) {
+                        return;
+                    }
+
+                    $template = 'error.php';
+                    if ($err->getMessage() === '404 Resource not found') {
+                        $template = 'notFound.php';
+                    }
+
+                    $request = $app->request;
+
+                    // Add some custom tables with relevant info about your application,
+                    // that could prove useful in the error page:
+                    $handler->addDataTable('Bono Application', array(
+                        'Template'         => 'Modify this page on templates/'.$template,
+                        'Application Class'=> get_class($app),
+                        'Charset'          => $request->headers('ACCEPT_CHARSET') ?: '<none>',
+                        'Locale'           => $request->getContentCharset() ?: '<none>',
+                    ));
+
+                    $handler->addDataTable('Bono Request', array(
+                        'URI'         => $request->getRootUri(),
+                        'Request URI' => $request->getResourceUri(),
+                        'Path'        => $request->getPath(),
+                        'Query String'=> $request->params() ?: '<none>',
+                        'HTTP Method' => $request->getMethod(),
+                        'Script Name' => $request->getScriptName(),
+                        'Base URL'    => $request->getUrl(),
+                        'Scheme'      => $request->getScheme(),
+                        'Port'        => $request->getPort(),
+                        'Host'        => $request->getHost(),
+                    ));
+
+                    // Set the title of the error page:
+                    $handler->setPageTitle("Bono got whoops! There was a problem.");
+                };
+
+                $this->whoops->pushHandler($handler);
+
+                // Add a special handler to deal with AJAX requests with an
+                // equally-informative JSON response. Since this handler is
+                // first in the stack, it will be executed before the error
+                // page handler, and will have a chance to decide if anything
+                // needs to be done.
+                $this->whoops->pushHandler($jsonResponseHandler);
+                $this->whoops->pushHandler($appHandler);
+
                 $this->notFound(array(new NotFoundHandler($this), 'handle'));
                 $this->error(array(new ErrorHandler($this), 'handle'));
             }
@@ -433,6 +486,23 @@ class App extends Slim
             $m->options = $options;
             $this->add($m);
         }
+    }
+
+    protected function configureFilters()
+    {
+        $app = $this;
+
+        $this->filter('app', function () use ($app) {
+            return $app;
+        });
+
+        $this->filter('config', function ($key) use ($app) {
+            if ($key) {
+                return $app->config($key);
+            } else {
+                return $app->settings;
+            }
+        });
     }
 
     /********************************************************************************
