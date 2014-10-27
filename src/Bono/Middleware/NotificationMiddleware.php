@@ -147,12 +147,13 @@ class NotificationMiddleware extends \Slim\Middleware
 
         if (!empty($messages)) {
 
-            $result = '<div class="alert '.$options['level'].'">';
+            $result = '<div class="alert '.$options['level'].'"><div><p>';
 
             foreach ($messages as $message) {
-                $result .= '<p>'.$message['message'].'</p>';
+                $result .= '<span>'.$message['message'].'</span> ';
             }
-            $result .= '</div>';
+
+            $result .= '</p><a href="#" class="close button warning button-outline"><i class="xn xn-close"></i>Close</a></div></div>';
 
             return $result;
         }

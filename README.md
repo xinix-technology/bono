@@ -34,7 +34,7 @@ Bono menyediakan hook dan filter pada template engine-nya. Sehingga memudahkan t
 - Xpax*
 
 **Xpax (Xinix Package) adalah package management system yang dikembangkan oleh Xinix. Xpax bisa diinstal dengan perintah npm install -g xinix-pax di Terminal Anda.
-** Untuk mendapatkan package npm bisa diinstall dari www.nodjs.org
+** Untuk mendapatkan package npm bisa diinstall dari www.nodejs.org
 
 ## Mulai membangun bersama Bono
 Mencicipi Bono secara kilat
