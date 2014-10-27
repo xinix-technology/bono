@@ -7,7 +7,7 @@ Bono is PHP framework
 
 ## Apa itu Bono?
 
-Bono adalah framework aplikasi web berbasis PHP.  Pada dasarnya Bono dibangun di atas Slim Framework. Karena itu komponen utamanya adalah rooting. Setiap halamannya memiliki representasi rooting. 
+Bono adalah framework aplikasi web berbasis PHP.  Pada dasarnya Bono dibangun di atas Slim Framework. Karena itu komponen utamanya adalah routing. Setiap halamannya memiliki representasi routing. 
 
 Bono memiliki memiliki dua elemen utama yaitu Provider dan Middleware.
 
@@ -15,17 +15,17 @@ Provider berfungsi untuk menambahkan kemampuan Bono dalam menambahkan aplikasi k
 
 Middleware untuk menambahkan fungsionalitas yang berhubungan dengan cara kerja sebuah aplikasi. Misalnya seperti penyimpanan data, penggunaan session, mengirim email, autentikasi dan autorisasi.
 
-Ada satu middleware di dalam Bono yang berfungsi mengumpulkan rooting-rooting menjadi satu grup dari bisnis unit. Yang dalam konsep MVC dikenal sebagai kontroler.
+Ada satu middleware di dalam Bono yang berfungsi mengumpulkan routing-routing menjadi satu grup dari bisnis unit. Yang dalam konsep MVC dikenal sebagai kontroler.
 
 Bono memiliki hook dan filter yang memudahkan penambahan fungsionalitas tiap-tiap middleware yang ada. Perbedaan antara hook dan filter adalah filter dapat mengembalikan nilai sementara hook tidak.
-
-## Templating pada Bono
-Bono menyediakan hook dan filter pada template engine-nya. Sehingga memudahkan theme developer dalam mengembangkan desain yang diinginkan.
 
 ## Why Bono?
 - Ridiculously fast in building application.
 - CRUD can be done in a fart.
 - Just type in your terminal, and let the system give what you need
+
+## Templating pada Bono
+Bono menyediakan hook dan filter pada template engine-nya. Sehingga memudahkan theme developer dalam mengembangkan desain yang diinginkan.
 
 ## Apa yang diperlukan untuk membangun aplikasi menggunakan Bono
 - Web Server (Apache, Nginx, dll)

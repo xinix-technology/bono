@@ -9,6 +9,7 @@ class ErrorHandler
 {
     public function handle($e)
     {
+
         $app = App::getInstance();
 
         while (ob_get_level() > 0) ob_end_clean();

@@ -114,7 +114,7 @@ class App extends Slim
 
         // this scope should not trigger any error {
         register_shutdown_function(array($this, 'shutdownHandler'));
-        set_error_handler(array('Slim\Slim', 'handleErrors'));
+        set_error_handler(array($this, 'errorHandler'));
 
         date_default_timezone_set('UTC');
 
@@ -254,7 +254,7 @@ class App extends Slim
 
         $this->add(new \Bono\Middleware\CommonHandlerMiddleware());
 
-        parent::run();
+        $this->slimRun();
     }
 
     /**
@@ -616,5 +616,68 @@ class App extends Slim
                 $this->filters[$key] = array(array());
             }
         }
+    }
+
+    public function slimRun()
+    {
+        // set_error_handler(array('\Slim\Slim', 'handleErrors'));
+
+        //Apply final outer middleware layers
+        // if ($this->config('debug')) {
+        //     //Apply pretty exceptions only in debug to avoid accidental information leakage in production
+        //     $this->add(new \Slim\Middleware\PrettyExceptions());
+        // }
+
+        //Invoke middleware and application stack
+        $this->middleware[0]->call();
+
+        //Fetch status, header, and body
+        list($status, $headers, $body) = $this->response->finalize();
+
+        // Serialize cookies (with optional encryption)
+        \Slim\Http\Util::serializeCookies($headers, $this->response->cookies, $this->settings);
+
+        //Send headers
+        if (headers_sent() === false) {
+            //Send status
+            if (strpos(PHP_SAPI, 'cgi') === 0) {
+                header(sprintf('Status: %s', \Slim\Http\Response::getMessageForCode($status)));
+            } else {
+                header(sprintf('HTTP/%s %s', $this->config('http.version'), \Slim\Http\Response::getMessageForCode($status)));
+            }
+
+            //Send headers
+            foreach ($headers as $name => $value) {
+                $hValues = explode("\n", $value);
+                foreach ($hValues as $hVal) {
+                    header("$name: $hVal", false);
+                }
+            }
+        }
+
+        //Send body, but only if it isn't a HEAD request
+        if (!$this->request->isHead()) {
+            echo $body;
+        }
+
+        restore_error_handler();
+    }
+
+    public function errorHandler($errno, $errstr = '', $errfile = '', $errline = '')
+    {
+        if (!($errno & error_reporting())) {
+            return;
+        }
+
+        switch($errno) {
+            case E_DEPRECATED:
+            case E_USER_DEPRECATED:
+                break;
+            default:
+                $e = new \ErrorException($errstr, $errno, 0, $errfile, $errline);
+                throw $e;
+                break;
+        }
+
     }
 }
