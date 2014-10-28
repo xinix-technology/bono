@@ -99,7 +99,7 @@ if (!function_exists('l')) {
      *
      * @return [type] [description]
      */
-    function l($words, $params = array())
+    function l($words)
     {
         $lang = \Bono\App::getInstance()->lang;
         if (is_null($lang)) {
@@ -116,9 +116,9 @@ if (!function_exists('ll')) {
      * @param  array  $params [description]
      * @return [type]         [description]
      */
-    function ll($words, $params = array())
+    function ll()
     {
-        echo l($words, $params);
+        echo call_user_func_array('l', func_get_args());
     }
 }
 
@@ -130,7 +130,7 @@ if (!function_exists('val')) {
      */
     function val($data)
     {
-        if (is_callable($data)) {
+        if ($data instanceof \Closure) {
             return $data();
         }
 

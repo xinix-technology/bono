@@ -56,6 +56,8 @@ class LanguageProvider extends Provider
         'debug' => true,
     );
 
+    protected $language = null;
+
     protected $dictionaries = array();
 
     protected $baseDirectories = array(
@@ -96,12 +98,19 @@ class LanguageProvider extends Provider
         });
     }
 
-    public function translate($words, $params = array(), $lang = null)
+    public function translate($words)
     {
-        $translated = $this->getTranslation($words, $this->getAcceptedLanguage($lang));
+        $translated = $this->getTranslation($words, $this->lang());
 
-        if (empty($params) || !is_array($params)) {
+        if (1 === func_num_args()) {
             return $translated;
+        }
+
+        $args = func_get_args();
+        if (is_array($args[1])) {
+            $params = $args[1];
+        } else {
+            $params = array_slice($args, 1);
         }
 
         foreach ($params as $key => $value) {
@@ -111,9 +120,14 @@ class LanguageProvider extends Provider
         return $translated;
     }
 
-    public function getAcceptedLanguage($lang = null)
+    public function lang($lang = null)
     {
-        return strtolower(str_replace('_', '-', trim($lang ?: val($this->options['lang']))));
+        if ($lang) {
+            $this->language = $lang;
+            return $this;
+        } else {
+            return strtolower(str_replace('_', '-', trim($this->language ?: val($this->options['lang']))));
+        }
     }
 
     public function loadLanguageDirectory($dir)
