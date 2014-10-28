@@ -52,19 +52,49 @@ use ROH\Util\Inflector;
  * @version    0.10.0
  * @link       http://xinix.co.id/products/bono
  */
-abstract class Controller implements IController
+abstract class Controller implements \ArrayAccess
 {
+    /**
+     * [$clazz description]
+     * @var [type]
+     */
     protected $clazz;
 
+    /**
+     * [$app description]
+     * @var [type]
+     */
     protected $app;
 
+    /**
+     * [$request description]
+     * @var [type]
+     */
     protected $request;
 
+    /**
+     * [$response description]
+     * @var [type]
+     */
     protected $response;
 
+    /**
+     * [$baseUri description]
+     * @var [type]
+     */
     protected $baseUri;
 
+    /**
+     * [$data description]
+     * @var array
+     */
     protected $data = array();
+
+    /**
+     * [$routeData description]
+     * @var array
+     */
+    protected $routeData = array();
 
     /**
      * Constructor
@@ -81,9 +111,6 @@ abstract class Controller implements IController
         $this->baseUri = $baseUri;
         $exploded = explode('/', $baseUri);
         $clazz = $this->clazz = Inflector::classify(end($exploded));
-
-        // DEPRECATED reekoheek: remove inside dependency of _controller to view
-        // $this->data['_controller'] = $controller = $this;
 
         $controller = $this;
 
@@ -107,7 +134,11 @@ abstract class Controller implements IController
         });
 
         $app->filter('controller.url', function ($uri) use ($controller, $app) {
-            return URL::site(f('controller.uri', $uri)).
+            return URL::site(f('controller.uri', $uri));
+        });
+
+        $app->filter('controller.urlWithQuery', function ($uri) use ($controller, $app) {
+            return f('controller.url', $uri).
                 ($app->environment['QUERY_STRING'] ? '?'.$app->environment['QUERY_STRING'] : '');
         });
 
@@ -116,12 +147,12 @@ abstract class Controller implements IController
         });
 
         $app->hook('bono.controller.before', function ($options) use ($app, $controller, $response) {
-            $template = trim($controller->getBaseUri(), '/').'/'.$options['method'];
+            $template = $controller->getTemplate($options['method']);
             $response->template($template);
         });
 
         $app->hook('bono.controller.after', function ($options) use ($app, $controller, $response) {
-            $response->set($controller->getData());
+            $response->data($controller->data());
         });
 
         $this->mapRoute();
@@ -140,10 +171,14 @@ abstract class Controller implements IController
      * [getData description]
      *
      * @return [type] [description]
+     *
+     * @deprecated use Controller::data() instead
      */
     public function getData()
     {
-        return $this->data;
+        trigger_error(__METHOD__.' is deprecated.', E_USER_DEPRECATED);
+
+        return $this->data();
     }
 
     /**
@@ -153,12 +188,14 @@ abstract class Controller implements IController
      * @param [type] $value [description]
      *
      * @return [type] [description]
+     *
+     * @deprecated
      */
     public function set($key, $value)
     {
-        $this->data[$key] = $value;
+        trigger_error(__METHOD__.' is deprecated.', E_USER_DEPRECATED);
 
-        return $this;
+        return $this->data($key, $value);
     }
 
     /**
@@ -222,9 +259,82 @@ abstract class Controller implements IController
         return $this->app->map(
             $this->baseUri.$uri,
             function () use ($controller, $method) {
-                $controller->delegate($method, func_get_args());
+                $params = func_get_args();
+                $i = 0;
+                $a = preg_replace_callback('/:(\w+)/', function($matches) use ($controller, $params, &$i) {
+                    $value = @$params[$i++];
+                    $controller->routeData($matches[1], $value);
+                    return $value;
+                }, $controller->baseUri);
+                $controller->delegate($method, array_slice($params, $i));
             }
         );
+    }
+
+    /**
+     * [data description]
+     * @param  [type] $key   [description]
+     * @param  [type] $value [description]
+     * @return [type]        [description]
+     */
+    public function data($key = null, $value = null) {
+        switch (func_num_args()) {
+            case 0:
+                return $this->data;
+            case 1:
+                if (is_array($key)) {
+                    $this->data = array_merge($this->data, $key);
+                    return $this;
+                } elseif (is_null($key)) {
+                    $this->data = array();
+                    return $this;
+                } elseif (isset($this->data[$key])) {
+                    return $this->data[$key];
+                } else {
+                    return;
+                }
+            case 2:
+                if (is_null($value)) {
+                    unset($this->data[$key]);
+                } else {
+                    $this->data[$key] = $value;
+                }
+                return $this;
+
+        }
+    }
+
+    /**
+     * [routeData description]
+     * @param  [type] $key   [description]
+     * @param  [type] $value [description]
+     * @return [type]        [description]
+     */
+    public function routeData($key = null, $value = null) {
+        switch (func_num_args()) {
+            case 0:
+                return $this->routeData;
+            case 1:
+                if (is_array($key)) {
+                    $this->routeData = array_merge($this->routeData, $key);
+                    return $this;
+                } elseif (is_null($key)) {
+                    $this->routeData = array();
+                    return $this;
+                } elseif (isset($this->routeData[$key])) {
+                    return $this->routeData[$key];
+                } else {
+                    return;
+                }
+            case 2:
+                if (is_null($value)) {
+                    unset($this->routeData[$key]);
+                } else {
+                    $this->routeData[$key] = $value;
+                }
+                return $this;
+
+        }
     }
 
     /**
@@ -234,7 +344,20 @@ abstract class Controller implements IController
      */
     public function getBaseUri()
     {
-        return $this->baseUri;
+        $controller = $this;
+        return preg_replace_callback('/:(\w+)/', function ($matches) use ($controller) {
+            return $controller->routeData($matches[1]);
+        }, $this->baseUri);
+    }
+
+    /**
+     * [getTemplate description]
+     * @return [type] [description]
+     */
+    public function getTemplate($method)
+    {
+        $template = trim(preg_replace('/\/:\w+/', '', $this->baseUri), '/').'/'.$method;
+        return $template;
     }
 
     /**
@@ -257,9 +380,13 @@ abstract class Controller implements IController
      * @param [type] $value [description]
      *
      * @return [type] [description]
+     *
+     * @deprecated
+     *
      */
     public function flash($key, $value)
     {
+        trigger_error(__METHOD__.' is deprecated.', E_USER_DEPRECATED);
         $this->app->flash($key, $value);
     }
 
@@ -270,9 +397,13 @@ abstract class Controller implements IController
      * @param [type] $value [description]
      *
      * @return [type] [description]
+     *
+     * @deprecated
+     *
      */
     public function flashNow($key, $value)
     {
+        trigger_error(__METHOD__.' is deprecated.', E_USER_DEPRECATED);
         $this->app->flashNow($key, $value);
     }
 
@@ -280,15 +411,68 @@ abstract class Controller implements IController
      * [flashKeep description]
      *
      * @return [type] [description]
+     *
+     * @deprecated
+     *
      */
     public function flashKeep()
     {
+        trigger_error(__METHOD__.' is deprecated.', E_USER_DEPRECATED);
         $this->app->flashKeep();
     }
 
+    /**
+     * [getRedirectUri description]
+     * @return [type] [description]
+     */
     public function getRedirectUri()
     {
         return URL::redirect($this->getBaseUri());
+    }
+
+    /**
+     * [offsetExists description]
+     * @param  [type] $offset [description]
+     * @return [type]         [description]
+     */
+    public function offsetExists($offset)
+    {
+        return null !== $this->data($offset);
+    }
+
+    /**
+     * [offsetGet description]
+     * @param  [type] $offset [description]
+     * @return [type]         [description]
+     */
+    public function offsetGet($offset = null)
+    {
+        if (0 === func_num_args()) {
+            return $this->data();
+        } else {
+            return $this->data($offset);
+        }
+    }
+
+    /**
+     * [offsetSet description]
+     * @param  [type] $offset [description]
+     * @param  [type] $value  [description]
+     * @return [type]         [description]
+     */
+    public function offsetSet($offset, $value)
+    {
+        return $this->data($offset, $value);
+    }
+
+    /**
+     * [offsetUnset description]
+     * @param  [type] $offset [description]
+     * @return [type]         [description]
+     */
+    public function offsetUnset($offset)
+    {
+        return $this->data($offset, null);
     }
 
     /**

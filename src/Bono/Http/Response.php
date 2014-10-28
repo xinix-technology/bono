@@ -52,7 +52,16 @@ namespace Bono\Http;
 class Response extends \Slim\Http\Response
 {
 
+    /**
+     * [$template description]
+     * @var string
+     */
     protected $template = '';
+
+    /**
+     * [$data description]
+     * @var array
+     */
     protected $data = array();
 
     /**
@@ -62,25 +71,29 @@ class Response extends \Slim\Http\Response
      * @param [type] $value [description]
      *
      * @return [type] [description]
+     *
+     * @deprecated
+     *
      */
-    public function set($key, $value = null)
+    public function set($key, $value)
     {
-        if (is_array($key)) {
-            $this->data = array_merge($this->data, $key);
-        } elseif (is_null($value)) {
-            unset($this->data[$key]);
-        } else {
-            $this->data[$key] = $value;
-        }
+        trigger_error(__METHOD__.' is deprecated.', E_USER_DEPRECATED);
+
+        return $this->data($key, $value);
     }
 
     /**
      * [reset description]
      * @return [type] [description]
+     *
+     * @deprecated
+     *
      */
     public function reset()
     {
-        $this->data = array();
+        trigger_error(__METHOD__.' is deprecated.', E_USER_DEPRECATED);
+
+        return $this->data(null);
     }
 
     /**
@@ -89,13 +102,18 @@ class Response extends \Slim\Http\Response
      * @param [type] $key [description]
      *
      * @return [type] [description]
+     *
+     * @deprecated
+     *
      */
     public function get($key = null)
     {
+        trigger_error(__METHOD__.' is deprecated.', E_USER_DEPRECATED);
+
         if (0 === func_num_args()) {
-            return $this->data;
-        } elseif (isset($this->data[$key])) {
-            return $this->data[$key];
+            return $this->data();
+        } else {
+            return $this->data($key);
         }
     }
 
@@ -113,16 +131,6 @@ class Response extends \Slim\Http\Response
         } else {
             $this->template = $template;
         }
-    }
-
-    /**
-     * [data description]
-     *
-     * @return [type] [description]
-     */
-    public function data()
-    {
-        return $this->data;
     }
 
     /**
@@ -146,6 +154,39 @@ class Response extends \Slim\Http\Response
         $url = \Bono\Helper\URL::site($url);
 
         return parent::redirect($url, $status);
+    }
+
+    /**
+     * [data description]
+     * @param  [type] $key   [description]
+     * @param  [type] $value [description]
+     * @return [type]        [description]
+     */
+    public function data($key = null, $value = null) {
+        switch (func_num_args()) {
+            case 0:
+                return $this->data;
+            case 1:
+                if (is_array($key)) {
+                    $this->data = array_merge($this->data, $key);
+                    return $this;
+                } elseif (is_null($key)) {
+                    $this->data = array();
+                    return $this;
+                } elseif (isset($this->data[$key])) {
+                    return $this->data[$key];
+                } else {
+                    return;
+                }
+            case 2:
+                if (is_null($value)) {
+                    unset($this->data[$key]);
+                } else {
+                    $this->data[$key] = $value;
+                }
+                return $this;
+
+        }
     }
 
 }
