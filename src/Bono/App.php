@@ -669,15 +669,6 @@ class App extends Slim
             return;
         }
 
-        switch($errno) {
-            case E_DEPRECATED:
-            case E_USER_DEPRECATED:
-                break;
-            default:
-                $e = new \ErrorException($errstr, $errno, 0, $errfile, $errline);
-                throw $e;
-                break;
-        }
-
+        throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
     }
 }
