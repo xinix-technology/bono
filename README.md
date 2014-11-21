@@ -1,6 +1,11 @@
 Bono
 ====
 
+[![License](http://img.shields.io/packagist/l/xinix-technology/bono.svg?style=flat-square)](https://github.com/xinix-technology/bono/blob/master/LICENSE)
+[![Download](http://img.shields.io/packagist/dm/xinix-technology/bono.svg?style=flat-square)](https://github.com/xinix-technology/bono)
+[![Version](http://img.shields.io/packagist/v/xinix-technology/bono.svg?style=flat-square)](https://github.com/xinix-technology/bono)
+
+
 Bono is PHP framework
 
 ![Bono PHP](https://raw.githubusercontent.com/xinix-technology/bono/master/img/bono-logo.png "Bono PHP")
