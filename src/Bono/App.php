@@ -164,8 +164,13 @@ class App extends Slim
 
             $app = $this;
 
-            $this->view = function ($c) use ($app) {
-                return $app->theme->getView();
+            $oldView = $this->view;
+            $this->view = function ($c) use ($app, $oldView) {
+                if ($app->theme && $view = $app->theme->getView()) {
+                    return $view;
+                } else {
+                    return $oldView;
+                }
             };
 
             $this->configure();
