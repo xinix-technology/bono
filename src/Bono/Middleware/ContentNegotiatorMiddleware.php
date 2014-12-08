@@ -66,9 +66,18 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
         $this->init();
 
         if ($this->hasHandler()) {
+            $this->app->config('session.preventSession', true);
+
             $app->error(array($this, 'error'));
             $app->notFound(array($this, 'notFound'));
             $this->next->call();
+            if ($this->app->notification) {
+                $errors = $this->app->notification->query(array('level' => 'error'));
+                if (!empty($errors)) {
+                    $error = $errors[0];
+                    throw new \Exception($error['message'], $error['code']);
+                }
+            }
             $this->render();
         } else {
             $this->next->call();
@@ -111,7 +120,6 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
 
         $app->response->setBody('');
         $app->view($this->handler);
-
         $app->response->headers['content-type'] = $this->mediaType;
         $app->render($app->response->template(), $app->response->data());
         $app->stop();
@@ -119,9 +127,9 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
 
     public function error($e)
     {
-        header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500);
-        $this->app->response->status(500);
-
+        if ($e->getCode()) {
+            $this->app->response->setStatus($e->getCode());
+        }
         $error = array(
             'code' => $e->getCode(),
             'message' => $e->getMessage(),
@@ -132,8 +140,8 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
             $error['trace'] = $e->getTrace();
         }
 
-        $this->app->response->reset();
-        $this->app->response->set('error', $error);
+        $this->app->response->data(null);
+        $this->app->response->data('error', $error);
 
         $this->render();
     }
@@ -147,8 +155,8 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
             'message' => 'Resource not found',
         );
 
-        $this->app->response->reset();
-        $this->app->response->set('error', $error);
+        $this->app->response->data(null);
+        $this->app->response->data('error', $error);
 
         $this->render();
     }

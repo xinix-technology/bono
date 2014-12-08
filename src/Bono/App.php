@@ -85,7 +85,9 @@ class App extends Slim
         $settings['bono.base.path'] = '..';
         $settings['bono.theme'] = 'Bono\\Theme\\DefaultTheme';
         $settings['config.path'] = '../config';
-        $settings['debug'] = false;
+        // slim settings debug MUST BE set true to propagate exception/error to middleware
+        // commonhandlermiddleware will handle this later
+        $settings['debug'] = true;
         $settings['autorun'] = true;
         $settings['bono.cli'] = (PHP_SAPI === 'cli');
         $settings['bono.timezone'] = 'UTC';
@@ -116,7 +118,8 @@ class App extends Slim
         register_shutdown_function(array($this, 'shutdownHandler'));
         set_error_handler(array($this, 'errorHandler'));
 
-        date_default_timezone_set('UTC');
+        // dont do this here
+        // date_default_timezone_set('UTC');
 
         if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
             if ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'http') {
@@ -635,8 +638,9 @@ class App extends Slim
         // }
 
         $this->add(new \Slim\Middleware\ContentTypes(array(
-            'multipart/form-data' => array($this, 'parseMultipartFormData'))
-        ));
+            'multipart/form-data' => array($this, 'parseMultipartFormData'),
+            'application/x-www-form-urlencoded' => array($this, 'parseFormUrlencoded')
+        )));
 
         //Invoke middleware and application stack
         $this->middleware[0]->call();
@@ -680,6 +684,13 @@ class App extends Slim
         }
 
         throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
+    }
+
+    public function parseFormUrlencoded($input)
+    {
+        $data = array();
+        parse_str($input, $data);
+        return $data;
     }
 
     public function parseMultipartFormData($input)

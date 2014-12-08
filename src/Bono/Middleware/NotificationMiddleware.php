@@ -60,7 +60,7 @@ class NotificationMiddleware extends \Slim\Middleware
     {
         $that = $this;
 
-        if (session_id() === '') {
+        if (!$this->app->config('session.preventSession') && session_id() === '') {
             throw new \Exception(
                 'NotificationMiddleware needs \\Bono\\Middleware\\SessionMiddleware or php native session'
             );
@@ -96,6 +96,10 @@ class NotificationMiddleware extends \Slim\Middleware
 
     public function save()
     {
+        if ($errors = $this->query(array('level' => 'error'))) {
+            $this->app->response->setStatus($errors[0]['code']);
+        }
+        // exit;
         $_SESSION['notification'] = $this->messages;
     }
 
@@ -104,16 +108,24 @@ class NotificationMiddleware extends \Slim\Middleware
         if ($options instanceof \Exception) {
             $e = $options;
             if (method_exists($e, 'sub') && $sub = $e->sub()) {
-                foreach ($sub as $e) {
-                    $this->notify($level, $e);
+                foreach ($sub as $ce) {
+                    $ctx = array(
+                        'level' => $level,
+                    );
+                    if (method_exists($ce, 'context')) {
+                        $ctx['context'] = $ce->context();
+                    }
+                    $ctx['code'] = $ce->getCode() ?: $e->getCode();
+                    $ctx['message'] = $ce->getMessage();
+                    $this->notify($level, $ctx);
                 }
-
                 return;
             }
 
             $options = array(
                 'level' => 'error',
                 'context' => '',
+                'code' => $e->getCode(),
                 'message' => $e->getMessage(),
             );
 
@@ -124,6 +136,7 @@ class NotificationMiddleware extends \Slim\Middleware
             $options = array(
                 'level' => $level,
                 'context' => '',
+                'code' => 0,
                 'message' => $options,
             );
         } else {

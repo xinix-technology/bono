@@ -214,29 +214,29 @@ abstract class Controller implements \ArrayAccess
         );
         $this->app->applyHook('bono.controller.before', $options, 1);
 
-        $argCount = count($args);
-        switch ($argCount) {
-            case 0:
-                $this->$method();
-                break;
-            case 1:
-                $this->$method($args[0]);
-                break;
-            case 2:
-                $this->$method($args[0], $args[1]);
-                break;
-            case 3:
-                $this->$method($args[0], $args[1], $args[2]);
-                break;
-            case 4:
-                $this->$method($args[0], $args[1], $args[2], $args[3]);
-                break;
-            case 5:
-                $this->$method($args[0], $args[1], $args[2], $args[3], $args[4]);
-                break;
-            default:
-                call_user_func_array(array($this, $method), $args);
-        }
+        // $argCount = count($args);
+        // switch ($argCount) {
+        //     case 0:
+        //         $this->$method();
+        //         break;
+        //     case 1:
+        //         $this->$method($args[0]);
+        //         break;
+        //     case 2:
+        //         $this->$method($args[0], $args[1]);
+        //         break;
+        //     case 3:
+        //         $this->$method($args[0], $args[1], $args[2]);
+        //         break;
+        //     case 4:
+        //         $this->$method($args[0], $args[1], $args[2], $args[3]);
+        //         break;
+        //     case 5:
+        //         $this->$method($args[0], $args[1], $args[2], $args[3], $args[4]);
+        //         break;
+        //     default:
+        call_user_func_array(array($this, $method), $args);
+        // }
         $this->app->applyHook('bono.controller.after', $options, 20);
     }
 

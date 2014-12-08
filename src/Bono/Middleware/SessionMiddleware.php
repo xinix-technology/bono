@@ -75,7 +75,9 @@ class SessionMiddleware extends \Slim\Middleware
         }
         $this->app->session = $this;
 
-        $this->start();
+        if (!$this->app->config('session.preventSession')) {
+            $this->start();
+        }
 
         $this->next->call();
     }
