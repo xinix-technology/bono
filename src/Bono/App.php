@@ -90,7 +90,6 @@ class App extends Slim
         $settings['debug'] = true;
         $settings['autorun'] = true;
         $settings['bono.cli'] = (PHP_SAPI === 'cli');
-        $settings['bono.timezone'] = 'UTC';
 
         if (!isset($settings['bono.debug'])) {
             $settings['bono.debug'] = ($settings['mode'] == 'development') ? true : false;
@@ -117,9 +116,6 @@ class App extends Slim
         // this scope should not trigger any error {
         register_shutdown_function(array($this, 'shutdownHandler'));
         set_error_handler(array($this, 'errorHandler'));
-
-        // dont do this here
-        // date_default_timezone_set('UTC');
 
         if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
             if ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'http') {
