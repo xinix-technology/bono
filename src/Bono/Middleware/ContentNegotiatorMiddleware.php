@@ -113,11 +113,6 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
     {
         $app = $this->app;
 
-        $include = $app->request->get('!include');
-        if (!empty($include)) {
-            \Norm\Norm::options('include', true);
-        }
-
         $app->response->setBody('');
         $app->view($this->handler);
         $app->response->headers['content-type'] = $this->mediaType;
