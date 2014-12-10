@@ -115,7 +115,7 @@ class NotificationMiddleware extends \Slim\Middleware
                     if (method_exists($ce, 'context')) {
                         $ctx['context'] = $ce->context();
                     }
-                    $ctx['code'] = $ce->getCode() ?: $e->getCode();
+                    $ctx['code'] = $e->getCode();
                     $ctx['message'] = $ce->getMessage();
                     $this->notify($level, $ctx);
                 }
