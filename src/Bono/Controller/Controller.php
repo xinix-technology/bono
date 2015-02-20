@@ -212,6 +212,7 @@ abstract class Controller implements \ArrayAccess
             'method' => $method,
             'controller' => $this,
         );
+
         $this->app->applyHook('bono.controller.before', $options, 1);
 
         // $argCount = count($args);
