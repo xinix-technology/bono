@@ -70,6 +70,7 @@ if (!function_exists('salt')) {
 
         if ($value) {
             $hash = $config['method'];
+
             return $hash($value.$config['salt']);
         }
     }
@@ -100,26 +101,24 @@ if (!function_exists('l')) {
      */
     function l($words)
     {
-        return $words;
+        $lang = \Bono\App::getInstance()->lang;
+        if (is_null($lang)) {
+            return $words;
+        }
+        return call_user_func_array(array($lang, 'translate'), func_get_args());
     }
 }
 
 if (!function_exists('ll')) {
     /**
      * [ll description]
-     *
-     * @param [type] $words [description]
-     * @param [type] $arg1  [description]
-     * @param [type] $arg2  [description]
-     * @param [type] $arg3  [description]
-     * @param [type] $arg4  [description]
-     * @param [type] $arg5  [description]
-     *
-     * @return [type] [description]
+     * @param  [type] $words  [description]
+     * @param  array  $params [description]
+     * @return [type]         [description]
      */
-    function ll($words, $arg1 = null, $arg2 = null, $arg3 = null, $arg4 = null, $arg5 = null)
+    function ll()
     {
-        echo l($words, $arg1, $arg2, $arg3, $arg4, $arg5);
+        echo call_user_func_array('l', func_get_args());
     }
 }
 
@@ -127,13 +126,14 @@ if (!function_exists('val')) {
     /**
      * Get value from data
      * @param  [type] $data [description]
-     * @return [type]       [description]
+     * @return [type] [description]
      */
     function val($data)
     {
-        if (is_callable($data)) {
+        if ($data instanceof \Closure) {
             return $data();
         }
+
         return $data;
     }
 }

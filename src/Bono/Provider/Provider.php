@@ -54,16 +54,16 @@ abstract class Provider
 
     protected $app;
 
-    protected $options;
+    protected $options = array();
 
     /**
-     * [__construct description]
+     * Constructor
      *
-     * @param [type] $options [description]
+     * @param array $options
      */
-    public function __construct($options = null)
+    public function __construct(array $options = array())
     {
-        $this->options = $options;
+        $this->options = array_merge($this->options, $options);
     }
 
     /**
@@ -76,6 +76,22 @@ abstract class Provider
     public function setApplication($app)
     {
         $this->app = $app;
+    }
+
+    public function option($key = '', $value = '')
+    {
+        $numArgs = func_num_args();
+        if ($numArgs === 0) {
+            return $this->options;
+        } elseif ($numArgs === 1) {
+            if (isset($this->options[$key])) {
+                return $this->options[$key];
+            } else {
+                return null;
+            }
+        } else {
+            $this->options[$key] = $value;
+        }
     }
 
     /**

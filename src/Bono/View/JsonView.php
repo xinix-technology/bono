@@ -37,7 +37,7 @@
  */
 namespace Bono\View;
 
-use \Bono\App;
+use Bono\App;
 
 /**
  * App
@@ -54,7 +54,7 @@ use \Bono\App;
  */
 class JsonView extends \Slim\View
 {
-    public $contentType = 'application/json';
+    protected $contentType = 'application/json';
 
     /**
      * [display description]
@@ -66,6 +66,7 @@ class JsonView extends \Slim\View
         $app = App::getInstance();
         $data = $this->data->all();
         unset($data['flash']);
+        unset($data['app']);
         foreach (array_keys($data) as $key) {
             if ($key[0] === '_') {
                 unset($data[$key]);

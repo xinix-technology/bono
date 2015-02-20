@@ -51,6 +51,28 @@ namespace Bono\Provider;
  */
 class LanguageProvider extends Provider
 {
+    protected $options = array(
+        'lang' => 'en-US',
+        'debug' => true,
+    );
+
+    protected $language = null;
+
+    protected $dictionaries = array();
+
+    protected $baseDirectories = array(
+        array(),
+        array(),
+        array(),
+        array(),
+        array(),
+        array(),
+        array(),
+        array(),
+        array(),
+        array(),
+    );
+
     /**
      * [initialize description]
      *
@@ -58,11 +80,110 @@ class LanguageProvider extends Provider
      */
     public function initialize()
     {
-        $this->app->view->set(
-            '_', function ($str) {
-                return $str;
-            }
-        );
+        $lang = $this;
+
+        if (is_callable($this->options['lang'])) {
+            $this->options['lang'] = call_user_func($this->options['lang']);
+        }
+
+        if ($p = realpath(rtrim($this->app->config('bono.base.path'), DIRECTORY_SEPARATOR))) {
+            $this->addBaseDirectory($p, 9);
+        }
+
+        $d = explode(DIRECTORY_SEPARATOR.'src', __DIR__);
+        $this->addBaseDirectory($d[0]);
+
+        $this->app->container->singleton('lang', function () use ($lang) {
+            return $lang;
+        });
     }
 
+    public function translate($words)
+    {
+        $translated = $this->getTranslation($words, $this->lang());
+
+        if (1 === func_num_args()) {
+            return $translated;
+        }
+
+        $args = func_get_args();
+        if (is_array($args[1])) {
+            $params = $args[1];
+        } else {
+            $params = array_slice($args, 1);
+        }
+
+        foreach ($params as $key => $value) {
+            $translated = str_replace('{'.$key.'}', $value, $translated);
+        }
+
+        return $translated;
+    }
+
+    public function lang($lang = null)
+    {
+        if ($lang) {
+            $this->language = $lang;
+            return $this;
+        } else {
+            return strtolower(str_replace('_', '-', trim($this->language ?: val($this->options['lang']))));
+        }
+    }
+
+    public function loadLanguageDirectory($dir)
+    {
+        $dictionary = array();
+        if (is_dir($dir)) {
+            $files = glob($dir.'/*.php');
+            foreach ($files as $file) {
+                $arr = include($file);
+                $dictionary = array_merge($dictionary, $arr);
+            }
+        }
+        return $dictionary;
+    }
+
+    public function getTranslation($words, $lang)
+    {
+        $dictionary = $this->getDictionary($lang);
+        if (isset($dictionary[$words])) {
+            return $dictionary[$words];
+        }
+        return $words;
+    }
+
+    public function getDictionary($lang)
+    {
+
+        if (!isset($this->dictionaries[$lang])) {
+            $fallbackLang = explode('-', $lang);
+            $fallbackLang = $fallbackLang[0];
+
+            $dictionary = array();
+
+            foreach ($this->baseDirectories as $dirs) {
+                foreach ($dirs as $dir) {
+                    $dictionary = array_merge($dictionary, $this->loadLanguageDirectory($dir.'/lang/'.$fallbackLang));
+                    $dictionary = array_merge($dictionary, $this->loadLanguageDirectory($dir.'/lang/'.$lang));
+                }
+            }
+
+            $this->dictionaries[$lang] = $dictionary;
+        }
+
+        return $this->dictionaries[$lang];
+    }
+
+    /**
+     * [addBaseDirectory description]
+     *
+     * @param [type]  $p        [description]
+     * @param integer $priority [description]
+     *
+     * @return [type] [description]
+     */
+    public function addBaseDirectory($p, $priority = 0)
+    {
+        $this->baseDirectories[$priority][] = $p;
+    }
 }

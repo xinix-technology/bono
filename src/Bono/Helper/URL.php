@@ -37,7 +37,7 @@
  */
 namespace Bono\Helper;
 
-use \Bono\App;
+use Bono\App;
 
 /**
  * URL
@@ -69,7 +69,6 @@ class URL
         if (isset($scheme)) {
             return $uri;
         }
-
 
         // We use server script name instead from slim env script name
         // because slim env script name truncate the index.php file from the
@@ -167,6 +166,7 @@ class URL
         if ($full) {
             $url = static::create($url, $_SERVER['QUERY_STRING']);
         }
+
         return $url;
     }
 
@@ -189,6 +189,7 @@ class URL
     {
         $app = App::getInstance();
         $params = $app->router->getCurrentRoute()->getParams();
+
         return isset($params[$key]) ? $params[$key] : null;
     }
 }

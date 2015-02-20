@@ -56,6 +56,21 @@ namespace Bono\Controller;
 abstract class RestController extends Controller
 {
     /**
+     * Constructor
+     * @param Bono\App $app
+     * @param string $baseUri
+     */
+    public function __construct($app, $baseUri) {
+        parent::__construct($app, $baseUri);
+
+        $controller = $this;
+
+        $app->filter('controller.schema', function () use ($controller) {
+            return $controller->schema() ?: array();
+        });
+    }
+
+    /**
      * Map routes to available method
      *
      * @return [type] [description]
@@ -115,4 +130,11 @@ abstract class RestController extends Controller
      * @return [type] [description]
      */
     abstract public function delete($id);
+
+    /**
+     * Getter and setter for schema
+     * @param  array $schema  Schema to set if this argument is defined
+     * @return mixed
+     */
+    abstract public function schema($schema = null);
 }

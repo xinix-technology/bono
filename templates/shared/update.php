@@ -4,6 +4,8 @@
 
     <?php foreach(f('app')->controller->schema() as $name => $field): ?>
 
+    <?php if ($field['hidden']) continue ?>
+
     <div>
 
         <?php echo $field->label() ?>

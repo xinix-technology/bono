@@ -38,10 +38,8 @@ namespace Bono;
 
 use Slim\Slim;
 use Bono\Provider\ProviderRepository;
-use Bono\Exception\FatalException;
 use Bono\Handler\ErrorHandler;
 use Bono\Handler\NotFoundHandler;
-
 use Whoops\Run;
 use Whoops\Handler\PrettyPageHandler;
 use Whoops\Handler\JsonResponseHandler;
@@ -69,9 +67,9 @@ class App extends Slim
     protected $filters = array();
 
     protected $aliases = array(
-        'App' => '\\Bono\\App',
-        'URL' => '\\Bono\\Helper\\URL',
-        'Theme' => '\\Bono\\Theme\\Theme',
+        'App' => 'Bono\\App',
+        'URL' => 'Bono\\Helper\\URL',
+        'Theme' => 'Bono\\Theme\\Theme',
     );
 
     /**
@@ -85,19 +83,20 @@ class App extends Slim
 
         $settings['templates.path'] = '';
         $settings['bono.base.path'] = '..';
-        $settings['bono.theme'] = '\\Bono\\Theme\\DefaultTheme';
+        $settings['bono.theme'] = 'Bono\\Theme\\DefaultTheme';
         $settings['config.path'] = '../config';
+        // slim settings debug MUST BE set true to propagate exception/error to middleware
+        // commonhandlermiddleware will handle this later
         $settings['debug'] = true;
         $settings['autorun'] = true;
         $settings['bono.cli'] = (PHP_SAPI === 'cli');
-        $settings['bono.timezone'] = 'UTC';
 
         if (!isset($settings['bono.debug'])) {
             $settings['bono.debug'] = ($settings['mode'] == 'development') ? true : false;
         }
 
-        $settings['view'] = '\\Bono\\View\\LayoutedView';
-        $settings['bono.partial.view'] = '\\Slim\\View';
+        $settings['view'] = 'Bono\\View\\LayoutedView';
+        $settings['bono.partial.view'] = 'Slim\\View';
 
         return $settings;
     }
@@ -109,63 +108,70 @@ class App extends Slim
      */
     public function __construct(array $userSettings = array())
     {
+
+        // FIXME ob started by php automatically but not skip on error
+        // thats why i put line below
+        ob_start();
+
+        // this scope should not trigger any error {
         register_shutdown_function(array($this, 'shutdownHandler'));
-        set_error_handler(array($this, 'handleErrors'));
+        set_error_handler(array($this, 'errorHandler'));
+
+        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+            if ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'http') {
+                unset($_SERVER['HTTPS']);
+            } else {
+                $_SERVER['HTTPS'] = 'on';
+            }
+
+            if (isset($_SERVER['HTTP_X_FORWARDED_PORT'])) {
+                $_SERVER['SERVER_PORT'] = $_SERVER['HTTP_X_FORWARDED_PORT'];
+            }
+        }
+
+        if (PHP_SAPI === 'cli') {
+            \Bono\CLI\Environment::getInstance();
+        }
+        // }
 
         try {
-            date_default_timezone_set('UTC');
-
-            if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-                if ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'http') {
-                    unset($_SERVER['HTTPS']);
-                } else {
-                    $_SERVER['HTTPS'] = 'on';
-                }
-
-                if (isset($_SERVER['HTTP_X_FORWARDED_PORT'])) {
-                    $_SERVER['SERVER_PORT'] = $_SERVER['HTTP_X_FORWARDED_PORT'];
-                }
-            }
-
-            if (PHP_SAPI === 'cli') {
-                \Bono\CLI\Environment::getInstance();
-            }
-
+            // DO NOT add something above except you sure that it wont break
             parent::__construct($userSettings);
 
-            $this->container->singleton(
-                'request',
-                function ($c) {
-                    return new \Bono\Http\Request($c['environment']);
+            $this->container->singleton('request', function ($c) {
+                return new \Bono\Http\Request($c['environment']);
+            });
+
+            $this->container->singleton('response', function ($c) {
+                return new \Bono\Http\Response();
+            });
+
+            $this->container->singleton('theme', function ($c) {
+                $config = $c['settings']['bono.theme'];
+                if (is_array($config)) {
+                    $themeClass = $config['class'];
+                } else {
+                    $themeClass = $config;
+                    $config = array();
                 }
-            );
 
-            $this->container->singleton(
-                'response',
-                function ($c) {
-                    return new \Bono\Http\Response();
+                return ($themeClass instanceof \Bono\Theme\Theme) ? $themeClass : new $themeClass($config);
+            });
+
+            $app = $this;
+
+            $oldView = $this->view;
+            $this->view = function ($c) use ($app, $oldView) {
+                if ($app->theme && $view = $app->theme->getView()) {
+                    return $view;
+                } else {
+                    return $oldView;
                 }
-            );
-
-            $this->container->singleton(
-                'theme',
-                function ($c) {
-                    $config = $c['settings']['bono.theme'];
-                    if (is_array($config)) {
-                        $themeClass = $config['class'];
-                    } else {
-                        $themeClass = $config;
-                        $config = array();
-                    }
-
-                    return ($themeClass instanceof \Bono\Theme\Theme) ? $themeClass : new $themeClass($config);
-                }
-            );
-
-
-            $this->configureHandler();
+            };
 
             $this->configure();
+
+            $this->configureHandler();
 
             $this->configureAliases();
 
@@ -173,12 +179,15 @@ class App extends Slim
 
             $this->configureMiddleware();
 
+            $this->configureFilters();
 
             if ($this->config('autorun')) {
                 $this->run();
             }
         } catch (\Slim\Exception\Stop $e) {
             // noop
+        } catch (\Exception $e) {
+            $this->configureHandler()->error($e);
         }
 
     }
@@ -186,27 +195,31 @@ class App extends Slim
     public function shutdownHandler()
     {
         $e = error_get_last();
+
         if ($e) {
-            $this->configureHandler()->error(new FatalException($e));
+            if (!($e['type'] & error_reporting())) {
+                return;
+            }
+
+            $this->configureHandler()->error(new \ErrorException($e['message'], $e['type'], 0, $e['file'], $e['line']));
         }
     }
 
     /**
      * Override callErrorHandler
      * @param  [type] $argument [description]
-     * @return [type]           [description]
+     * @return [type] [description]
      */
     protected function callErrorHandler($argument = null)
     {
-        if (ob_get_level()) {
-            ob_end_clean();
-        }
+        while (ob_get_level() > 0) ob_end_clean();
+
         return parent::callErrorHandler($argument);
     }
 
     /**
      * Override error
-     * @param  [type] $argument [description]
+     * @param [type] $argument [description]
      * @return
      */
     public function error($argument = null)
@@ -218,11 +231,11 @@ class App extends Slim
                 try {
                     return parent::error($argument);
                 } catch (\Slim\Exception\Stop $e) {
-                    exit(1);
+                    // noop
                 }
             } else {
-                echo $this->callErrorHandler($argument);
-                exit(1);
+                $this->callErrorHandler($argument);
+                // noop
             }
         }
     }
@@ -234,6 +247,7 @@ class App extends Slim
      */
     public function run()
     {
+        // why I put it here because you can override the implementation
         require_once dirname(__FILE__).'/../functions.php';
 
         if ($this->isRunning) {
@@ -244,27 +258,7 @@ class App extends Slim
 
         $this->add(new \Bono\Middleware\CommonHandlerMiddleware());
 
-        $app = $this;
-
-        $this->filter(
-            'app',
-            function () use ($app) {
-                return $app;
-            }
-        );
-
-        $this->filter(
-            'config',
-            function ($key) use ($app) {
-                if ($key) {
-                    return $app->config($key);
-                } else {
-                    return $app->settings;
-                }
-            }
-        );
-
-        parent::run();
+        $this->slimRun();
     }
 
     /**
@@ -286,6 +280,14 @@ class App extends Slim
         }
 
         return false;
+    }
+
+    public function debugMiddlewares() {
+        $middlewares = array();
+        foreach ($this->middleware as $key => $value) {
+            $middlewares[] = get_class($value);
+        }
+        return $middlewares;
     }
 
     /**
@@ -371,6 +373,64 @@ class App extends Slim
             $app = $this;
 
             if ($this->config('bono.cli') !== true) {
+                $this->whoops = new Run();
+
+                $handler = new PrettyPageHandler();
+                $path = explode(DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR, __DIR__);
+                $path = $path[0].'/templates/_whoops';
+                $handler->setResourcesPath($path);
+
+                $jsonResponseHandler = new JsonResponseHandler();
+                $jsonResponseHandler->onlyForAjaxRequests(true);
+
+                $appHandler = function ($err) use ($app, $handler) {
+                    if (!isset($app->request)) {
+                        return;
+                    }
+
+                    $template = 'error.php';
+                    if ($err->getMessage() === '404 Resource not found') {
+                        $template = 'notFound.php';
+                    }
+
+                    $request = $app->request;
+
+                    // Add some custom tables with relevant info about your application,
+                    // that could prove useful in the error page:
+                    $handler->addDataTable('Bono Application', array(
+                        'Template'         => 'Modify this page on templates/'.$template,
+                        'Application Class'=> get_class($app),
+                        'Charset'          => $request->headers('ACCEPT_CHARSET') ?: '<none>',
+                        'Locale'           => $request->getContentCharset() ?: '<none>',
+                    ));
+
+                    $handler->addDataTable('Bono Request', array(
+                        'URI'         => $request->getRootUri(),
+                        'Request URI' => $request->getResourceUri(),
+                        'Path'        => $request->getPath(),
+                        'Query String'=> $request->params() ?: '<none>',
+                        'HTTP Method' => $request->getMethod(),
+                        'Script Name' => $request->getScriptName(),
+                        'Base URL'    => $request->getUrl(),
+                        'Scheme'      => $request->getScheme(),
+                        'Port'        => $request->getPort(),
+                        'Host'        => $request->getHost(),
+                    ));
+
+                    // Set the title of the error page:
+                    $handler->setPageTitle("Bono got whoops! There was a problem.");
+                };
+
+                $this->whoops->pushHandler($handler);
+
+                // Add a special handler to deal with AJAX requests with an
+                // equally-informative JSON response. Since this handler is
+                // first in the stack, it will be executed before the error
+                // page handler, and will have a chance to decide if anything
+                // needs to be done.
+                $this->whoops->pushHandler($jsonResponseHandler);
+                $this->whoops->pushHandler($appHandler);
+
                 $this->notFound(array(new NotFoundHandler($this), 'handle'));
                 $this->error(array(new ErrorHandler($this), 'handle'));
             }
@@ -393,16 +453,16 @@ class App extends Slim
         $providers = $this->config('bono.providers') ?: array();
 
         if ($this->config('bono.cli')) {
-            $this->providerRepository->add(new \Bono\Provider\CLIProvider);
+            $this->providerRepository->add(new \Bono\Provider\CLIProvider());
         }
 
         foreach ($providers as $k => $v) {
 
             $Provider = $v;
-            $options = null;
+            $options = array();
             if (is_string($k)) {
                 $Provider = $k;
-                $options = $v;
+                $options = $v ?: array();
             }
 
             $this->providerRepository->add(new $Provider($options));
@@ -426,10 +486,33 @@ class App extends Slim
                 $Middleware = $k;
                 $options = $v;
             }
-            $m = new $Middleware();
+
+            // reekoheek: hack for middleware options
+            if ($options) {
+                $m = new $Middleware($options);
+            } else {
+                $m = new $Middleware();
+            }
             $m->options = $options;
             $this->add($m);
         }
+    }
+
+    protected function configureFilters()
+    {
+        $app = $this;
+
+        $this->filter('app', function () use ($app) {
+            return $app;
+        });
+
+        $this->filter('config', function ($key) use ($app) {
+            if ($key) {
+                return $app->config($key);
+            } else {
+                return $app->settings;
+            }
+        });
     }
 
     /********************************************************************************
@@ -543,5 +626,132 @@ class App extends Slim
                 $this->filters[$key] = array(array());
             }
         }
+    }
+
+    public function slimRun()
+    {
+        // set_error_handler(array('\Slim\Slim', 'handleErrors'));
+
+        //Apply final outer middleware layers
+        // if ($this->config('debug')) {
+        //     //Apply pretty exceptions only in debug to avoid accidental information leakage in production
+        //     $this->add(new \Slim\Middleware\PrettyExceptions());
+        // }
+
+        $this->add(new \Slim\Middleware\ContentTypes(array(
+            'multipart/form-data' => array($this, 'parseMultipartFormData'),
+            'application/x-www-form-urlencoded' => array($this, 'parseFormUrlencoded')
+        )));
+
+        //Invoke middleware and application stack
+        $this->middleware[0]->call();
+
+        //Fetch status, header, and body
+        list($status, $headers, $body) = $this->response->finalize();
+
+        // Serialize cookies (with optional encryption)
+        \Slim\Http\Util::serializeCookies($headers, $this->response->cookies, $this->settings);
+
+        //Send headers
+        if (headers_sent() === false) {
+            //Send status
+            if (strpos(PHP_SAPI, 'cgi') === 0) {
+                header(sprintf('Status: %s', \Slim\Http\Response::getMessageForCode($status)));
+            } else {
+                header(sprintf('HTTP/%s %s', $this->config('http.version'), \Slim\Http\Response::getMessageForCode($status)));
+            }
+
+            //Send headers
+            foreach ($headers as $name => $value) {
+                $hValues = explode("\n", $value);
+                foreach ($hValues as $hVal) {
+                    header("$name: $hVal", false);
+                }
+            }
+        }
+
+        //Send body, but only if it isn't a HEAD request
+        if (!$this->request->isHead()) {
+            echo $body;
+        }
+
+        restore_error_handler();
+    }
+
+    public function errorHandler($errno, $errstr = '', $errfile = '', $errline = '')
+    {
+        if (!($errno & error_reporting())) {
+            return;
+        }
+
+        throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
+    }
+
+    public function parseFormUrlencoded($input)
+    {
+        $data = array();
+        parse_str($input, $data);
+        return $data;
+    }
+
+    public function parseMultipartFormData($input)
+    {
+        $raw_data = $input;
+
+        if (empty($raw_data)) {
+            return;
+        }
+        // Fetch content and determine boundary
+        // $raw_data = file_get_contents('php://input');
+        $boundary = substr($raw_data, 0, strpos($raw_data, "\r\n"));
+
+        // Fetch each part
+        $parts = array_slice(explode($boundary, $raw_data), 1);
+        $data = array();
+
+        foreach ($parts as $part) {
+            // If this is the last part, break
+            if ($part == "--\r\n") break;
+
+            // Separate content from headers
+            $part = ltrim($part, "\r\n");
+            list($raw_headers, $body) = explode("\r\n\r\n", $part, 2);
+
+            // Parse the headers list
+            $raw_headers = explode("\r\n", $raw_headers);
+            $headers = array();
+            foreach ($raw_headers as $header) {
+                list($name, $value) = explode(':', $header);
+                $headers[strtolower($name)] = ltrim($value, ' ');
+            }
+
+            // Parse the Content-Disposition to get the field name, etc.
+            if (isset($headers['content-disposition'])) {
+                $filename = null;
+                preg_match(
+                    '/^(.+); *name="([^"]+)"(; *filename="([^"]+)")?/',
+                    $headers['content-disposition'],
+                    $matches
+                );
+                list(, $type, $name) = $matches;
+                isset($matches[4]) and $filename = $matches[4];
+
+                // handle your fields here
+                switch ($name) {
+                    // this is a file upload
+                    case 'userfile':
+                         file_put_contents($filename, $body);
+                         break;
+
+                    // default for all other files is to populate $data
+                    default:
+                         $data[$name] = substr($body, 0, strlen($body) - 2);
+                         break;
+                }
+            }
+
+        }
+
+        return $data;
     }
 }

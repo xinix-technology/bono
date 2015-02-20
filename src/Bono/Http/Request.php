@@ -137,4 +137,13 @@ class Request extends \Slim\Http\Request
 
         return parent::getMediaType();
     }
+
+    public function getBody()
+    {
+        if ($this->env['slim.input']) {
+            return $this->env['slim.input'];
+        } else {
+            return $_POST;
+        }
+    }
 }

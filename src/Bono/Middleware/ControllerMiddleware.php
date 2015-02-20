@@ -76,7 +76,12 @@ class ControllerMiddleware extends \Slim\Middleware
                     $uri = $Map;
                     $Map = null;
                 }
-                if (strpos($resourceUri, $uri) === 0) {
+
+                $matcher = preg_replace('/:\w+/', '(\w+)', '/^'.addcslashes($uri, '\/').'(?:\/.*)*$/');
+                $matches = '';
+                $isMatch = preg_match($matcher, $resourceUri, $matches);
+
+                if ($isMatch)  {
                     if (is_null($Map)) {
                         if (isset($this->options['default'])) {
                             $Map = $this->options['default'];
@@ -85,9 +90,9 @@ class ControllerMiddleware extends \Slim\Middleware
                         }
                     }
                     $this->app->controller = $controller = new $Map($this->app, $uri);
-                    if (!$controller instanceof \Bono\Controller\IController) {
+                    if (!($controller instanceof \Bono\Controller\Controller)) {
                         throw new \Exception(
-                            'Controller "'.$Map.'" should be instance of \Bono\Controller\IController.'
+                            'Controller "'.$Map.'" should be instance of Bono\Controller\Controller.'
                         );
                     }
                     break;

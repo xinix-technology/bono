@@ -60,32 +60,30 @@ class NotificationMiddleware extends \Slim\Middleware
     {
         $that = $this;
 
-        if (session_id() === '') {
+        if (!$this->app->config('session.preventSession') && session_id() === '') {
             throw new \Exception(
                 'NotificationMiddleware needs \\Bono\\Middleware\\SessionMiddleware or php native session'
             );
         }
 
-        $this->app->hook(
-            'notification.error',
-            function ($options) use ($that) {
-                $that->notify('error', $options);
-            }
-        );
+        $this->app->hook('notification.error', function ($options) use ($that) {
+            $that->notify('error', $options);
+        });
 
-        $this->app->hook(
-            'notification.info',
-            function ($options) use ($that) {
-                $that->notify('info', $options);
-            }
-        );
+        $this->app->hook('notification.info', function ($options) use ($that) {
+            $that->notify('info', $options);
+        });
 
-        $this->app->filter(
-            'notification.show',
-            function ($options = null) use ($that) {
-                return $that->show($options);
+        $this->app->filter('notification.show', function ($options = null) use ($that) {
+            return $that->show($options);
+        });
+
+        $this->app->filter('notification.message', function ($context) use ($that) {
+            $errors = $that->query(array('level'=>'error', 'context' => $context));
+            if (!empty($errors)) {
+                return $errors[0]['message'];
             }
-        );
+        });
 
         $this->app->notification = $this;
 
@@ -98,6 +96,10 @@ class NotificationMiddleware extends \Slim\Middleware
 
     public function save()
     {
+        if ($errors = $this->query(array('level' => 'error'))) {
+            $this->app->response->setStatus($errors[0]['code']);
+        }
+        // exit;
         $_SESSION['notification'] = $this->messages;
     }
 
@@ -106,8 +108,16 @@ class NotificationMiddleware extends \Slim\Middleware
         if ($options instanceof \Exception) {
             $e = $options;
             if (method_exists($e, 'sub') && $sub = $e->sub()) {
-                foreach ($sub as $e) {
-                    $this->notify($level, $e);
+                foreach ($sub as $ce) {
+                    $ctx = array(
+                        'level' => $level,
+                    );
+                    if (method_exists($ce, 'context')) {
+                        $ctx['context'] = $ce->context();
+                    }
+                    $ctx['code'] = $e->getCode();
+                    $ctx['message'] = $ce->getMessage();
+                    $this->notify($level, $ctx);
                 }
                 return;
             }
@@ -115,6 +125,7 @@ class NotificationMiddleware extends \Slim\Middleware
             $options = array(
                 'level' => 'error',
                 'context' => '',
+                'code' => $e->getCode(),
                 'message' => $e->getMessage(),
             );
 
@@ -125,6 +136,7 @@ class NotificationMiddleware extends \Slim\Middleware
             $options = array(
                 'level' => $level,
                 'context' => '',
+                'code' => 0,
                 'message' => $options,
             );
         } else {
@@ -148,12 +160,14 @@ class NotificationMiddleware extends \Slim\Middleware
 
         if (!empty($messages)) {
 
-            $result = '<div class="alert '.$options['level'].'">';
+            $result = '<div class="alert '.$options['level'].'"><div><p>';
 
             foreach ($messages as $message) {
-                $result .= '<p>'.$message['message'].'</p>';
+                $result .= '<span>'.$message['message'].'</span> ';
             }
-            $result .= '</div>';
+
+            $result .= '</p><a href="#" class="close button warning button-outline"><i class="xn xn-close"></i>Close</a></div></div>';
+
             return $result;
         }
 
@@ -172,7 +186,9 @@ class NotificationMiddleware extends \Slim\Middleware
         $result = array();
         $messages = $this->messages[$options['level']];
         if (isset($options['context'])) {
-            $result = $messages[$options['context']];
+            if (isset($messages[$options['context']])) {
+                $result = $messages[$options['context']];
+            }
         } else {
             foreach ($messages as $messageGroup) {
                 foreach ($messageGroup as $message) {

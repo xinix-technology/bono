@@ -60,8 +60,6 @@ class CommonHandlerMiddleware extends \Slim\Middleware
     public function call()
     {
         try {
-            ob_start();
-
             $this->next->call();
 
             $app = $this->app;
@@ -75,19 +73,13 @@ class CommonHandlerMiddleware extends \Slim\Middleware
             }
 
             $template = $response->template();
-            $response->set('app', $app);
+            $response->data('app', $app);
 
             $app->render($template, $response->data());
 
         } catch (\Slim\Exception\Stop $e) {
-            $body = ob_get_clean();
-            $this->app->response()->write($body);
-            // TODO harusnya ga perlu run slim.after
-            // $this->app->applyHook('slim.after');
+            // noop
         } catch (\Exception $e) {
-            if (ob_get_level() !== 0) {
-                ob_end_clean();
-            }
             try {
                 $this->app->error($e);
             } catch (\Slim\Exception\Stop $e) {

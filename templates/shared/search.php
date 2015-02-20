@@ -9,22 +9,25 @@
     <table>
         <thead>
             <tr>
-
+                <?php if (f('app')->controller->schema()): ?>
                 <?php foreach(f('app')->controller->schema() as $name => $field): ?>
 
                     <th><?php echo $field->label(true) ?></th>
 
                 <?php endforeach ?>
+                <?php else: ?>
+                    <th>Data</th>
+                <?php endif ?>
 
             </tr>
         </thead>
         <tbody>
 
-            <?php if ($entries->count()): ?>
+            <?php if (count($entries)): ?>
             <?php foreach($entries as $entry): ?>
 
             <tr>
-
+                <?php if (f('app')->controller->schema()): ?>
                 <?php foreach(f('app')->controller->schema() as $name => $field): ?>
 
                 <td>
@@ -34,6 +37,9 @@
                 </td>
 
                 <?php endforeach ?>
+                <?php else: ?>
+                <td><?php echo reset($entry) ?></td>
+                <?php endif ?>
 
             </tr>
 
@@ -41,7 +47,7 @@
             <?php else: ?>
 
             <tr>
-                <td>no record!</td>
+                <td colspan="100">no record!</td>
             </tr>
 
             <?php endif ?>

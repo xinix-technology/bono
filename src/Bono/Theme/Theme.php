@@ -53,8 +53,9 @@ use Bono\App;
  */
 abstract class Theme
 {
+    protected $view = null;
 
-    public $resources = array(
+    protected $resources = array(
         'head.css' => array(),
         'head.js' => array(),
         'foot.css' => array(),
@@ -62,8 +63,6 @@ abstract class Theme
     );
 
     protected $extension = '.php';
-
-    protected $overwrite = false;
 
     protected $baseDirectories = array(
         array(),
@@ -78,6 +77,8 @@ abstract class Theme
         array(),
     );
 
+    protected $options = array();
+
     /**
      * [base description]
      *
@@ -91,31 +92,36 @@ abstract class Theme
     }
 
     /**
-     * [__construct description]
+     * Constructor
      *
-     * @param array $config [description]
+     * @param array $options Options of theme
      */
-    public function __construct($config = array())
+    public function __construct(array $options = array())
     {
         $app = App::getInstance();
         $that = $this;
 
-        $appConfig = $app->config('application');
+        // $appConfig = $app->config('application');
 
-        $app->filter('page.title', function ($key) use ($appConfig) {
-            if (isset($appConfig['title'])) {
-                return $appConfig['title'];
-            }
-            return $key;
-        });
+        // $app->filter('page.title', function ($key) use ($appConfig) {
+        //     if (isset($appConfig['title'])) {
+        //         return $appConfig['title'];
+        //     }
 
-        foreach ($config as $key => $value) {
-            if (isset($this->$key)) {
-                $this->$key = $value;
-            }
-        }
+        //     return $key;
+        // });
 
-        if ($p = realpath(rtrim(App::getInstance()->config('bono.base.path'), DIRECTORY_SEPARATOR))) {
+        // foreach ($options as $key => $value) {
+        //     if (isset($this->$key)) {
+        //         $this->$key = $value;
+        //         unset($options[$key]);
+        //     }
+        // }
+
+        unset($options['class']);
+        $this->options = $options;
+
+        if ($p = realpath(rtrim($app->config('bono.base.path'), DIRECTORY_SEPARATOR))) {
             $this->addBaseDirectory($p, 1);
         }
 
@@ -129,6 +135,7 @@ abstract class Theme
             foreach ($that->resources['head.css'] as $res) {
                 $html[] = '<link rel="stylesheet" href="'.Theme::base($res).'">';
             }
+
             return implode("\n", $html)."\n";
         });
 
@@ -139,6 +146,7 @@ abstract class Theme
             foreach ($that->resources['foot.css'] as $res) {
                 $html[] = '<link rel="stylesheet" href="'.Theme::base($res).'">';
             }
+
             return implode("\n", $html)."\n";
         });
 
@@ -149,6 +157,7 @@ abstract class Theme
             foreach ($that->resources['head.js'] as $res) {
                 $html[] = '<script type"text/javascript" src="'.Theme::base($res).'"></script>';
             }
+
             return implode("\n", $html)."\n";
         });
 
@@ -159,6 +168,7 @@ abstract class Theme
             foreach ($that->resources['foot.js'] as $res) {
                 $html[] = '<script type"text/javascript" src="'.Theme::base($res).'"></script>';
             }
+
             return implode("\n", $html)."\n";
         });
 
@@ -187,6 +197,10 @@ abstract class Theme
      */
     public function resolve($template, $view = null)
     {
+        if (!$template) {
+            return '';
+        }
+
         $segments = explode('/', $template);
         $page = end($segments);
 
@@ -243,26 +257,27 @@ abstract class Theme
     }
 
     /**
-     * [partial description]
+     * Partial generate view
      *
-     * @param [type] $template [description]
-     * @param [type] $data     [description]
+     * @param string $template Template slug
+     * @param array  $data     Data
      *
      * @return [type] [description]
      */
-    public function partial($template, $data)
+    public function partial($template, array $data = array())
     {
-        if (empty($template)) {
-            throw new \Exception('Cannot render null partial template.');
-        }
         $app = App::getInstance();
         $Clazz = $app->config('bono.partial.view');
 
-        $view = new $Clazz;
-        $template = $this->resolve($template, $view);
+        $view = new $Clazz();
+        $t = $this->resolve($template, $view);
+
+        if (empty($t)) {
+            throw new \Exception('Cant resolve template "'.$template.'"');
+        }
         $view->replace($data);
 
-        return $view->fetch($template);
+        return $view->fetch($t);
     }
 
     /**
@@ -317,7 +332,7 @@ abstract class Theme
     {
         // Simple copy for a file
         if (is_file($source)) {
-            if (file_exists($dest) && (!$this->overwrite || fileatime($source) < fileatime($dest))) {
+            if (file_exists($dest) && (!empty($this->options['overwrite']) || fileatime($source) < fileatime($dest))) {
                 return true;
             }
 
@@ -347,5 +362,25 @@ abstract class Theme
         $dir->close();
 
         return true;
+    }
+
+    public function getView()
+    {
+        if (is_null($this->view)) {
+            $app = \App::getInstance();
+            $viewClass = $app->config('view');
+            $this->view = ($viewClass instanceof \Slim\View) ? $viewClass : new $viewClass();
+        }
+
+        return $this->view;
+    }
+
+    public function option($key = null)
+    {
+        if (func_num_args() ===  0) {
+            return $this->options;
+        } elseif (isset($this->options[$key])) {
+            return $this->options[$key];
+        }
     }
 }
