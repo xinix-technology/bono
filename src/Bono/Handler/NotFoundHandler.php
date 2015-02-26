@@ -1,10 +1,9 @@
-<?php
-
-namespace Bono\Handler;
+<?php namespace Bono\Handler;
 
 use Whoops\Run;
 use Bono\App;
 use Slim\View;
+use RuntimeException;
 
 class NotFoundHandler
 {
@@ -34,6 +33,6 @@ class NotFoundHandler
 
         $app->whoops->sendHttpCode(404);
 
-        return call_user_func(array($app->whoops, Run::EXCEPTION_HANDLER), new \RuntimeException("404 Resource not found"));
+        return call_user_func(array($app->whoops, Run::EXCEPTION_HANDLER), new RuntimeException("404 Resource not found"));
     }
 }
