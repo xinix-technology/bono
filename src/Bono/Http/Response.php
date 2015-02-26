@@ -59,21 +59,28 @@ class Response extends \Slim\Http\Response
     protected $template = '';
 
     /**
-     * [$data description]
+     * Response Data
+     *
      * @var array
      */
     protected $data = array();
 
     protected $messagesStatus = array (
-            208 => '208 not availabe'
-        );
+        208 => '208 not availabe'
+    );
 
     public function __construct($body = '', $status = 200, $headers = array())
     {
         parent::__construct($body, $status, $headers);
+
         foreach ($this->messagesStatus as $key => $value) {
-            parent::$messages[$key] = $value;
+            $this->setMessageStatus($key, $value);
         }
+    }
+
+    public function setMessageStatus($code, $message)
+    {
+        static::$messages[$code] = $message;
     }
 
     /**
