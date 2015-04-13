@@ -10,7 +10,7 @@
 
         <?php echo $field->label() ?>
 
-        <?php echo $field->format('input', @$entry[$name]) ?>
+        <?php echo $field->format('input', @$entry[$name], @$entry) ?>
 
     </div>
 
