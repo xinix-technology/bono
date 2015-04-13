@@ -32,7 +32,7 @@
 
                 <td>
                     <a href="<?php echo f('controller.url', '/'.$entry['$id']) ?>">
-                    <?php echo $field->format('readonly', $entry[$name]) ?>
+                    <?php echo $field->format('readonly', $entry[$name], $entry) ?>
                     </a>
                 </td>
 
