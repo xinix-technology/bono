@@ -17,8 +17,9 @@
     <?php endforeach ?>
 
     <div class="command-bar">
-        <input type="submit">
-        <a href="<?php echo f('controller.url') ?>">List</a>
+        <input type="submit"> |
+        <a href="<?php echo f('controller.url', '/:id/read') ?>" class="button">Show</a>
+        <a href="<?php echo f('controller.url') ?>" class="button">List</a>
     </div>
 
 </form>

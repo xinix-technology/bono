@@ -15,9 +15,9 @@
     <?php endforeach ?>
 
     <div class="command-bar">
-        <a href="<?php echo f('controller.url') ?>">List</a>
-        <a href="<?php echo f('controller.url', '/:id/update') ?>">Update</a>
-        <a href="<?php echo f('controller.url', '/:id/delete') ?>">Delete</a>
+        <a href="<?php echo f('controller.url', '/:id/update') ?>" class="button">Update</a>
+        <a href="<?php echo f('controller.url', '/:id/delete') ?>" class="button">Delete</a> |
+        <a href="<?php echo f('controller.url') ?>" class="button">List</a>
     </div>
 
 </form>

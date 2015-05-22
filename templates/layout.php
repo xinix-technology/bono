@@ -2,137 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title><?php echo f('page.title', 'Bono Application') ?></title>
+    <title><?php echo f('page.title', 'Bono') ?> <?php echo f('controller.name') ? '| '.f('controller.name') : '' ?></title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
     <style>
-        body {
-            font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-            font-size: 14px;
-            line-height: 1.42857143;
-            color: #333;
-            padding: 0;
-            margin: 0;
-            background-color: #fefeff;
-        }
+        html,
+        body { height: 100%; }
+        body { font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; font-size: 14px; line-height: 1.5; color: #333; padding: 0; margin: 0; background-color: #fefeff; display: flex; flex-direction: column; }
 
-        h1, h2 {
-            padding: 0;
-            margin: 0;
-            border-bottom: 1px solid #0096C9;
-            margin-bottom: 1rem;
-            color: #0096C9;
-        }
+        h1,
+        h2 { padding: 0; margin: 0; margin-bottom: 1rem; color: #444; font-weight: normal; }
 
-        h2 {
-            font-size: 1.3rem;
-        }
+        h2 { font-size: 1.3rem; }
 
-        a {
-            text-decoration: none;
-        }
+        a { text-decoration: none; }
 
-        label {
-            font-weight: bold;
-            width: 6rem;
-            display: inline-block;
-        }
+        label { font-weight: normal; width: 6rem; display: block; }
 
-        table {
-            width: 100%;
-        }
+        .table-placeholder { overflow: auto; }
 
-        table, td, th {
-            border-collapse: collapse;
-            border: 1px solid #0096C9;
-        }
+        table { width: 100%; }
 
-        table th {
-            background-color: #0096C9;
-            color: #fff;
-        }
+        table,
+        td,
+        th { border-collapse: collapse; border: none; font-weight: normal; border: 1px solid #444;}
+
+        table th { background-color: #444; color: #e5e5e5; }
 
         table td,
-        table th {
-            padding: 0 .8rem;
-        }
+        table th { padding: 0 .8rem; }
 
-        header {
-            background-color: #0096C9;
-            color: #fff;
-        }
+        table a { color: #444; }
 
-        header h1 {
-            text-align: center;
-            font-size: 1.5rem;
-            margin: 0;
-            color: #fff;
+        table .field { border: none; background: none; padding: 0; margin: 0; height: auto; line-height: normal; }
 
-        }
+        header { background-color: #f1f1f1; border-bottom: 1px solid #666; border-color: #e5e5e5; height: 59px; }
 
-        main {
-            padding: .8rem;
-        }
+        header h1 { text-align: center; font-size: 1.5rem; margin: 0; padding-top: 10px; color: #444; }
 
-        .alert {
-            margin: 1rem 0;
-            padding: .3rem;
-        }
+        header .home-icon { position: absolute; top: 10px; left: 10px; }
 
-        .alert.error {
-            color: #633;
-            border: 1px solid #633;
-            background-color: #f99;
-        }
+        main { padding: .8rem; width: 100%; max-width: 640px; margin: 0 auto; flex: 1; box-sizing: border-box;}
 
-        .alert.info {
-            color: #336;
-            border: 1px solid #336;
-            background-color: #0096C9;
-        }
+        .alert { margin: 1rem 0; padding: .3rem; padding-bottom: 10px; box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.75); position: relative;}
 
-        .alert p {
-            padding: 0;
-            margin: 0
-        }
+        .alert.error { color: #633; background-color: #f99; }
 
-        .command-bar {
-            margin: 1rem 0;
-        }
+        .alert.info { color: #336; background-color: #99f; }
 
-        .command-bar a,
-        .command-bar input {
-            cursor: pointer;
-            padding: .3rem 1rem;
-            display: inline-block;
-            border: 1px solid #0096C9;
-            background-color: transparent;
-            line-height: 1rem;
-            font-size: 1em;
-            color: #000;
-        }
+        .alert p { padding: 0; margin: 0 }
 
-        div.row {
-            display: inline-block;
-        }
+        .alert span { display: block; text-align: center; }
 
-        code {
-            font-size: .8rem;
-            border: 1px solid #999;
-            padding: 1px 5px;
-            background-color: #ffa;
-            border-radius: 5px;
-        }
+        .alert .close { position: absolute; top: 5px; right: 5px; font-size: .7rem; padding: 2px; height: auto; }
+
+        input,
+        .field,
+        .button { margin-bottom: 10px; width: 100%; height: 2rem; padding: 5px 5px; line-height: normal; box-sizing: border-box; font-size: 1rem; border: 1px solid #d3d3d3; background-color: #f8f8f8; color: #000; display: inline-block; }
+
+        input[type=button],
+        input[type=submit],
+        .button { cursor: pointer; padding: 5px 1rem; margin: 0; margin-bottom: 10px; width: auto; font-size: 1em; line-height: 18px; height: 30px }
+
+        code { font-size: .8rem; border: 1px solid #999; padding: 1px 5px; background-color: #ffa; border-radius: 5px; }
+
     </style>
 </head>
-<body>
+<body class="request-<?php echo strtolower($_SERVER['REQUEST_METHOD']) ?>">
     <header>
-        <a href="<?php echo URL::base() ?>" style="position: absolute">
+        <a href="<?php echo URL::base() ?>" class="home-icon">
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-                width="35px" height="35px" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve" style="fill:white">
+                width="35px" height="35px" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve" style="fill:#444">
                 <path id="home-3-icon" d="M118.032,279.715l30.494,161.153h217.371l30.494-162.113L257.212,158.18L118.032,279.715z
                     M256.218,401.649c-10.157,0-18.392-8.234-18.392-18.392c0-10.159,8.234-18.394,18.392-18.394c10.159,0,18.394,8.234,18.394,18.394
                     C274.611,393.415,266.377,401.649,256.218,401.649z M304.502,292.675c0,26.667-21.617,48.284-48.284,48.284
@@ -140,7 +83,7 @@
                     M462,256.001l-27.148,27.149L257.18,125.366L77.084,283.213L50,256L257.244,71.132L462,256.001z"/>
             </svg>
         </a>
-        <h1><?php echo f('page.title', 'Bono Application') ?></h1>
+        <h1><?php echo f('page.title', 'Bono') ?></h1>
     </header>
 
     <main>

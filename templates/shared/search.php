@@ -1,7 +1,7 @@
-<h2>List <?php echo f('controller.name') ?></h2>
+<h2><?php echo f('controller.name') ?> List</h2>
 
 <div class="command-bar">
-    <a href="<?php echo f('controller.url', '/null/create') ?>">Create</a>
+    <a href="<?php echo f('controller.url', '/null/create') ?>" class="button">Create</a>
 </div>
 
 <div class="table-placeholder">
