@@ -117,6 +117,10 @@ class App extends Slim
         register_shutdown_function(array($this, 'shutdownHandler'));
         set_error_handler(array($this, 'errorHandler'));
 
+        if (isset($_SERVER['HTTP_CONTENT_TYPE']) && empty($_SERVER['CONTENT_TYPE'])) {
+            $_SERVER['CONTENT_TYPE'] = $_SERVER['HTTP_CONTENT_TYPE'];
+        }
+
         if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
             if ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'http') {
                 unset($_SERVER['HTTPS']);
@@ -312,10 +316,7 @@ class App extends Slim
             $this->config($config);
         }
 
-        $timezone = $this->config('bono.timezone');
-        if (isset($timezone)) {
-            date_default_timezone_set($timezone);
-        }
+        date_default_timezone_set($this->config('bono.timezone') ?: 'UTC');
     }
 
     public function config($name, $value = null)
