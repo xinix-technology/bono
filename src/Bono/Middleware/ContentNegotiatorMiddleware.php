@@ -37,6 +37,8 @@
  */
 namespace Bono\Middleware;
 
+use Bono\Exception\BonoException;
+
 /**
  * ContentNegotiatorMiddleware
  *
@@ -75,7 +77,13 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
                 $errors = $this->app->notification->query(array('level' => 'error'));
                 if (!empty($errors)) {
                     $error = $errors[0];
-                    throw new \Exception($error['message'], $error['code']);
+                    if (isset($error['exception'])) {
+                        throw $error['exception'];
+                    } else {
+                        $ex = new BonoException($error['message'], $error['code'], $error['exception']);
+                        $ex->setStatus($error['status']);
+                        throw $ex;
+                    }
                 }
             }
             $this->render();
@@ -122,9 +130,10 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
 
     public function error($e)
     {
-        if ($e->getCode()) {
-            $this->app->response->setStatus($e->getCode());
+        if ($e instanceof BonoException) {
+            $this->app->response->setStatus($e->getStatus());
         }
+
         $error = array(
             'code' => $e->getCode(),
             'message' => $e->getMessage(),
@@ -143,7 +152,6 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
 
     public function notFound()
     {
-
         $this->app->response->status(404);
         $error = array(
             'code' => 404,

@@ -60,7 +60,8 @@ abstract class RestController extends Controller
      * @param Bono\App $app
      * @param string $baseUri
      */
-    public function __construct($app, $baseUri) {
+    public function __construct($app, $baseUri)
+    {
         parent::__construct($app, $baseUri);
 
         $controller = $this;

@@ -22,8 +22,6 @@
 
         label { font-weight: normal; width: 6rem; display: block; }
 
-        .table-placeholder { overflow: auto; }
-
         table { width: 100%; }
 
         table,
@@ -60,8 +58,12 @@
         .alert .close { position: absolute; top: 5px; right: 5px; font-size: .7rem; padding: 2px; height: auto; }
 
         input,
+        select,
+        textarea,
         .field,
-        .button { margin-bottom: 10px; width: 100%; height: 2rem; padding: 5px 5px; line-height: normal; box-sizing: border-box; font-size: 1rem; border: 1px solid #d3d3d3; background-color: #f8f8f8; color: #000; display: inline-block; }
+        .button { margin-bottom: 10px; width: 100%; min-height: 2rem; padding: 5px 5px; line-height: normal; box-sizing: border-box; font-size: 1rem; border: 1px solid #d3d3d3; background-color: #f8f8f8; color: #000; display: inline-block; }
+
+        textarea { height: auto; }
 
         input[type=button],
         input[type=submit],
@@ -69,19 +71,50 @@
 
         code { font-size: .8rem; border: 1px solid #999; padding: 1px 5px; background-color: #ffa; border-radius: 5px; }
 
+        section {
+            border: 1px solid #d3d3d3;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        section a,
+        section a:hover,
+        section a:active,
+        section a:visited {
+            color: #336;
+        }
+
+        .float-menu {
+            border: 1px solid #d3d3d3;
+            background-color: #ffa;
+            float: left;
+            padding: 10px;
+            margin: 10px 10px 0  0;
+            min-width: 150px;
+        }
+
+        .float-menu h2 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .float-menu a {
+            display: block;
+            border-top: 1px solid #d3d3d3;
+            padding: 5px;
+        }
     </style>
 </head>
 <body class="request-<?php echo strtolower($_SERVER['REQUEST_METHOD']) ?>">
     <header>
         <a href="<?php echo URL::base() ?>" class="home-icon">
-            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-                width="35px" height="35px" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve" style="fill:#444">
-                <path id="home-3-icon" d="M118.032,279.715l30.494,161.153h217.371l30.494-162.113L257.212,158.18L118.032,279.715z
-                    M256.218,401.649c-10.157,0-18.392-8.234-18.392-18.392c0-10.159,8.234-18.394,18.392-18.394c10.159,0,18.394,8.234,18.394,18.394
-                    C274.611,393.415,266.377,401.649,256.218,401.649z M304.502,292.675c0,26.667-21.617,48.284-48.284,48.284
-                    c-26.666,0-48.283-21.617-48.283-48.284c0-26.666,21.617-48.283,48.283-48.283C282.885,244.392,304.502,266.009,304.502,292.675z
-                    M462,256.001l-27.148,27.149L257.18,125.366L77.084,283.213L50,256L257.244,71.132L462,256.001z"/>
+            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 width="35px" height="35px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+            <g>
+                <polygon points="448,288 256,64 64,288 112,288 112,448 208,448 208,320 304,320 304,448 400,448 400,288  "/>
+            </g>
             </svg>
+
         </a>
         <h1><?php echo f('page.title', 'Bono') ?></h1>
     </header>

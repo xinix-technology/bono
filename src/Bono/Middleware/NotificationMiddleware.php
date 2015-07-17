@@ -37,6 +37,9 @@
  */
 namespace Bono\Middleware;
 
+use Bono\Exception\BonoException;
+use Bono\Exception\INotifiedException;
+
 /**
  * NotificationMiddleware
  *
@@ -89,7 +92,11 @@ class NotificationMiddleware extends \Slim\Middleware
 
         $this->populate();
 
-        $this->next->call();
+        try {
+            $this->next->call();
+        } catch (INotifiedException $e) {
+            h('notification.error', $e);
+        }
 
         $this->save();
     }
@@ -97,9 +104,8 @@ class NotificationMiddleware extends \Slim\Middleware
     public function save()
     {
         if ($errors = $this->query(array('level' => 'error'))) {
-            $this->app->response->setStatus($errors[0]['code']);
+            $this->app->response->setStatus($errors[0]['status']);
         }
-        // exit;
         $_SESSION['notification'] = $this->messages;
     }
 
@@ -107,44 +113,62 @@ class NotificationMiddleware extends \Slim\Middleware
     {
         if ($options instanceof \Exception) {
             $e = $options;
-            if (method_exists($e, 'sub') && $sub = $e->sub()) {
-                foreach ($sub as $ce) {
+
+            if ($e instanceof BonoException && $e->hasChildren()) {
+                $children = $e->getChildren();
+                foreach ($children as $ce) {
                     $ctx = array(
                         'level' => $level,
+                        'context' => '',
+                        'code' => $e->getCode(),
+                        'message' => $ce->getMessage(),
+                        'status' => $e->getStatus(),
+                        'exception' => $ce,
                     );
-                    if (method_exists($ce, 'context')) {
+                    if ($ce instanceof INotifiedException) {
                         $ctx['context'] = $ce->context();
                     }
-                    $ctx['code'] = $e->getCode();
-                    $ctx['message'] = $ce->getMessage();
                     $this->notify($level, $ctx);
                 }
-                return;
-            }
+            } else {
+                $options = array(
+                    'level' => 'error',
+                    'context' => '',
+                    'code' => $e->getCode(),
+                    'message' => $e->getMessage(),
+                    'status' => 500,
+                    'exception' => $e,
+                );
 
-            $options = array(
-                'level' => 'error',
-                'context' => '',
-                'code' => $e->getCode(),
-                'message' => $e->getMessage(),
-            );
+                if ($e instanceof BonoException) {
+                    $options['status'] = $e->getStatus();
+                }
 
-            if (method_exists($e, 'context')) {
-                $options['context'] = $e->context();
+                if ($e instanceof INotifiedException) {
+                    $options['context'] = $e->context();
+                }
+
+                $this->notify($options['level'], $options);
             }
-        } elseif (is_string($options)) {
-            $options = array(
-                'level' => $level,
-                'context' => '',
-                'code' => 0,
-                'message' => $options,
-            );
         } else {
-            $options['level'] = isset($options['level']) ? $options['level'] : $level;
-            $options['context'] = isset($options['context']) ? $options['context'] : '';
-        }
+            if (is_string($options)) {
+                $options = array(
+                    'level' => $level,
+                    'context' => '',
+                    'code' => 0,
+                    'message' => $options,
+                );
+            } else {
+                $options['level'] = isset($options['level']) ? $options['level'] : $level;
+                $options['context'] = isset($options['context']) ? $options['context'] : '';
+            }
 
-        $this->messages[$options['level']][$options['context']][] = $options;
+            if (!isset($options['status'])) {
+                $options['status'] = $level === 'error' ? 500 : 400;
+            }
+
+            $this->messages[$options['level']][$options['context']][] = $options;
+        }
     }
 
     public function show($options = null)
@@ -159,7 +183,6 @@ class NotificationMiddleware extends \Slim\Middleware
         $messages = $this->query($options);
 
         if (!empty($messages)) {
-
             $result = '<div class="alert '.$options['level'].'"><div><p>';
 
             foreach ($messages as $message) {
