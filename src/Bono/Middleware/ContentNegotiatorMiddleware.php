@@ -68,7 +68,8 @@ class ContentNegotiatorMiddleware extends \Slim\Middleware
         $this->init();
 
         if ($this->hasHandler()) {
-            $this->app->config('session.preventSession', true);
+            // why should prevent session?
+            // $this->app->config('session.preventSession', true);
 
             $app->error(array($this, 'error'));
             $app->notFound(array($this, 'notFound'));
