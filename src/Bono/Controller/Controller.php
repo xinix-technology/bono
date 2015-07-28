@@ -236,8 +236,14 @@ abstract class Controller implements \ArrayAccess
         //         $this->$method($args[0], $args[1], $args[2], $args[3], $args[4]);
         //         break;
         //     default:
-        call_user_func_array(array($this, $method), $args);
-        // }
+        try {
+            call_user_func_array(array($this, $method), $args);
+        } catch(\Exception $e) {
+            $this->app->applyHook('bono.controller.after', $options, 20);
+
+            throw $e;
+        }
+
         $this->app->applyHook('bono.controller.after', $options, 20);
     }
 
