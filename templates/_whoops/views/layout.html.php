@@ -25,8 +25,8 @@
       </div>
     </div>
 
-    <script src="<?php echo Theme::base('vendor/bono-whoops/ZeroClipboard.min.js') ?>"></script>
-    <script src="<?php echo Theme::base('vendor/bono-whoops/prettify.js') ?>"></script>
+    <script src="<?php echo \Bono\Theme\Theme::base('vendor/bono-whoops/ZeroClipboard.min.js') ?>"></script>
+    <script src="<?php echo \Bono\Theme\Theme::base('vendor/bono-whoops/prettify.js') ?>"></script>
 
     <script><?php echo $zepto ?></script>
     <script>
@@ -77,7 +77,7 @@
 
         if (typeof ZeroClipboard !== "undefined") {
           ZeroClipboard.config({
-            moviePath: '<?php echo Theme::base('vendor/bono-whoops/ZeroClipboard.swf') ?>',
+            moviePath: '<?php echo \Bono\Theme\Theme::base('vendor/bono-whoops/ZeroClipboard.swf') ?>',
           });
 
           var clipEl = document.getElementById("copy-button");

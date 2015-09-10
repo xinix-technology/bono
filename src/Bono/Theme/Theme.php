@@ -38,6 +38,7 @@
 namespace Bono\Theme;
 
 use Bono\App;
+use Bono\Helper\URL;
 
 /**
  * Theme
@@ -314,7 +315,7 @@ abstract class Theme
                 $file = $dir.'/www/'.$path;
 
                 if (is_readable($file)) {
-                    return \URL::base().$path;
+                    return URL::base().$path;
                 }
             }
         }
