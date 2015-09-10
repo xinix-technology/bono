@@ -216,7 +216,9 @@ class App extends Slim
      */
     protected function callErrorHandler($argument = null)
     {
-        while (ob_get_level() > 0) ob_end_clean();
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
 
         return parent::callErrorHandler($argument);
     }
@@ -286,7 +288,8 @@ class App extends Slim
         return false;
     }
 
-    public function debugMiddlewares() {
+    public function debugMiddlewares()
+    {
         $middlewares = array();
         foreach ($this->middleware as $key => $value) {
             $middlewares[] = get_class($value);
@@ -319,14 +322,41 @@ class App extends Slim
         date_default_timezone_set($this->config('bono.timezone') ?: 'UTC');
     }
 
-    public function config($name, $value = null)
+    protected function mergeConfig(&$to, $from)
     {
-        if (func_num_args() === 1) {
+        foreach ($from as $i => $value) {
+            $f = explode('!', $i);
+            $key = $f[0];
+            $action = count($f) === 1 ? 'merge' : $f[1];
+
+            if ($action === 'unset') {
+                unset($to[$key]);
+            } elseif ($action === 'set') {
+                $to[$key] = $from[$i];
+            } elseif (is_array($from[$key])) {
+                if (!isset($to[$key]) || !is_array($to[$key])) {
+                    $to[$key] = array();
+                }
+                $this->mergeConfig($to[$key], $from[$key]);
+            } else {
+                $to[$key] = $from[$key];
+            }
+        }
+    }
+
+    public function config($name = null, $value = null)
+    {
+        $numArgs = func_num_args();
+        // get all configuration settings
+        if ($numArgs === 0) {
+            return $this->settings;
+        } elseif ($numArgs === 1) {
+            // if first param is array then merge new configurations
             if (is_array($name)) {
                 foreach ($name as $key => $value) {
                     $this->config($key, $value);
                 }
-            } else {
+            } else { // get single instance of configuration
                 return parent::config($name);
             }
         } else {
@@ -338,7 +368,9 @@ class App extends Slim
                 if (! is_array($settings[$name])) {
                     $settings[$name] = (array) $settings[$name];
                 }
-                $settings[$name] = array_merge($settings[$name], $value);
+                $this->mergeConfig($settings[$name], $value);
+                // TODO use own merge strategy
+                // $settings[$name] = array_merge($settings[$name], $value);
             } else {
                 $settings[$name] = $value;
             }
@@ -458,7 +490,6 @@ class App extends Slim
         }
 
         foreach ($providers as $k => $v) {
-
             $Provider = $v;
             $options = array();
             if (is_string($k)) {
@@ -659,7 +690,13 @@ class App extends Slim
             if (strpos(PHP_SAPI, 'cgi') === 0) {
                 header(sprintf('Status: %s', \Slim\Http\Response::getMessageForCode($status)));
             } else {
-                header(sprintf('HTTP/%s %s', $this->config('http.version'), \Slim\Http\Response::getMessageForCode($status)));
+                header(
+                    sprintf(
+                        'HTTP/%s %s',
+                        $this->config('http.version'),
+                        \Slim\Http\Response::getMessageForCode($status)
+                    )
+                );
             }
 
             //Send headers
@@ -712,7 +749,9 @@ class App extends Slim
 
         foreach ($parts as $part) {
             // If this is the last part, break
-            if ($part == "--\r\n") break;
+            if ($part == "--\r\n") {
+                break;
+            }
 
             // Separate content from headers
             $part = ltrim($part, "\r\n");
@@ -741,13 +780,13 @@ class App extends Slim
                 switch ($name) {
                     // this is a file upload
                     case 'userfile':
-                         file_put_contents($filename, $body);
-                         break;
+                        file_put_contents($filename, $body);
+                        break;
 
                     // default for all other files is to populate $data
                     default:
-                         $data[$name] = substr($body, 0, strlen($body) - 2);
-                         break;
+                        $data[$name] = substr($body, 0, strlen($body) - 2);
+                        break;
                 }
             }
 
