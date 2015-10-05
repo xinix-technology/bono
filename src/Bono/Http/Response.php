@@ -1,211 +1,191 @@
 <?php
-
-/**
- * Bono - PHP5 Web Framework
- *
- * MIT LICENSE
- *
- * Copyright (c) 2014 PT Sagara Xinix Solusitama
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @category   PHP_Framework
- * @package    Bono
- * @subpackage Http
- * @author     Ganesha <reekoheek@gmail.com>
- * @copyright  2014 PT Sagara Xinix Solusitama
- * @license    https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
- * @version    0.10.0
- * @link       http://xinix.co.id/products/bono
- */
 namespace Bono\Http;
 
-/**
- * Response
- *
- * @category   PHP_Framework
- * @package    Bono
- * @subpackage Http
- * @author     Ganesha <reekoheek@gmail.com>
- * @copyright  2014 PT Sagara Xinix Solusitama
- * @license    https://raw.github.com/xinix-technology/bono/master/LICENSE MIT
- * @version    0.10.0
- * @link       http://xinix.co.id/products/bono
- */
-class Response extends \Slim\Http\Response
+use Psr\Http\Message\ResponseInterface;
+use ArrayAccess;
+use ROH\Util\Collection;
+
+class Response extends Message implements ResponseInterface, ArrayAccess
 {
+    protected static $messages = [
+        //Informational 1xx
+        100 => 'Continue',
+        101 => 'Switching Protocols',
+        102 => 'Processing',
+        //Successful 2xx
+        200 => 'OK',
+        201 => 'Created',
+        202 => 'Accepted',
+        203 => 'Non-Authoritative Information',
+        204 => 'No Content',
+        205 => 'Reset Content',
+        206 => 'Partial Content',
+        207 => 'Multi-Status',
+        208 => 'Already Reported',
+        226 => 'IM Used',
+        //Redirection 3xx
+        300 => 'Multiple Choices',
+        301 => 'Moved Permanently',
+        302 => 'Found',
+        303 => 'See Other',
+        304 => 'Not Modified',
+        305 => 'Use Proxy',
+        306 => '(Unused)',
+        307 => 'Temporary Redirect',
+        308 => 'Permanent Redirect',
+        //Client Error 4xx
+        400 => 'Bad Request',
+        401 => 'Unauthorized',
+        402 => 'Payment Required',
+        403 => 'Forbidden',
+        404 => 'Not Found',
+        405 => 'Method Not Allowed',
+        406 => 'Not Acceptable',
+        407 => 'Proxy Authentication Required',
+        408 => 'Request Timeout',
+        409 => 'Conflict',
+        410 => 'Gone',
+        411 => 'Length Required',
+        412 => 'Precondition Failed',
+        413 => 'Request Entity Too Large',
+        414 => 'Request-URI Too Long',
+        415 => 'Unsupported Media Type',
+        416 => 'Requested Range Not Satisfiable',
+        417 => 'Expectation Failed',
+        418 => 'I\'m a teapot',
+        422 => 'Unprocessable Entity',
+        423 => 'Locked',
+        424 => 'Failed Dependency',
+        426 => 'Upgrade Required',
+        428 => 'Precondition Required',
+        429 => 'Too Many Requests',
+        431 => 'Request Header Fields Too Large',
+        //Server Error 5xx
+        500 => 'Internal Server Error',
+        501 => 'Not Implemented',
+        502 => 'Bad Gateway',
+        503 => 'Service Unavailable',
+        504 => 'Gateway Timeout',
+        505 => 'HTTP Version Not Supported',
+        506 => 'Variant Also Negotiates',
+        507 => 'Insufficient Storage',
+        508 => 'Loop Detected',
+        510 => 'Not Extended',
+        511 => 'Network Authentication Required',
+    ];
 
-    /**
-     * [$template description]
-     * @var string
-     */
-    protected $template = '';
+    protected $status;
 
-    /**
-     * Response Data
-     *
-     * @var array
-     */
-    protected $data = array();
+    protected $reasonPhrase;
 
-    protected $messagesStatus = array (
-        208 => '208 not availabe'
-    );
+    protected $data;
 
-    public function __construct($body = '', $status = 200, $headers = array())
+    protected $error;
+
+    public static function getInstance()
     {
-        parent::__construct($body, $status, $headers);
-
-        foreach ($this->messagesStatus as $key => $value) {
-            $this->setMessageStatus($key, $value);
-        }
+        return new Response();
     }
 
-    public function setMessageStatus($code, $message)
+    public static function error($code = 500, $exception = null)
     {
-        static::$messages[$code] = $message;
+        return new Response($code, null, $exception);
     }
 
-    /**
-     * [set description]
-     *
-     * @param [type] $key   [description]
-     * @param [type] $value [description]
-     *
-     * @return [type] [description]
-     *
-     * @deprecated
-     *
-     */
-    public function set($key, $value)
+    public static function notFound()
     {
-        trigger_error(__METHOD__.' is deprecated.', E_USER_DEPRECATED);
-
-        return $this->data($key, $value);
+        return new Response(404);
     }
 
-    /**
-     * [reset description]
-     * @return [type] [description]
-     *
-     * @deprecated
-     *
-     */
-    public function reset()
+    public function __construct($status = 200, $headers = null, $body = null)
     {
-        trigger_error(__METHOD__.' is deprecated.', E_USER_DEPRECATED);
+        $this->status = $status;
+        $this->headers = $headers ?: new Headers();
 
-        return $this->data(null);
-    }
+        $this->data = new Collection();
 
-    /**
-     * [get description]
-     *
-     * @param [type] $key [description]
-     *
-     * @return [type] [description]
-     *
-     * @deprecated
-     *
-     */
-    public function get($key = null)
-    {
-        trigger_error(__METHOD__.' is deprecated.', E_USER_DEPRECATED);
-
-        if (0 === func_num_args()) {
-            return $this->data();
+        if (is_string($body)) {
+            $this->write($body);
+        } elseif ($body instanceof Stream) {
+            $this->body = $body;
+        } elseif ($body instanceof \Exception) {
+            $this->error = $body;
         } else {
-            return $this->data($key);
+            $this->data = new Collection($body);
         }
+
+        parent::__construct($headers);
     }
 
-    /**
-     * [template description]
-     *
-     * @param [type] $template [description]
-     *
-     * @return [type] [description]
-     */
-    public function template($template = null)
+    public function write($data)
     {
-        if (is_null($template)) {
-            return $this->template;
-        } else {
-            $this->template = $template;
-        }
+        $this->getBody()->write($data);
+
+        return $this;
     }
 
-    /**
-     * [redirect description]
-     *
-     * @param string  $url    [description]
-     * @param integer $status [description]
-     *
-     * @return [type] [description]
-     */
-    public function redirect($url = ':self', $status = 302)
+    public function getBody()
     {
-        $scheme = parse_url($url, PHP_URL_SCHEME);
-        if (isset($scheme)) {
-            return parent::redirect($url, $status);
+        if (is_null($this->body)) {
+            $this->body = new Stream();
         }
-        if ($url === ':self') {
-            $app = \Slim\Slim::getInstance();
-            $url = $app->request->getResourceUri();
-        }
-        $url = \Bono\Helper\URL::site($url);
 
-        return parent::redirect($url, $status);
+        return $this->body;
     }
 
-    /**
-     * [data description]
-     * @param  [type] $key   [description]
-     * @param  [type] $value [description]
-     * @return [type]        [description]
-     */
-    public function data($key = null, $value = null) {
-        switch (func_num_args()) {
-            case 0:
-                return $this->data;
-            case 1:
-                if (is_array($key)) {
-                    $this->data = array_merge($this->data, $key);
-                    return $this;
-                } elseif (is_null($key)) {
-                    $this->data = array();
-                    return $this;
-                } elseif (isset($this->data[$key])) {
-                    return $this->data[$key];
-                } else {
-                    return;
-                }
-            case 2:
-                if (is_null($value)) {
-                    unset($this->data[$key]);
-                } else {
-                    $this->data[$key] = $value;
-                }
-                return $this;
-
-        }
+    public function getData()
+    {
+        return $this->data;
     }
 
+    public function getError()
+    {
+        return $this->error;
+    }
+
+    public function withError($error)
+    {
+        $clone = clone $this;
+        $clone->$error = $error;
+        return $clone;
+    }
+
+    // response interface
+    public function getStatusCode()
+    {
+        return $this->status;
+    }
+
+    public function withStatus($code, $reasonPhrase = '')
+    {
+        $code = $this->filterStatus($code);
+
+        if (!is_string($reasonPhrase) && !method_exists($reasonPhrase, '__toString')) {
+            throw new InvalidArgumentException('ReasonPhrase must be a string');
+        }
+
+        $clone = clone $this;
+        $clone->status = $code;
+        $clone->reasonPhrase = $reasonPhrase;
+
+        return $clone;
+
+    }
+
+    public function getReasonPhrase()
+    {
+        if ($this->reasonPhrase) {
+            return $this->reasonPhrase;
+        }
+        return static::$messages[$this->status];
+    }
+
+    protected function filterStatus($status)
+    {
+        if (!is_integer($status) || !isset(static::$messages[$status])) {
+            throw new InvalidArgumentException('Invalid HTTP status code');
+        }
+
+        return $status;
+    }
 }
