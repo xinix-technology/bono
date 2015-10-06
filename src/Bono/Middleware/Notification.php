@@ -52,7 +52,7 @@ class Notification
 
     public function __invoke($request, $next)
     {
-        $request['notification'] = $this;
+        $request['$notification'] = $this;
         return $next($request);
     }
 }

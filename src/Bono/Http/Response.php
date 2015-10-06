@@ -100,6 +100,7 @@ class Response extends Message implements ResponseInterface, ArrayAccess
     public function __construct($status = 200, $headers = null, $body = null)
     {
         $this->status = $status;
+
         $this->headers = $headers ?: new Headers();
 
         $this->data = new Collection();

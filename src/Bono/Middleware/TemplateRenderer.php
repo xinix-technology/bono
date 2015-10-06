@@ -2,22 +2,24 @@
 
 namespace Bono\Middleware;
 
+use Bono\Middleware;
 use ROH\Util\Options;
 use ROH\Util\Thing;
 
-class TemplateRenderer
+class TemplateRenderer extends Middleware
 {
-    protected $options;
-
     protected $renderer;
 
     public function __construct($options = [])
     {
-        $this->options = Options::create([
+        $options = Options::create([
+            'templatePath' => '../templates',
             'accepts' => [
                 'text/html' => null,
             ],
         ])->merge($options);
+
+        parent::__construct($options);
 
         if (is_null($this->options['renderer'])) {
             throw new \Exception('Renderer not set yet!');
@@ -25,6 +27,7 @@ class TemplateRenderer
 
         $this->renderer = new Thing($this->options['renderer']);
     }
+
 
     public function render($response, $template, $data = [])
     {
@@ -36,6 +39,8 @@ class TemplateRenderer
 
     public function __invoke($request, $next)
     {
+        $request['$templateRenderer'] = $this;
+
         $response = $next($request);
 
         if (!$response['isRendered'] && array_key_exists($response->getContentType(), $this->options['accepts'])) {

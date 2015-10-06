@@ -114,3 +114,10 @@ class App extends Bundle
         }
     }
 }
+
+if (!function_exists('app')) {
+    function app()
+    {
+        return App::getInstance();
+    }
+}
