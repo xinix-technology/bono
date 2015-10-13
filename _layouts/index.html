@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Bono Documentation</title>
-    <link rel="stylesheet" href="../vendor/jacket-awesome/dist/css/jacket-awesome.css">
-    <link rel="stylesheet" href="../vendor/google-code-prettify/bin/prettify.min.css">
-    <link rel="stylesheet" href="../vendor/animate.css/animate.min.css">
-    <link rel="stylesheet" href="../css/naked.min.css">
-    <link rel="stylesheet" href="../css/docs.min.css">
+    <link rel="stylesheet" href="{{site.baseurl}}/vendor/jacket-awesome/dist/css/jacket-awesome.css">
+    <link rel="stylesheet" href="{{site.baseurl}}/vendor/google-code-prettify/bin/prettify.min.css">
+    <link rel="stylesheet" href="{{site.baseurl}}/vendor/animate.css/animate.min.css">
+    <link rel="stylesheet" href="{{site.baseurl}}/css/naked.min.css">
+    <link rel="stylesheet" href="{{site.baseurl}}/css/docs.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 </head>
 <body>
@@ -15,7 +15,7 @@
     <main class="content home">
         <div class="container">
             <div class="wrapper">
-                <center><img width="200" src="../img/bono.png" alt="Bono" /></center>
+                <center><img width="200" src="{{site.baseurl}}/img/bono.png" alt="Bono" /></center>
                 <div class="download">
                     <h4 class="sub-title">
                         {{page.subtitle}}
@@ -33,9 +33,9 @@
     <!-- END OF PAGE CONTENT -->
 
     <!-- PAGE LEVEL SCRIPT -->
-    <script type="text/javascript" charset="utf-8" src="../js/tshirt.min.js"></script>
-    <script type="text/javascript" charset="utf-8" src="../js/docs.js"></script>
-    <script type="text/javascript" charset="utf-8" src="../vendor/google-code-prettify/bin/prettify.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{site.baseurl}}/js/tshirt.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{site.baseurl}}/js/docs.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{site.baseurl}}/vendor/google-code-prettify/bin/prettify.min.js"></script>
     <script type="text/javascript" charset="utf-8">
         $.each($('.content pre.prettyprint'), function(index, dom) {
             $(dom).html($('<div/>').text($(dom).html()).html());
