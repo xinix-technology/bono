@@ -1,0 +1,8 @@
+{
+    "name": "xinix-technology/pas-gh-pages",
+    "tasks": {
+        "serve": [
+            ["bundle", "exec", "jekyll", "serve", "--baseurl",  ""]
+        ]
+    }
+}

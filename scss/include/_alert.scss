@@ -1,0 +1,46 @@
+.alert {
+	position: absolute;
+	top: 1px;
+	padding: 0;
+	left: 0;
+	right: 0;
+	z-index: 8;
+	color: #{$white};
+	border: 1px solid transparent;
+	@include border-radius($border-radius-pixels);
+
+	&.error {
+		background-color: #{$alert-error};
+		border-color: #{$alert-border-error};
+	}
+
+	&.success {
+		background-color: #{$alert-success};
+		border-color: #{$alert-border-success};
+	}
+
+	&.warning {
+		background-color: #{$alert-warning};
+		border-color: #{$alert-border-warning};
+	}
+
+	&.info {
+		background-color: #{$alert-info};
+		border-color: #{$alert-border-info};
+	}
+
+	p {
+		font-weight: 500;
+		margin: 0;
+		text-align: center;
+        @include transform-style(preserve-3d);
+
+		.close {
+			position: absolute;
+            top: 50%;
+            left: initial;
+            right: #{$grid * 2};
+            @include transform(translateY(-50%));
+		}
+	}
+}

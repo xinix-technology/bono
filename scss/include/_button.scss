@@ -1,0 +1,208 @@
+input[type="reset"],
+input[type="submit"],
+button,
+.button {
+	font: 1em #{$font-family};
+    padding: #{$grid / 2} #{$grid * 6};
+    cursor: pointer;
+    line-height: #{$body-line-height};
+    margin: 0 #{$grid * 2} 0 0;
+    position: relative;
+    font-weight: #{$font-regular};
+    text-decoration: none;
+    text-align: center;
+    background: transparent;
+    border: 1px solid #{$button-info};
+    border-top-color: #{adjust-lightness($button-info, $button-lighter-value)};
+    border-bottom-color: #{adjust-lightness($button-info, $button-darker-value)};
+    background-color: #{adjust-lightness($button-info, $button-background-value)};
+    color: #{$button-info};
+    display: inline-block;
+    @include appearance(none);
+    @include border-radius(#{$border-radius-pixels});
+
+    &:hover {
+        background: #{$submit-bg};
+	    color: #{$button-text-hover};
+    }
+
+    &.error {
+    	background: transparent;
+	    border: 1px solid #{$button-error};
+	    border-top-color: #{adjust-lightness($button-error, $button-lighter-value)};
+	    border-bottom-color: #{adjust-lightness($button-error, $button-darker-value)};
+	    background-color: #{adjust-lightness($button-error, $button-background-value)};
+	    color: #{$button-error};
+
+	    &:hover {
+	        background: #{$button-error};
+		    color: #{$button-text-hover};
+	    }
+    }
+
+    &.success {
+    	background: transparent;
+	    border: 1px solid #{$button-success};
+	    border-top-color: #{adjust-lightness($button-success, $button-lighter-value)};
+	    border-bottom-color: #{adjust-lightness($button-success, $button-darker-value)};
+	    background-color: #{adjust-lightness($button-success, $button-background-value)};
+	    color: #{$button-success};
+
+	    &:hover {
+	        background: #{$button-success};
+		    color: #{$button-text-hover};
+	    }
+    }
+
+    &.warning {
+    	background: transparent;
+	    border: 1px solid #{$button-warning};
+	    border-top-color: #{adjust-lightness($button-warning, $button-lighter-value)};
+	    border-bottom-color: #{adjust-lightness($button-warning, $button-darker-value)};
+	    background-color: #{adjust-lightness($button-warning, $button-background-value)};
+	    color: #{$button-warning};
+
+	    &:hover {
+	        background: #{$button-warning};
+		    color: #{$button-text-hover};
+	    }
+    }
+
+    &.round {
+    	@include border-radius(666em);
+    }
+
+    &.solid {
+		background: #{$submit-bg};
+	    color: #{$button-text-hover};
+
+		&.error {
+	    	background: #{$button-error};
+		    color: #{$button-text-hover};
+	    }
+
+	    &.success {
+	    	background: #{$button-success};
+		    color: #{$button-text-hover};
+	    }
+
+	    &.warning {
+	    	background: #{$button-warning};
+		    color: #{$button-text-hover};
+	    }
+    }
+
+    &[disable],
+    &.disable {
+    	color: #{$disable-color}!important;
+    	border-color: #{$disable-color}!important;
+    	background: #{adjust-lightness($disable-color, 18%)}!important;
+    	cursor: default;
+    }
+}
+
+.right,
+.pull-right {
+	input[type="reset"],
+	input[type="submit"],
+	button,
+	.button {
+	    margin: 0 0 0 #{$grid * 2};
+	}
+}
+
+.button-group {
+	list-style: none;
+	margin: #{$grid * 2} 0 0;
+	padding-left: 0;
+
+	&.left {
+		position: absolute;
+		left: 0;
+		top: 0;
+	}
+	&.centered {
+		display: table;
+		margin: 0 auto 8px;
+	}
+	&.right {
+		position: absolute;
+		left: initial;
+		right: 0;
+		top: 0;
+	}
+
+	&.round {
+		li {
+			a {
+				@include border-radius(0);
+			}
+			&:first-child {
+				a {
+				    @include border-radius(#{$border-radius-pixels} 0 0 #{$border-radius-pixels});
+				}
+			}
+			&:last-child {
+				a {
+				    @include border-radius(0 #{$border-radius-pixels} #{$border-radius-pixels} 0);
+				}
+			}
+		}
+	}
+
+	&::after {
+		clear: both;
+	}
+	&::before,
+	&::after {
+		content: " ";
+		display: table;
+	}
+
+	> :first-child {
+		margin-left: 0;
+	}
+	> * {
+		margin: 0 0 0 -1px;
+		float: left;
+	}
+
+	a {
+		margin: 0
+	}
+}
+.button-bar {
+	position: relative;
+	width: 100%;
+
+	&::after {
+		clear: both;
+	}
+}
+.submit {
+	border: 0;
+}
+
+
+// =========================== media query =======================
+
+@media #{$small} {
+	.button-bar {
+		ul.button-group {
+	        position: relative;
+	        margin: 0 auto;
+	        width: 100%;
+	        margin-bottom: 10px;
+
+	        &.left ,
+	        &.centered ,
+	        &.right {
+				width: auto;
+				clear: both;
+	        }
+	        &.right {
+	        	float: right;
+	        }
+	    }
+	}
+}

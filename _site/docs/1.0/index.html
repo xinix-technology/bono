@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bono Documentation</title>
+    <link rel="stylesheet" href="../../../vendor/jacket-awesome/dist/css/jacket-awesome.css">
+    <link rel="stylesheet" href="../../../vendor/google-code-prettify/bin/prettify.min.css">
+    <link rel="stylesheet" href="../../../vendor/animate.css/animate.min.css">
+    <link rel="stylesheet" href="../../../css/naked.min.css">
+    <link rel="stylesheet" href="../../../css/docs.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="nav-menu">
+        <div class="pull-left">
+            <h1 class="brand">
+                <a href="../../index.html">
+                    <span class="logo">
+                        <img src="../../../img/bono.png" alt="Bono" />
+                    </span>
+                    <span>Bono Documentation</span>
+                </a>
+            </h1>
+        </div>
+    </nav>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar"></aside>
+
+    <!-- CONTENT -->
+    <main class="content">
+        <div class="wrapper">
+            <h1 class="title">Introduction</h1>
+            <hr/>
+
+            <p>We design our website by deviding the screen into several section. By default Naked use 12 grid system that can be configured manually from Naked source code.</p>
+
+<h3>Why Bono ?</h3>
+
+<hr/>
+
+<ul>
+<li>Build web base application faster then usual</li>
+<li>Standard template for create, update, search and delete</li>
+<li>Dynamic view and function  for html page and rest api using json</li>
+</ul>
+
+<p><br/>
+<h3>Component</h3>
+<hr/>
+<p>
+    Bono have two main  component :
+</p>
+<ul>
+    <li><h6>Provider</h6></li>
+    <p>Provider serve to add the ability   application  to Bono. For example  chat application, CMS application, Community Application, etc</p></p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">&lt;li&gt;&lt;h6&gt;Middleware&lt;/h6&gt;&lt;/li&gt;
+&lt;p&gt;Middleware  serve to add functionality related to application flow. For Example  Session Middleware, Authenticaiton Middleware, etc&lt;/p&gt;
+</code></pre></div>
+<p></ul></p>
+
+        </div>
+    </main>
+
+    <!-- FOOTER CONTENT -->
+    <footer>
+        <p>Copyright &copy; 2015 <a href="http://xinix.co.id" target="_BLANK">Xinix Technology</a>. Some right(s) reserved.</p>
+    </footer>
+
+    <!-- PAGE LEVEL SCRIPT -->
+    <script type="text/javascript" charset="utf-8" src="../../../js/tshirt.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="../../../js/docs.js"></script>
+    <script type="text/javascript" charset="utf-8" src="../../../vendor/google-code-prettify/bin/prettify.min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        $.each($('.content pre.prettyprint'), function(index, dom) {
+            $(dom).html($('<div/>').text($(dom).html()).html());
+        });
+        prettyPrint();
+    </script>
+</body>
+</html>

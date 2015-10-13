@@ -1,0 +1,101 @@
+.row {
+    @for $i from 1 through $grid-total-columns {
+        .span-#{$i},
+        .tiny-#{$i},
+        .small-#{$i},
+        .medium-#{$i},
+        .large-#{$i},
+        .xlarge-#{$i} {
+            display: none;
+            position: relative;
+            float: left;
+        }
+    }
+    @for $i from 1 through $grid-total-columns {
+        .xlarge-#{$i} {
+            display: block;
+            width: percentage($i/$grid-total-columns);
+        }
+    }
+}
+
+@media #{$large} {
+    .row {
+        @for $i from 1 through $grid-total-columns {
+            .xlarge-#{$i} {
+                display: none;
+            }
+        }
+        @for $i from 1 through $grid-total-columns {
+            .large-#{$i} {
+                display: block;
+                width: percentage($i/$grid-total-columns);
+            }
+        }
+    }
+}
+
+@media #{$medium} {
+    .row {
+        @for $i from 1 through $grid-total-columns {
+            .large-#{$i} {
+                display: none;
+            }
+        }
+        @for $i from 1 through $grid-total-columns {
+            .medium-#{$i} {
+                display: block;
+                width: percentage($i/$grid-total-columns);
+            }
+        }
+    }
+}
+
+@media #{$small} {
+    .row {
+        @for $i from 1 through $grid-total-columns {
+            .medium-#{$i} {
+                display: none;
+            }
+        }
+        @for $i from 1 through $grid-total-columns {
+            .small-#{$i} {
+                display: block;
+                width: percentage($i/$grid-total-columns);
+            }
+        }
+    }
+}
+
+@media #{$tiny} {
+    .row {
+        @for $i from 1 through $grid-total-columns {
+            .small-#{$i} {
+                display: none;
+            }
+        }
+        @for $i from 1 through $grid-total-columns {
+            .tiny-#{$i} {
+                display: block;
+                width: percentage($i/$grid-total-columns);
+            }
+        }
+    }
+}
+
+@media #{$screen} {
+    .row {
+        @for $i from 1 through $grid-total-columns {
+            .span-#{$i} {
+                display: block;
+                width: percentage($i/$grid-total-columns);
+            }
+        }
+        @for $i from 1 through $tabstrip-columns {
+            .tabspan-#{$i} {
+                display: block;
+                width: percentage($i/$tabstrip-columns);
+            }
+        }
+    }
+}

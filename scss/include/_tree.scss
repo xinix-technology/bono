@@ -1,0 +1,59 @@
+.tree {
+    margin: 0 0 0 #{$grid * 5};
+    padding: 0;
+
+    li {
+        padding: 0;
+        list-style: none;
+        position: relative;
+        @include transform-style(preserve-3d);
+
+        input {
+            position: absolute;
+            left: -#{$grid * 5};
+            border: none;
+            background: none;
+            @include appearance(none);
+
+            &:before {
+                content: "+";
+                position: absolute;
+                left: 0;
+                top: #{$grid * 1.5};
+                height: #{$grid * 3};
+                width: #{$grid * 3};
+                padding: 0;
+                font-size: #{$grid * 3};
+                line-height: #{$grid * 3};
+                text-align: center;
+                color: #{$white};
+                background: #{$blue};
+                @include border-radius(#{$border-radius-pixels / 2});
+            }
+
+            ~ ol,
+            ~ ul {
+                display: none;
+                margin: 0 0 0 #{$grid * 5};
+                padding: 0;
+            }
+        }
+
+        input:checked {
+            &:before {
+                content: "-";
+            }
+
+            ~ ol,
+            ~ ul,
+            ol.show,
+            ul.show {
+                display: block;
+            }
+        }
+
+        a {
+            position: relative;
+        }
+    }
+}

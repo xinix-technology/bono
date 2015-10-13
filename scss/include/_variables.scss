@@ -1,0 +1,228 @@
+// Screen resolution
+$tiny-screen:       "240px";
+$small-screen:      "480px";
+$medium-screen:     "767px";
+$large-screen:      "1023px";
+$extra-large-screen:  "1360px";
+
+$screen: "screen";
+
+$tiny:    "only screen and (max-width:#{$small-screen})";
+$small:   "only screen and (max-width:#{$medium-screen})";
+$medium:  "only screen and (max-width:#{$large-screen}) ";
+$large:   "only screen and (max-width:#{$extra-large-screen})";
+
+$min-tiny:    "only screen and (min-width:#{$small-screen})";
+$min-small:   "only screen and (min-width:#{$medium-screen})";
+$min-medium:  "only screen and (min-width:#{$large-screen}) ";
+$min-large:   "only screen and (min-width:#{$extra-large-screen})";
+
+// Grid system
+$grid-total-columns: 12 !default;
+$tabstrip-columns: 10 !default;
+
+
+// Measurement
+$grid: 4px;
+$border-radius-pixels: $grid;
+$top-bar-height: 48px;
+$side-bar-width: 256px;
+
+// Font
+$font-family: 'Lato', sans-serif;
+$font-size: 14px;
+
+// Font weight
+$font-thin: 100;
+$font-light: 300;
+$font-regular: 400;
+$font-bold: 700;
+$font-bolder: 900;
+
+$letter-spacing-norrower: -0.032em;
+$letter-spacing-norrow: -0.016em;
+$letter-spacing-normal: 0em;
+$letter-spacing-wide: 0.016em;
+$letter-spacing-wider: 0.032em;
+
+
+// Default color
+$black: #000000;
+$red: #CF4741;
+$cyan: #08c;
+$blue: #416B9B;
+$yellow: #E1BF32;
+$green: #718F47;
+$white: #FFFFFF;
+$white-gray: #F5F5F5;
+$transparent: transparent;
+
+// Background color
+$body-bg: $white-gray;
+$header-bg: adjust-lightness($blue, 64%);
+$navbar-bg: adjust-lightness($blue, 56%);
+$content-bg: $white;
+$footer-bg: $body-bg;
+
+$bg-hover: $white-gray;
+
+$submit-bg: $blue;
+$submit-bg-hover: $white-gray;
+
+$prepostfix-bg: $white-gray;
+
+// Button
+$button-info: $blue;
+$button-error: $red;
+$button-success: $green;
+$button-warning: $yellow;
+$button-lighter-value: 16%;
+$button-darker-value: -8%;
+$button-background-value: 100%;
+$button-text-hover: $white;
+
+$alert-error: $red;
+$alert-border-error: $red;
+$alert-success: $green;
+$alert-border-success: $green;
+$alert-warning: $blue;
+$alert-border-warning: $blue;
+$alert-info: $blue;
+$alert-border-info: $blue;
+
+
+// Basic text color
+$color: $black;
+
+// h1-6 colors
+$h-color: $black;
+$h-small-color: adjust-lightness($black, 32%);
+$h-subheader-color: adjust-lightness($black, 24%);
+
+// Link colours
+$a-color: $blue;
+$a-color-amount: 16%;
+
+// Pagination color
+$pagination-color: adjust-lightness($black, 55%);;
+$pagination-active-color: $white;
+
+$table-color: $white;
+$table-head-color: $white;
+$table-stripe-color: adjust-lightness($blue, 52%);
+$table-hover-color: adjust-lightness($yellow, 32%);
+$table-border-color: adjust-lightness($blue, 36%);
+
+// List view color
+$grouptitle-color: adjust-lightness($black, 48%);
+
+$checkbox-white: $white;
+$checkbox-green: $green;
+$checkbox-grey: adjust-lightness($black, 60%);
+
+$alert-error-color: $red;
+$alert-success-color: $green;
+$alert-warning-color: $yellow;
+$alert-info-color: $blue;
+
+$disable-color: adjust-lightness($black, 78%);
+
+// Border color
+$border-color: 				    adjust-lightness($black, 90%);
+$border-input-color: 		  adjust-lightness($black, 90%);
+$border-postprefix-color: $border-input-color;
+
+// Line height
+$body-line-height: 1.64em;
+$listviewtext-line-height: inherit;
+$letter-spacing: 0.016em;
+
+// Image and Icon size
+$img-icon-width: 30px;
+$img-icon-height: 30px;
+$img-picture-width: 40px;
+$img-picture-height: 40px;
+$img-image-width: 100%;
+$img-image-height: auto;
+
+$tabstrip-icon-size: $grid * 6;
+
+
+// Mixins
+@mixin border-radius($radius) {
+  -webkit-border-radius: $radius;
+     -moz-border-radius: $radius;
+      -ms-border-radius: $radius;
+          border-radius: $radius;
+}
+@mixin box-sizing($sizing) {
+    -webkit-box-sizing: $sizing;
+       -moz-box-sizing: $sizing;
+        -ms-box-sizing: $sizing;
+         -o-box-sizing: $sizing;
+            box-sizing: $sizing;
+}
+@mixin background-clip($clip) {
+    -webkit-background-clip: $clip;
+       -moz-background-clip: $clip;
+        -ms-background-clip: $clip;
+         -o-background-clip: $clip;
+            background-clip: $clip;
+}
+@mixin appearance($type) {
+    -webkit-appearance: $type;
+       -moz-appearance: $type;
+        -ms-appearance: $type;
+         -o-appearance: $type;
+            appearance: $type;
+}
+@mixin box-shadow($shadow) {
+    -webkit-box-shadow: $shadow;
+       -moz-box-shadow: $shadow;
+        -ms-box-shadow: $shadow;
+         -o-box-shadow: $shadow;
+            box-shadow: $shadow;
+}
+@mixin transition($transition) {
+    -webkit-transition: $transition;
+       -moz-transition: $transition;
+        -ms-transition: $transition;
+         -o-transition: $transition;
+            transition: $transition;
+}
+@mixin transitionCSS3($transition) {
+    -webkit-transition: -webkit-#{$transition};
+       -moz-transition: -moz-#{$transition};
+        -ms-transition: -ms-#{$transition};
+         -o-transition: -o-#{$transition};
+            transition: #{$transition};
+}
+@mixin transform($transform) {
+    -webkit-transform: $transform;
+       -moz-transform: $transform;
+        -ms-transform: $transform;
+         -o-transform: $transform;
+            transform: $transform;
+}
+@mixin transform-origin($transform-origin) {
+    -webkit-transform-origin: $transform-origin;
+       -moz-transform-origin: $transform-origin;
+        -ms-transform-origin: $transform-origin;
+         -o-transform-origin: $transform-origin;
+            transform-origin: $transform-origin;
+}
+@mixin transform-style($transform-style) {
+    -webkit-transform-style: $transform-style;
+       -moz-transform-style: $transform-style;
+        -ms-transform-style: $transform-style;
+         -o-transform-style: $transform-style;
+            transform-style: $transform-style;
+}
+@mixin placeholder-color($color) {
+	::-webkit-input-placeholder { color:$color }
+	::-moz-placeholder 			{ color:$color }
+	::placeholder 				{ color:$color }
+	:-moz-placeholder 			{ color:$color }
+	:-ms-input-placeholder 		{ color:$color }
+	:placeholder 				{ color:$color }
+}

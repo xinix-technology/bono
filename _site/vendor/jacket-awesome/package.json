@@ -1,0 +1,16 @@
+{
+  "name": "jacket-awesome",
+  "version": "0.0.1",
+  "description": "Currently font awesome converter to be used by internal Xinix Technology",
+  "license": "MIT",
+  "repository": {},
+  "dependencies": {},
+  "devDependencies": {
+    "gulp": "^3.8.10",
+    "gulp-concat": "^2.6.0",
+    "gulp-minify-css": "^0.3.11",
+    "gulp-rename": "^1.2.0",
+    "gulp-replace": "^0.5.3",
+    "gulp-util": "^2.2.17"
+  }
+}

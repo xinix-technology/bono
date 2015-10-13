@@ -1,0 +1,103 @@
+ul.pagination {
+	margin-top: 0;
+	margin-bottom: 0;
+	float: none;
+    display: table;
+    list-style: none;
+    padding: 0;
+
+    li {
+    	margin: 0 #{$grid};
+        float: none;
+        display: inline-block;
+
+        &.first,
+        &:first-child {
+            margin-left: 0;
+        }
+        &.last,
+        &:last-child {
+            margin-right: 0;
+        }
+
+    	a {
+    		display: block;
+    		font-weight: #{$font-regular};
+            color: #{$pagination-color};
+            text-align: center;
+            min-width: #{$grid * 6};
+            line-height: #{$grid * 6};
+            padding: 0 #{$grid * 2};
+            -webkit-border-radius: #{$border-radius-pixels * 6};
+            -moz-border-radius: #{$border-radius-pixels * 6};
+            -ms-border-radius: #{$border-radius-pixels * 6};
+            -o-border-radius: #{$border-radius-pixels * 6};
+            border-radius: #{$border-radius-pixels * 6};
+    	}
+
+        a:hover,
+        a:focus {
+        	background: #{$submit-bg-hover};
+        }
+
+        &.unavailable a {
+            cursor: default;
+            background: transparent;
+        }
+
+        &.active a {
+        	background: #{$submit-bg};
+        	color: #{$pagination-active-color};
+        	cursor: default;
+            font-weight: #{$font-bold};
+        }
+    }
+
+
+    &.centered {
+        width: auto;
+        text-align: center;
+    }
+}
+.pagination-mix {
+	position: relative
+}
+
+
+// =========================== media query =======================
+
+@media #{$screen} {
+	ul.centered {
+        width: auto;
+        margin: 0 auto;
+    }
+    .pagination-mix .left {
+        position: absolute;
+        left: 0;
+        top: 0
+    }
+    .pagination-mix .right {
+        position: absolute;
+        left: initial;
+        right: 0;
+        top: 0
+    }
+}
+@media #{$small} {
+	ul.centered {
+        margin: 0 auto;
+    }
+    ul.pagination {
+        margin: 0 auto;
+        float: none;
+    }
+    .pagination-mix .left {
+        position: relative;
+        margin: 0 auto;
+    }
+    .pagination-mix .right {
+        position: relative;
+        margin: 0 auto;
+    }
+}
+

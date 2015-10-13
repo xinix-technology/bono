@@ -1,0 +1,40 @@
+{
+  "name": "jacket-awesome",
+  "version": "2.0.4",
+  "homepage": "https://github.com/dwaan/jacket-awesome",
+  "authors": [
+    "Dwan <me@dwaan.com>"
+  ],
+  "license": "MIT",
+  "description": "Class converter for Font-Awesome",
+  "main": "jacket-awesome.css",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "font",
+    "awesome",
+    "css",
+    "jacket"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "vendor",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "entypo": "*"
+  },
+  "_release": "2.0.4",
+  "_resolution": {
+    "type": "version",
+    "tag": "2.0.4",
+    "commit": "77d160ef6dbed5343415cc3f4195a4ddc02c2004"
+  },
+  "_source": "git://github.com/xinix-technology/jacket-awesome.git",
+  "_target": "~2.0.x",
+  "_originalSource": "jacket-awesome"
+}

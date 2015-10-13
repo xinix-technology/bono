@@ -1,0 +1,164 @@
+.sidebar {
+    position: fixed;
+    top: #{$top-bar-height};
+    bottom: 0;
+    left: 0;
+    display: block;
+    width: #{$side-bar-width};
+    overflow: auto;
+    background-color: #{$navbar-bg};
+    border-right: 1px solid #{adjust-lightness($navbar-bg, -10%)};
+
+    .nav {
+        display: block;
+        margin: 0;
+        padding: 0;
+
+        li {
+            display: block;
+            float: none;
+            margin: 0 0 -1px;
+            padding-left: 24px;
+
+            &.hover a,
+            &:hover a {
+                color: #08c;
+            }
+
+            &.first-child,
+            &:first-child {
+                padding-top: #{$grid * 4};
+
+                a.select {
+                    border-top: 1px solid transparent;
+                }
+            }
+            &.last-child,
+            &:last-child {
+                a {
+                    border: none;
+                }
+
+                padding-bottom: #{$grid * 4};
+            }
+
+            &.devider {
+                height: #{$grid * 4};
+            }
+
+            &.collapsible {
+                & > a {
+                    i.fa {
+                        float: right;
+                    }
+                }
+
+                ul {
+                    position: relative; padding: 0;
+
+                    li {
+                        padding-left: 0;
+
+                        &:last-child {
+                            a {
+                                border-bottom: 1px solid #{$navbar-bg * 0.96};
+                            }
+                        }
+                    }
+                }
+            }
+
+            a {
+                padding: #{$grid * 2} #{$grid * 6} #{$grid * 2} 0;
+                display: block;
+                color: #465d6f;
+                border-bottom: 1px solid #{adjust-lightness($navbar-bg, -10%)};
+                position: relative;
+                @include transform-style(preserve-3d);
+
+                &.select {
+                    .icn-plus {
+                        @include transform(rotate(45deg) scale(1));
+                    }
+                }
+
+                &.select {
+                    color: #08c;
+                }
+
+                .icn-right {
+                    position: absolute;
+                    left: initial;
+                    right: #{$grid * 3};
+                    top: 50%;
+                    @include transform(translateY(-50%));
+                }
+
+                .icn-plus {
+                    font-style: normal;
+                    position: absolute;
+                    left: initial;
+                    right: #{$grid * 4};
+                    top: 50%;
+                    @include transform(translateY(-50%));
+                }
+            }
+        }
+
+        li:first-child {
+            a,
+            a.select {
+                border-top: 0;
+            }
+        }
+    }
+
+    .nav.with-icon {
+        li {
+            padding-left: #{$grid * 10};
+
+            a {
+                .icn-left {
+                    position: absolute;
+                    left: -#{$grid * 6};
+                    top: 50%;
+                    @include transform(translateY(-50%));
+                }
+            }
+        }
+    }
+}
+
+@media #{$medium} {
+    .sidebar {
+        top: 0;
+        @include transform(translate3d(-#{$side-bar-width}, 0, 0));
+        @include transitionCSS3(transform 0.24s cubic-bezier(0.33, 0.66, 0.66, 1));
+    }
+
+    .nav-menu,
+    main.content,
+    footer {
+        @include transitionCSS3(transform 0.24s cubic-bezier(0.33, 0.66, 0.66, 1));
+    }
+
+    // Display sidebar on medium screen
+    body.show-sidebar {
+        overflow: hidden;
+
+        .sidebar {
+            @include transform(translate3d(0, 0, 0));
+        }
+        .nav-menu,
+        main.content,
+        footer {
+            @include transform(translate3d(#{$side-bar-width}, 0, 0));
+        }
+    }
+}
+@media #{$min-medium} {
+    main.content,
+    footer {
+        margin-left: #{$side-bar-width};
+    }
+}
