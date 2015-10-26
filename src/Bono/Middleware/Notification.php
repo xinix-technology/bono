@@ -2,13 +2,12 @@
 
 namespace Bono\Middleware;
 
+use Bono\Http\Context;
 use ROH\Util\Options;
-use Bono\Http\Response;
+use ROH\Util\Collection as UtilCollection;
 
-class Notification
+class Notification extends UtilCollection
 {
-    protected $options;
-
     protected $messages = [
         'error' => [
             '' => []
@@ -18,10 +17,12 @@ class Notification
         ],
     ];
 
-    public function __construct($options = [])
+    public function __construct(array $options = [])
     {
-        $this->options = Options::create([])
+        $options = Options::create([])
             ->merge($options);
+
+        parent::__construct($options);
     }
 
     public function query(array $options)
@@ -50,9 +51,10 @@ class Notification
         $this->messages[$level][$context][] = $message;
     }
 
-    public function __invoke($request, $next)
+    public function __invoke(Context $context, $next)
     {
-        $request['$notification'] = $this;
-        return $next($request);
+        $context['notification'] = $this;
+
+        return $next($context);
     }
 }

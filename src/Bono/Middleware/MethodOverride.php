@@ -1,14 +1,17 @@
 <?php
 namespace Bono\Middleware;
 
+use Bono\Http\Context;
+
 class MethodOverride
 {
-    public function __invoke($request, $next)
+    public function __invoke(Context $context, $next)
     {
-        $method = $request->getParam('!method');
+        $method = $context->getParam('!method');
         if (isset($method)) {
-            $request = $request->withMethod($method);
+            $context->withMethod($method);
         }
-        return $next($request);
+
+        $next($context);
     }
 }

@@ -81,15 +81,16 @@ class Uri implements UriInterface
         $basePath = '';
 
         if (stripos($requestUri, $requestScriptName) === 0) {
-            $basePath = rtrim($requestScriptName, '/').'/';
+            $basePath = $requestScriptName;
         } elseif ($requestScriptDir !== '/' && stripos($requestUri, $requestScriptDir) === 0) {
-            $basePath = $requestScriptDir;
+            // $basePath = $requestScriptDir;
+            throw new \Exception('Unimplemented yet');
         }
 
         if ($basePath) {
-            $virtualPath = ltrim(substr($requestUri, strlen($basePath)), '/');
+            $virtualPath = substr($requestUri, strlen($basePath));
         } else {
-            $virtualPath = ltrim($requestUri, '/');
+            $virtualPath = $requestUri;
         }
 
         // Query string
@@ -180,17 +181,30 @@ class Uri implements UriInterface
 
     public function shift($path)
     {
-        if ($path === '/') {
-            return $this;
-        } else {
+        $uri = clone $this;
+        if ($path !== '/') {
             $newPath = substr($this->getPath(), strlen($path));
             if (isset($this->extension) && $this->extension === $newPath) {
                 $newPath = '';
             }
-            $uri = $this->withBasePath($this->getBasePath().$path)
-                ->withPath($newPath ?: '');
-            return $uri;
+            $uri = clone $this
+                ->withPath($newPath ?: '')
+                ->withBasePath($this->getBasePath().$path);
         }
+        return $uri;
+    }
+
+    public function unshift($path)
+    {
+        $uri = clone $this;
+        if ($path !== '/') {
+            $segments = explode('/', $this->basePath);
+            $lastSegment = array_pop($segments);
+            $uri = $this
+                ->withPath('/'.$lastSegment)
+                ->withBasePath(implode('/', $segments));
+        }
+        return $uri;
     }
 
     protected function filterScheme($scheme)

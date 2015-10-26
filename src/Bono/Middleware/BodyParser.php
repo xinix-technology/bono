@@ -2,6 +2,8 @@
 namespace Bono\Middleware;
 
 use ROH\Util\Options;
+use Bono\Http\Context;
+use Bono\Middleware;
 
 class BodyParser
 {
@@ -11,9 +13,9 @@ class BodyParser
     {
         $this->options = Options::create([
             'allowedMethods' => [
-                'POST' => null,
-                'PUT' => null,
-                'PATCH' => null,
+                'POST' => true,
+                'PUT' => true,
+                'PATCH' => true,
             ],
             'parsers' => [
                 'application/x-www-form-urlencoded' => [$this, 'formParser'],
@@ -25,25 +27,26 @@ class BodyParser
         $this->parsers = $this->options['parsers'];
     }
 
-    protected function formParser($request)
+    protected function formParser(Context $context)
     {
-        if ($request->getOriginalMethod() === 'POST') {
-            return $request->withParsedBody($_POST ?: []);
+        if ($context->getRequest()->getOriginalMethod() === 'POST') {
+            return $context->withParsedBody($_POST ?: []);
         } else {
             throw new \Exception('Unimplmeneted');
         }
     }
 
-    public function __invoke($request, $next)
+    public function __invoke(Context $context, $next)
     {
-        if (array_key_exists($request->getMethod(), $this->options['allowedMethods'])) {
-            $contentType = $request->getContentType();
+        if (isset($this->options['allowedMethods'][$context->getMethod()])) {
+            $contentType = $context->getRequest()->getContentType();
             if (!isset($this->parsers[$contentType])) {
                 throw new \Exception('Cannot found parser for '.$contentType);
             }
             $parser = $this->parsers[$contentType];
-            $request = $parser($request);
+            $context = $parser($context);
         }
-        return $next($request);
+
+        $next($context);
     }
 }

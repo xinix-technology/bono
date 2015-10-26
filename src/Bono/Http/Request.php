@@ -4,9 +4,9 @@ namespace Bono\Http;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use InvalidArgumentException;
-use ArrayAccess;
+use ROH\Util\Collection;
 
-class Request extends Message implements ServerRequestInterface, ArrayAccess
+class Request extends Message implements ServerRequestInterface
 {
     protected static $instance;
 
@@ -21,6 +21,8 @@ class Request extends Message implements ServerRequestInterface, ArrayAccess
     protected $parsedBody;
 
     protected $queryParams;
+
+    protected $attributes;
 
     public static function getInstance($cli = false)
     {
@@ -39,67 +41,52 @@ class Request extends Message implements ServerRequestInterface, ArrayAccess
         $this->method = $method;
         $this->originalMethod = $method;
         $this->uri = $uri;
+        $this->attributes = new Collection();
 
         parent::__construct();
     }
 
     // custom
 
-    public function getParam($key, $default = null)
-    {
-        $postParams = $this->getParsedBody();
-        $getParams = $this->getQueryParams();
-        $result = $default;
-        if (is_array($postParams) && isset($postParams[$key])) {
-            $result = $postParams[$key];
-        } elseif (is_object($postParams) && property_exists($postParams, $key)) {
-            $result = $postParams->$key;
-        } elseif (isset($getParams[$key])) {
-            $result = $getParams[$key];
-        }
-
-        return $result;
-    }
-
     public function getOriginalMethod()
     {
         return $this->originalMethod;
     }
 
-    public function isGet()
-    {
-        return $this->getMethod() === 'GET';
-    }
+    // public function isGet()
+    // {
+    //     return $this->getMethod() === 'GET';
+    // }
 
-    public function isPost()
-    {
-        return $this->getMethod() === 'POST';
-    }
+    // public function isPost()
+    // {
+    //     return $this->getMethod() === 'POST';
+    // }
 
-    public function isPut()
-    {
-        return $this->getMethod() === 'PUT';
-    }
+    // public function isPut()
+    // {
+    //     return $this->getMethod() === 'PUT';
+    // }
 
-    public function isDelete()
-    {
-        return $this->getMethod() === 'DELETE';
-    }
+    // public function isDelete()
+    // {
+    //     return $this->getMethod() === 'DELETE';
+    // }
 
-    public function isOptions()
-    {
-        return $this->getMethod() === 'OPTIONS';
-    }
+    // public function isOptions()
+    // {
+    //     return $this->getMethod() === 'OPTIONS';
+    // }
 
-    public function isPatch()
-    {
-        return $this->getMethod() === 'PATCH';
-    }
+    // public function isPatch()
+    // {
+    //     return $this->getMethod() === 'PATCH';
+    // }
 
-    public function accept($contentTypes)
+    public function accepts($types)
     {
-        if (!is_array($contentTypes)) {
-            $contentTypes = [$contentTypes];
+        if (!is_array($types)) {
+            $types = [$types];
         }
 
         if (is_null($this->accepts)) {
@@ -109,7 +96,7 @@ class Request extends Message implements ServerRequestInterface, ArrayAccess
         }
 
         if (in_array('*/*', $this->accepts)) {
-            foreach ($contentTypes as $contentType) {
+            foreach ($types as $contentType) {
                 if (strpos($contentType, '/') === false) {
                     continue;
                 }
@@ -117,7 +104,7 @@ class Request extends Message implements ServerRequestInterface, ArrayAccess
             }
         }
 
-        foreach ($contentTypes as $type) {
+        foreach ($types as $type) {
             if (in_array($type, $this->accepts)) {
                 return $type;
             }
@@ -127,14 +114,50 @@ class Request extends Message implements ServerRequestInterface, ArrayAccess
 
     public function shift($path)
     {
-        if (!is_string($path)) {
-            throw new InvalidArgumentException('Uri path must be string');
-        }
-
         return $this->withUri($this->getUri()->shift($path));
     }
 
+    public function unshift($path)
+    {
+        return $this->withUri($this->getUri()->unshift($path));
+    }
+
     // request interface
+
+    public function getAttributes()
+    {
+        return $this->attributes;
+    }
+
+    public function getAttribute($name, $default = null)
+    {
+        return isset($this->attributes[$name]) ? $this->attributes[$name] : $default;
+    }
+
+    /**
+     * Mutable withAttribute
+     * @param  [type] $name  [description]
+     * @param  [type] $value [description]
+     * @return [type]        [description]
+     */
+    public function withAttribute($name, $value)
+    {
+        $this->attributes[$name] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Mutable withoutAttribute
+     * @param  [type] $name [description]
+     * @return [type]       [description]
+     */
+    public function withoutAttribute($name)
+    {
+        unset($this->attributes[$name]);
+
+        return $this;
+    }
 
     public function getRequestTarget()
     {

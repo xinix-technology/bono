@@ -2,12 +2,12 @@
 namespace Bono\Http;
 
 use Psr\Http\Message\ResponseInterface;
-use ArrayAccess;
 use ROH\Util\Collection;
+use InvalidArgumentException;
 
-class Response extends Message implements ResponseInterface, ArrayAccess
+class Response extends Message implements ResponseInterface
 {
-    protected static $messages = [
+    public static $messages = [
         //Informational 1xx
         100 => 'Continue',
         101 => 'Switching Protocols',
@@ -78,10 +78,6 @@ class Response extends Message implements ResponseInterface, ArrayAccess
 
     protected $reasonPhrase;
 
-    protected $data;
-
-    protected $error;
-
     public static function getInstance()
     {
         return new Response();
@@ -97,30 +93,24 @@ class Response extends Message implements ResponseInterface, ArrayAccess
         return new Response(404);
     }
 
-    public function __construct($status = 200, $headers = null, $body = null)
+    public function __construct($status = 200, $headers = null, Stream $body = null)
     {
         $this->status = $status;
 
         $this->headers = $headers ?: new Headers();
 
-        $this->data = new Collection();
-
         if (is_string($body)) {
             $this->write($body);
-        } elseif ($body instanceof Stream) {
-            $this->body = $body;
-        } elseif ($body instanceof \Exception) {
-            $this->error = $body;
         } else {
-            $this->data = new Collection($body);
+            $this->body = $body;
         }
 
         parent::__construct($headers);
     }
 
-    public function write($data)
+    public function write($str)
     {
-        $this->getBody()->write($data);
+        $this->getBody()->write($str);
 
         return $this;
     }
@@ -132,11 +122,6 @@ class Response extends Message implements ResponseInterface, ArrayAccess
         }
 
         return $this->body;
-    }
-
-    public function getData()
-    {
-        return $this->data;
     }
 
     public function getError()

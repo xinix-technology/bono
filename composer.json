@@ -10,11 +10,14 @@
         "tedivm/stash": "^0.13.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "^4.8"
+        "phpunit/phpunit": "*"
     },
     "autoload": {
         "psr-4": {
-            "F\\": "src/F"
+            "Bono\\": "src/Bono",
+            "ROH\\Util\\": "/Users/jafar/Workspaces/php/lib/php-util/src/ROH/Util",
+            "JsonKit\\": "/Users/jafar/Workspaces/php/lib/php-jsonkit/src/JsonKit"
+
         }
     }
 }

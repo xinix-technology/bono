@@ -5,8 +5,11 @@ namespace Bono\Middleware;
 use Bono\Middleware;
 use ROH\Util\Options;
 use ROH\Util\Thing;
+use ROH\Util\Collection as UtilCollection;
+use Bono\Http\Context;
+use Bono\Exception\ContextException;
 
-class TemplateRenderer extends Middleware
+class TemplateRenderer extends UtilCollection
 {
     protected $renderer;
 
@@ -15,41 +18,41 @@ class TemplateRenderer extends Middleware
         $options = Options::create([
             'templatePath' => '../templates',
             'accepts' => [
-                'text/html' => null,
+                'text/html' => true,
             ],
         ])->merge($options);
 
         parent::__construct($options);
 
-        if (is_null($this->options['renderer'])) {
+        if (is_null($this['renderer'])) {
             throw new \Exception('Renderer not set yet!');
         }
 
-        $this->renderer = new Thing($this->options['renderer']);
+        $this->renderer = new Thing($this['renderer']);
+
     }
 
-
-    public function render($response, $template, $data = [])
+    public function __invoke(Context $context, $next)
     {
-        $handler = $this->renderer->getHandler();
-        $response = $handler($response, $template, $data);
-        $response['isRendered'] = true;
-        return $response;
-    }
+        $context['renderer'] = $this;
 
-    public function __invoke($request, $next)
-    {
-        $request['$templateRenderer'] = $this;
+        try {
+            $next($context);
+        } catch (ContextException $err) {
+            $context->withStatus($err->getStatusCode());
+            $context['error'] = $err;
+        }
 
-        $response = $next($request);
-
-        if (!$response['isRendered'] && array_key_exists($response->getContentType(), $this->options['accepts'])) {
-            $template = trim($response['template']
-                ?: $request->getUri()->getPathname(), '/')
+        if ($context['renderer.use'] && $this['accepts'][$context->getContentType()]) {
+            $template = trim($context['template']
+                ?: $context->getUri()->getPathname(), '/')
                 ?: 'index';
 
-            $response = $this->render($response, $template, $response->getData());
+            $handler = $this->renderer->getHandler();
+            $handler($context, $template);
+            $context['renderer.use'] = false;
         }
-        return $response;
+
+        return $context;
     }
 }

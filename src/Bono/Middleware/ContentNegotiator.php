@@ -5,111 +5,112 @@ namespace Bono\Middleware;
 use Bono\Http\Stream;
 use ROH\Util\Thing;
 use ROH\Util\Options;
-use Bono\App;
+use ROH\Util\Collection as UtilCollection;
+use Bono\Middleware;
+use Bono\Http\Context;
 
-class ContentNegotiator
+class ContentNegotiator extends UtilCollection
 {
     protected $options;
 
-    protected $renderers = [];
-
-    public function __construct($options = [])
+    public function __construct(array $options = [])
     {
-        $this->options = Options::create([
+
+        $options = Options::create([
                 'renderers' => [
-                    'application/json' => [$this, 'renderJson'],
-                    'text/html' => [$this, 'renderHtml'],
+                    // 'application/json' => [$this, 'renderJson'],
                 ],
-                'responseContentTypes' => [
+                'matchingTypes' => [
                     'application/x-www-form-urlencoded' => 'text/html',
                     'multipart/form-data' => 'text/html'
                 ],
                 'accepts' => [],
-            ], App::getInstance()->getOption('env'))
+            ])
             ->merge($options);
             // ->toArray();
 
-        foreach ($this->options['renderers'] as $key => $renderer) {
-            $this->renderers[$key] = new Thing($renderer);
-        }
+        parent::__construct($options);
     }
 
-    public function renderJson($response)
-    {
-        $body = new Stream();
-        $statusCode = $response->getStatusCode();
-        if ($statusCode < 200 || $statusCode >= 300) {
-            $error = $response->getError();
-            if (isset($error)) {
-                $response->withData('error', [
-                    'code' => $error->getCode(),
-                    'message' => $error->getMessage(),
-                ]);
-            } else {
-                $response->withData('error', [
-                    'code' => $statusCode,
-                    'message' => $response->getReasonPhrase(),
-                ]);
-            }
-        }
-        $body->write(json_encode($response->getData()));
-        $response = $response->withBody($body);
-        return $response;
-    }
+    // public function renderJson($response)
+    // {
+    //     $body = new Stream();
+    //     $statusCode = $response->getStatusCode();
+    //     if ($statusCode < 200 || $statusCode >= 300) {
+    //         $error = $response->getError();
+    //         if (isset($error)) {
+    //             $response->withData('error', [
+    //                 'code' => $error->getCode(),
+    //                 'message' => $error->getMessage(),
+    //             ]);
+    //         } else {
+    //             $response->withData('error', [
+    //                 'code' => $statusCode,
+    //                 'message' => $response->getReasonPhrase(),
+    //             ]);
+    //         }
+    //     }
+    //     $body->write(json_encode($response->getData()));
+    //     $response = $response->withBody($body);
+    //     return $response;
+    // }
 
-    public function renderHtml($response)
+    public function negotiate(Context $context)
     {
-        return $response;
-    }
-
-    public function negotiate($request)
-    {
-        $contentType = $request->getContentType();
-        if ($contentType && $request->accept($contentType)) {
+        $contentType = $context->getContentType();
+        if ($contentType) {
             return $contentType;
         }
 
-        $extension = $request->getUri()->getExtension();
-        if (isset($extension) && isset($this->options['accepts'][$extension])) {
-            return $this->options['accepts'][$extension];
+        $ext = $context->getUri()->getExtension();
+        if ($ext && $this['accepts'][$ext]) {
+            return $this['accepts'][$ext];
         }
-        return $request->accept(array_keys($this->options['accepts']));
-    }
 
-    public function render($response, $contentType)
-    {
-        if (!isset($this->renderers[$contentType])) {
-            throw new \Exception('Cannot found renderer for '.$contentType);
-        }
-        $handler = $this->renderers[$contentType]->getHandler();
-        return $handler($response)->withHeader('Content-Type', $contentType);
-    }
-
-    public function resolveResponseContentType($contentType)
-    {
-        $responseContentTypes = $this->options['responseContentTypes'];
-        if (is_callable($responseContentTypes)) {
-            return $responseContentTypes($contentType);
-        } else {
-            return isset($responseContentTypes[$contentType]) ? $responseContentTypes[$contentType] : $contentType;
-        }
-    }
-
-    public function __invoke($request, $next = null)
-    {
-        if (App::getInstance()->isCli()) {
-            $response = $next($request);
-        } else {
-            $contentType = $this->negotiate($request);
-            if ($contentType) {
-                $responseContentType = $this->resolveResponseContentType($contentType);
-                $response = $this->render(
-                    $next($request->withHeader('Response-Content-Type', $responseContentType)),
-                    $responseContentType
-                );
+        $contentType = $context->getRequest()->getContentType();
+        if (!$contentType) {
+            $accepted = $context->accepts(array_keys($this['accepts']));
+            if (isset($accepted)) {
+                $contentType = is_string($this['accepts'][$accepted]) ? $this['accepts'][$accepted] : $accepted;
             }
         }
-        return $response;
+        if ($contentType) {
+            return $this->match($contentType);
+        }
 
+    }
+
+    public function match($contentType)
+    {
+        $matchingTypes = $this->options['matchingTypes'];
+        if (is_callable($matchingTypes)) {
+            return $matchingTypes($contentType);
+        } else {
+            return isset($matchingTypes[$contentType]) ? $matchingTypes[$contentType] : $contentType;
+        }
+    }
+
+    public function __invoke(Context $context, $next = null)
+    {
+        // avoid content negotiator on cli
+        if ($context->getApp()->isCli()) {
+            $next($context);
+            return;
+        }
+
+        // set response content type by negotiating to context
+        $contentType = $this->negotiate($context);
+        if ($contentType) {
+            $context->withContentType($contentType);
+        }
+
+        $next($context);
+
+        // render respect response content type
+        $contentType = $context->getContentType();
+        if (isset($this['renderers'][$contentType])) {
+            $handler = $this['renderers'][$contentType]->getHandler();
+            $handler($context);
+        }
     }
 }

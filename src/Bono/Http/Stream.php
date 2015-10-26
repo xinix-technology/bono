@@ -66,7 +66,12 @@ class Stream implements StreamInterface
 
     public function getSize()
     {
-        throw new \Exception('Unimplemented yet');
+        if (!$this->size) {
+            $stats = fstat($this->stream);
+            $this->size = isset($stats['size']) ? $stats['size'] : null;
+        }
+
+        return $this->size;
     }
 
     public function tell()
