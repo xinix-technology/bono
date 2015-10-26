@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "341a44645be2aa8714d7fac06bd1ec8a",
-    "content-hash": "33908c0ae29c818343da8872052020fb",
+    "hash": "eb32314c72008f9103d39002b6f07189",
+    "content-hash": "23d6358427bf25db0c02dcaa5ce180e2",
     "packages": [
         {
             "name": "filp/whoops",
@@ -158,18 +158,63 @@
             "time": "2015-05-04 20:22:00"
         },
         {
-            "name": "reekoheek/util",
-            "version": "1.0.1",
+            "name": "reekoheek/jsonkit",
+            "version": "0.1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/reekoheek/php-util.git",
-                "reference": "8d75149994dfcfc01ccd394e57737448f6164634"
+                "url": "https://github.com/reekoheek/php-jsonkit.git",
+                "reference": "316dab7bb550e489126b7796a1648700a149552f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reekoheek/php-util/zipball/8d75149994dfcfc01ccd394e57737448f6164634",
-                "reference": "8d75149994dfcfc01ccd394e57737448f6164634",
+                "url": "https://api.github.com/repos/reekoheek/php-jsonkit/zipball/316dab7bb550e489126b7796a1648700a149552f",
+                "reference": "316dab7bb550e489126b7796a1648700a149552f",
                 "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "3.7.22"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "JsonKit": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ganesha",
+                    "email": "reekoheek@gmail.com",
+                    "homepage": "http://xinix.co.id",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Aprianto Pramana Putra",
+                    "email": "apriantopramanaputra@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "time": "2015-08-03 02:54:21"
+        },
+        {
+            "name": "reekoheek/util",
+            "version": "1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/reekoheek/php-util.git",
+                "reference": "f349e189eb9e1291e11a2e8fc0a83a9288f08caf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/reekoheek/php-util/zipball/f349e189eb9e1291e11a2e8fc0a83a9288f08caf",
+                "reference": "f349e189eb9e1291e11a2e8fc0a83a9288f08caf",
+                "shasum": ""
+            },
+            "require": {
+                "reekoheek/jsonkit": "~0.1.0"
             },
             "type": "library",
             "autoload": {
@@ -190,61 +235,7 @@
                 }
             ],
             "description": "PHP util library",
-            "time": "2015-10-14 03:22:23"
-        },
-        {
-            "name": "tedivm/stash",
-            "version": "v0.13.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/tedious/Stash.git",
-                "reference": "e8ecfe8cbbbbb2345b6fb59c56f825685f7a2cb1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/tedious/Stash/zipball/e8ecfe8cbbbbb2345b6fb59c56f825685f7a2cb1",
-                "reference": "e8ecfe8cbbbbb2345b6fb59c56f825685f7a2cb1",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.4.0"
-            },
-            "require-dev": {
-                "fabpot/php-cs-fixer": "^1.9",
-                "phpunit/phpunit": "4.7.*",
-                "satooshi/php-coveralls": "dev-master"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Stash\\": "src/Stash/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Robert Hafner",
-                    "email": "tedivm@tedivm.com"
-                },
-                {
-                    "name": "Josh Hall-Bachner",
-                    "email": "charlequin@gmail.com"
-                }
-            ],
-            "description": "The place to keep your cache.",
-            "homepage": "http://github.com/tedious/Stash",
-            "keywords": [
-                "apc",
-                "cache",
-                "caching",
-                "memcached",
-                "redis",
-                "sessions"
-            ],
-            "time": "2015-08-02 06:31:49"
+            "time": "2015-10-26 18:14:12"
         }
     ],
     "packages-dev": [
