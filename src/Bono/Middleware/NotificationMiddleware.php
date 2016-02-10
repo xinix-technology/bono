@@ -40,6 +40,34 @@ namespace Bono\Middleware;
 use Bono\Exception\BonoException;
 use Bono\Exception\INotifiedException;
 
+function flattenExceptionBacktrace(\Exception $exception)
+{
+    $traceProperty = (new \ReflectionClass('Exception'))->getProperty('trace');
+    $traceProperty->setAccessible(true);
+    $flatten = function (&$value, $key) {
+        if ($value instanceof \Closure) {
+            $closureReflection = new \ReflectionFunction($value);
+            $value = sprintf(
+                '(Closure at %s:%s)',
+                $closureReflection->getFileName(),
+                $closureReflection->getStartLine()
+            );
+        } elseif (is_object($value)) {
+            $value = sprintf('object(%s)', get_class($value));
+        } elseif (is_resource($value)) {
+            $value = sprintf('resource(%s)', get_resource_type($value));
+        }
+    };
+    do {
+        $trace = $traceProperty->getValue($exception);
+        foreach ($trace as &$call) {
+            array_walk_recursive($call['args'], $flatten);
+        }
+        $traceProperty->setValue($exception, $trace);
+    } while ($exception = $exception->getPrevious());
+    $traceProperty->setAccessible(false);
+}
+
 /**
  * NotificationMiddleware
  *
@@ -123,7 +151,7 @@ class NotificationMiddleware extends \Slim\Middleware
                         'code' => $e->getCode(),
                         'message' => $ce->getMessage(),
                         'status' => $e->getStatus(),
-                        //'exception' => $ce,
+                        'exception' => flattenExceptionBacktrace($ce),
                     );
                     if ($ce instanceof INotifiedException) {
                         $ctx['context'] = $ce->context();
@@ -137,7 +165,7 @@ class NotificationMiddleware extends \Slim\Middleware
                     'code' => $e->getCode(),
                     'message' => $e->getMessage(),
                     'status' => 500,
-                    //'exception' => $e,
+                    'exception' => flattenExceptionBacktrace($e),
                 );
 
                 if ($e instanceof BonoException) {
