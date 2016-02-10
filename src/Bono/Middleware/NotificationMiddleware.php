@@ -123,7 +123,7 @@ class NotificationMiddleware extends \Slim\Middleware
                         'code' => $e->getCode(),
                         'message' => $ce->getMessage(),
                         'status' => $e->getStatus(),
-                        'exception' => $ce,
+                        //'exception' => $ce,
                     );
                     if ($ce instanceof INotifiedException) {
                         $ctx['context'] = $ce->context();
@@ -137,7 +137,7 @@ class NotificationMiddleware extends \Slim\Middleware
                     'code' => $e->getCode(),
                     'message' => $e->getMessage(),
                     'status' => 500,
-                    'exception' => $e,
+                    //'exception' => $e,
                 );
 
                 if ($e instanceof BonoException) {
