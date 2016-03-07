@@ -1,2 +1,6 @@
 *.sublime-*
 .DS_Store
+
+/vendor
+/composer-*.json
+/coverage
