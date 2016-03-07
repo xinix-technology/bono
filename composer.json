@@ -1,5 +1,6 @@
 {
     "name": "xinix-technology/bono",
+    "type": "library",
     "license": "MIT",
     "authors": [
         {

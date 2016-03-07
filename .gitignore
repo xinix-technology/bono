@@ -3,3 +3,5 @@
 /*.sublime-project
 /*.sublime-workspace
 /docs/api
+/composer-*.json
+/coverage
