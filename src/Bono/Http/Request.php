@@ -278,4 +278,16 @@ class Request extends Message implements ServerRequestInterface
 
         return $clone;
     }
+
+    public function getBody()
+    {
+        if (is_null($this->body)) {
+            $stream = fopen('php://temp', 'w+');
+            stream_copy_to_stream(fopen('php://input', 'r'), $stream);
+            rewind($stream);
+            $this->body = new Stream($stream);
+        }
+
+        return $this->body;
+    }
 }

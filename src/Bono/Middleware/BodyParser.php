@@ -16,10 +16,12 @@ class BodyParser
                 'POST' => true,
                 'PUT' => true,
                 'PATCH' => true,
+                'DELETE' => true,
             ],
             'parsers' => [
                 'application/x-www-form-urlencoded' => [$this, 'formParser'],
                 'multipart/form-data' => [$this, 'formParser'],
+                'application/json' => [$this, 'jsonParser'],
             ]
         ])
         ->merge($options);
@@ -33,6 +35,14 @@ class BodyParser
             return $context->withParsedBody($_POST ?: []);
         } else {
             throw new \Exception('Unimplmeneted');
+        }
+    }
+
+    protected function jsonParser(Context $context)
+    {
+        $body = (string)$context->getRequest()->getBody();
+        if ($body) {
+            return $context->withParsedBody(json_decode($body, true));
         }
     }
 
