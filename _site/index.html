@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Bono Documentation</title>
-    <link rel="stylesheet" href="/vendor/jacket-awesome/dist/css/jacket-awesome.css">
-    <link rel="stylesheet" href="/vendor/google-code-prettify/bin/prettify.min.css">
-    <link rel="stylesheet" href="/vendor/animate.css/animate.min.css">
-    <link rel="stylesheet" href="/css/naked.min.css">
-    <link rel="stylesheet" href="/css/docs.min.css">
+    <link rel="stylesheet" href="/bono/vendor/jacket-awesome/dist/css/jacket-awesome.css">
+    <link rel="stylesheet" href="/bono/vendor/google-code-prettify/bin/prettify.min.css">
+    <link rel="stylesheet" href="/bono/vendor/animate.css/animate.min.css">
+    <link rel="stylesheet" href="/bono/css/naked.min.css">
+    <link rel="stylesheet" href="/bono/css/docs.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 </head>
 <body>
@@ -15,7 +15,7 @@
     <main class="content home">
         <div class="container">
             <div class="wrapper">
-                <center><img width="200" src="/img/bono.png" alt="Bono" /></center>
+                <center><img width="200" src="/bono/img/bono.png" alt="Bono" /></center>
                 <div class="download">
                     <h4 class="sub-title">
                         <strong><a target="_BLANK" href="http://xinix.co.id/p/product">Bono</a></strong> is PHP Development Framework Base On <strong><a target="_BLANK" href="http://www.slimframework.com">Slim Framework</a></strong>
@@ -33,13 +33,18 @@
     <!-- END OF PAGE CONTENT -->
 
     <!-- PAGE LEVEL SCRIPT -->
-    <script type="text/javascript" charset="utf-8" src="/js/tshirt.min.js"></script>
-    <script type="text/javascript" charset="utf-8" src="/js/docs.js"></script>
-    <script type="text/javascript" charset="utf-8" src="/vendor/google-code-prettify/bin/prettify.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/bono/js/tshirt.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/bono/js/docs.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/bono/vendor/google-code-prettify/bin/prettify.min.js"></script>
     <script type="text/javascript" charset="utf-8">
+        const VERSION = 1.0;
+
+        console.log(VERSION);
+
         $.each($('.content pre.prettyprint'), function(index, dom) {
             $(dom).html($('<div/>').text($(dom).html()).html());
         });
+
         prettyPrint();
     </script>
     <!-- END OF PAGE LEVEL SCRIPT -->

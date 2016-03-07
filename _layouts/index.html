@@ -37,9 +37,14 @@
     <script type="text/javascript" charset="utf-8" src="{{site.baseurl}}/js/docs.js"></script>
     <script type="text/javascript" charset="utf-8" src="{{site.baseurl}}/vendor/google-code-prettify/bin/prettify.min.js"></script>
     <script type="text/javascript" charset="utf-8">
+        const VERSION = {{site.version}};
+
+        console.log(VERSION);
+
         $.each($('.content pre.prettyprint'), function(index, dom) {
             $(dom).html($('<div/>').text($(dom).html()).html());
         });
+
         prettyPrint();
     </script>
     <!-- END OF PAGE LEVEL SCRIPT -->
