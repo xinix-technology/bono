@@ -1,7 +1,8 @@
-/vendor/*
-/project.sublime-*
-/*.sublime-project
-/*.sublime-workspace
+/vendor
 /docs/api
-/coverage
+
+# dev only
+node_modules
+*.sublime-*
 /composer-*.json
+/coverage
