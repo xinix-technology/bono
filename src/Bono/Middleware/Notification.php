@@ -44,6 +44,25 @@ class Notification extends UtilCollection
         return $result;
     }
 
+    public function render(array $options = null)
+    {
+        // unset($_SESSION['notification']);
+        if (is_null($options)) {
+            return $this->render(['level' => 'error']) . "\n" . $this->render(['level' => 'info']);
+        }
+
+        $messages = $this->query($options);
+        // TODO should defined renderer?
+        if (!empty($messages)) {
+            $result = '<div class="alert '.$options['level'].'"><div><p>';
+            foreach ($messages as $message) {
+                $result .= '<span>'.$message['message'].'</span> ';
+            }
+            $result .= '</p><a href="#" class="close button warning button-outline"><i class="xn xn-close"></i>Close</a></div></div>';
+            return $result;
+        }
+    }
+
     public function notify(array $message)
     {
         $level = isset($message['level']) ? $message['level'] : '';
@@ -53,7 +72,7 @@ class Notification extends UtilCollection
 
     public function __invoke(Context $context, $next)
     {
-        $context['notification'] = $this;
+        $context['@notification'] = $this;
 
         return $next($context);
     }

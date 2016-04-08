@@ -46,17 +46,17 @@ class BundleTest extends PHPUnit_Framework_TestCase
         $getRoute = function () {
 
         };
-        $bundle->routeGet('/get', $getRoute);
+        $bundle->routeGet(['uri' => '/get', 'handler' => $getRoute]);
 
         $postRoute = function () {
 
         };
-        $bundle->routePost('/post', $getRoute);
+        $bundle->routePost(['uri' => '/post', 'handler' => $getRoute]);
 
         $putRoute = function () {
 
         };
-        $bundle->routePut('/put', $getRoute);
+        $bundle->routePut(['uri' => '/put', 'handler' => $getRoute]);
 
 
         $dumped = $bundle->dumpRoutes();
@@ -125,7 +125,7 @@ class BundleTest extends PHPUnit_Framework_TestCase
         ]);
         $context->method('offsetGet')
             ->will($this->returnCallback(function ($key) {
-                if ($key === 'routeInfo') {
+                if ($key === 'route.info') {
                     return [2];
                 }
             }));

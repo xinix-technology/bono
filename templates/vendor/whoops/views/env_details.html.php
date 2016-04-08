@@ -32,8 +32,16 @@
     <label>Output Buffers</label>
     <?php foreach ($tables['Output Buffers'] as $i => $ob): ?>
       <div style="overflow: auto; border-radius: 6px; background: #C6C6C6; text-shadow: 0 1px 0 #E7E7E7;">
-        <div style="padding: 20px">
-          <?php echo htmlentities($ob) ?>
+        <div style="padding: 10px">
+          <iframe id="obFrame_<?php echo $i ?>" style="width: 100%; height: 300px; border: 0 none;"></iframe>
+          <script type="text/template" id="obContent_<?php echo $i ?>">
+            <?php echo $ob ?>
+          </script>
+          <script>
+            obFrame_<?php echo $i ?>.contentWindow.document.open();
+            obFrame_<?php echo $i ?>.contentWindow.document.write(obContent_<?php echo $i ?>.textContent);
+            obFrame_<?php echo $i ?>.contentWindow.document.close();
+          </script>
         </div>
       </div>
     <?php endforeach ?>

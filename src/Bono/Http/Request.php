@@ -3,7 +3,7 @@ namespace Bono\Http;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
-use InvalidArgumentException;
+use Bono\Exception\BonoException;
 use ROH\Util\Collection;
 
 class Request extends Message implements ServerRequestInterface
@@ -135,26 +135,28 @@ class Request extends Message implements ServerRequestInterface
     }
 
     /**
-     * Mutable withAttribute
+     * withAttribute
      * @param  [type] $name  [description]
      * @param  [type] $value [description]
      * @return [type]        [description]
      */
     public function withAttribute($name, $value)
     {
-        $this->attributes[$name] = $value;
+        $clone = clone $this;
+        $clone->attributes[$name] = $value;
 
-        return $this;
+        return $clone;
     }
 
     /**
-     * Mutable withoutAttribute
+     * withoutAttribute
      * @param  [type] $name [description]
      * @return [type]       [description]
      */
     public function withoutAttribute($name)
     {
-        unset($this->attributes[$name]);
+        $clone = clone $this;
+        unset($clone->attributes[$name]);
 
         return $this;
     }
@@ -270,7 +272,7 @@ class Request extends Message implements ServerRequestInterface
     public function withParsedBody($data)
     {
         if (!is_null($data) && !is_object($data) && !is_array($data)) {
-            throw new InvalidArgumentException('Parsed body value must be an array, an object, or null');
+            throw new BonoException('Parsed body value must be an array, an object, or null');
         }
 
         $clone = clone $this;

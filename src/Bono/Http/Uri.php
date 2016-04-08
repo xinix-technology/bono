@@ -84,7 +84,7 @@ class Uri implements UriInterface
             $basePath = $requestScriptName;
         } elseif ($requestScriptDir !== '/' && stripos($requestUri, $requestScriptDir) === 0) {
             // $basePath = $requestScriptDir;
-            throw new \Exception('Unimplemented yet');
+            throw new \Exception('Never been here yet?');
         }
 
         if ($basePath) {
@@ -160,8 +160,10 @@ class Uri implements UriInterface
         $pathInfo = pathinfo($path);
         if (isset($pathInfo['extension'])) {
             $this->extension = $pathInfo['extension'];
-            if ($pathInfo['dirname'] === '.') {
-                $this->pathname = $pathInfo['filename'];
+
+            // when pathinfo[dirname] is /, then / + pathinfo[filename] is the true pathname
+            if ($pathInfo['dirname'] === '/') {
+                $this->pathname = '/'.$pathInfo['filename'];
             } else {
                 $this->pathname = $pathInfo['dirname'].'/'.$pathInfo['filename'];
             }
@@ -182,9 +184,9 @@ class Uri implements UriInterface
     public function shift($path)
     {
         $uri = clone $this;
-        if ($path !== '/') {
+        if ('/' !== $path) {
             $newPath = substr($this->getPath(), strlen($path));
-            if (isset($this->extension) && $this->extension === $newPath) {
+            if (isset($this->extension) && ('.' . $this->extension) === $newPath) {
                 $newPath = '';
             }
             $uri = clone $this

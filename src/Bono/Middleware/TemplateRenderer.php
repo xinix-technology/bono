@@ -4,19 +4,26 @@ namespace Bono\Middleware;
 
 use Bono\Middleware;
 use ROH\Util\Options;
-use ROH\Util\Thing;
 use ROH\Util\Collection as UtilCollection;
 use Bono\Http\Context;
+use Bono\Exception\BonoException;
+use Bono\Renderer\RendererInterface;
 use Bono\Exception\ContextException;
+use Bono\Renderer;
+use Bono\App;
 
 class TemplateRenderer extends UtilCollection
 {
     protected $renderer;
 
-    public function __construct($options = [])
+    protected $app;
+
+    public function __construct(App $app, $options = [])
     {
+        $this->app = $app;
+
         $options = Options::create([
-            'templatePath' => '../templates',
+            'templatePaths' => [ '../templates' ],
             'accepts' => [
                 'text/html' => true,
             ],
@@ -25,34 +32,87 @@ class TemplateRenderer extends UtilCollection
         parent::__construct($options);
 
         if (is_null($this['renderer'])) {
-            throw new \Exception('Renderer not set yet!');
+            throw new BonoException('Renderer must be set!');
         }
-
-        $this->renderer = new Thing($this['renderer']);
-
     }
 
     public function __invoke(Context $context, $next)
     {
-        $context['renderer'] = $this;
+        $context['response.renderer'] = $context['response.renderer'] ?: $this;
 
         try {
             $next($context);
         } catch (ContextException $err) {
             $context->withStatus($err->getStatusCode());
-            $context['error'] = $err;
         }
 
-        if ($context['renderer.use'] && $this['accepts'][$context->getContentType()]) {
-            $template = trim($context['template']
-                ?: $context->getUri()->getPathname(), '/')
-                ?: 'index';
+        if (!$context['response.rendered'] && $this['accepts'][$context->getContentType() ?: 'text/html']) {
+            switch ($context->getStatusCode()) {
+                case 200:
+                    if (isset($context['response.template'])) {
+                        break;
+                    }
 
-            $handler = $this->renderer->getHandler();
-            $handler($context, $template);
-            $context['renderer.use'] = false;
+                    if (isset($context['route.info'][1]['template'])) {
+                        $context['response.template'] = $context['route.info'][1]['template'];
+                        break;
+                    }
+
+                    $lastSeparator = strrpos($context['route.uri']->getBasePath(), '/');
+                    $bundle = substr($context['route.uri']->getBasePath(), $lastSeparator + 1);
+                    $action = trim($context['route.info'][1]['uri'], '/') ?: 'index';
+
+                    $context['response.template'] = $bundle . ($bundle ? '/' . $action : $action);
+                    break;
+                case 404:
+                    $context['response.template'] = 'notFound';
+                    break;
+                case 405:
+                    $context['response.template'] = 'methodNotAllowed';
+                    break;
+            }
+
+            $this->write($context);
+            $context['response.rendered'] = true;
+        }
+    }
+
+    public function write(Context $context)
+    {
+        return $this->getRenderer()->write($context);
+    }
+
+    public function resolve($template)
+    {
+        return $this->getRenderer()->resolve($template);
+    }
+
+    public function render($template, array $data = [])
+    {
+        return $this->getRenderer()->render($template, $data);
+    }
+
+    public function addTemplatePath($templatePath)
+    {
+        $templatePaths = $this['templatePaths'];
+        $templatePaths[] = $templatePath;
+        $this['templatePaths'] = $templatePaths;
+    }
+
+    protected function getRenderer()
+    {
+        if (is_null($this->renderer)) {
+            $this->renderer = $this->app->resolve($this['renderer'], [
+                'options' => [
+                    'middleware' => $this,
+                ]
+            ]);
+
+            if (!($this->renderer instanceof RendererInterface)) {
+                throw new BonoException('Renderer must be instance of RendererInterface');
+            }
         }
 
-        return $context;
+        return $this->renderer;
     }
 }

@@ -6,13 +6,15 @@ use InvalidArgumentException;
 use FastRoute;
 use FastRoute\Dispatcher;
 use Bono\Http\Context;
-use ROH\Util\Thing;
 use ROH\Util\Collection as UtilCollection;
 use Bono\Exception\ContextException;
 use Bono\Exception\BonoException;
+use Bono\Route\Dispatcher as BonoDispatcher;
 
 class Bundle extends UtilCollection
 {
+    protected $app;
+
     protected $middlewares = [];
 
     protected $bundles = [];
@@ -23,8 +25,10 @@ class Bundle extends UtilCollection
 
     protected $dispatcher;
 
-    public function __construct(array $options = [])
+    public function __construct(App $app, array $options = [])
     {
+        $this->app = $app;
+
         parent::__construct($options);
 
         $this->configureMiddlewares();
@@ -41,7 +45,7 @@ class Bundle extends UtilCollection
 
     public function addBundle(array $bundle)
     {
-        $this->bundles[] = new Thing($bundle);
+        $this->bundles[] = $bundle;
         return $this;
     }
 
@@ -50,64 +54,67 @@ class Bundle extends UtilCollection
         return $this->routes;
     }
 
-    public function routeGet($pattern, $handler)
+    public function routeGet(array $route)
     {
-        return $this->routeMap(['GET'], $pattern, $handler);
+        $route['methods'] = ['GET'];
+        return $this->routeMap($route);
     }
 
-    public function routePost($pattern, $handler)
+    public function routePost(array $route)
     {
-        return $this->routeMap(['POST'], $pattern, $handler);
+        $route['methods'] = ['POST'];
+        return $this->routeMap($route);
     }
 
-    public function routePut($pattern, $handler)
+    public function routePut(array $route)
     {
-        return $this->routeMap(['PUT'], $pattern, $handler);
+        $route['methods'] = ['PUT'];
+        return $this->routeMap($route);
     }
 
-    public function routeDelete($pattern, $handler)
+    public function routeDelete(array $route)
     {
-        return $this->routeMap(['DELETE'], $pattern, $handler);
+        $route['methods'] = ['DELETE'];
+        return $this->routeMap($route);
     }
 
-    public function routePatch($pattern, $handler)
+    public function routePatch(array $route)
     {
-        return $this->routeMap(['PATCH'], $pattern, $handler);
+        $route['methods'] = ['PATCH'];
+        return $this->routeMap($route);
     }
 
-    public function routeOptions($pattern, $handler)
+    public function routeOptions(array $route)
     {
-        return $this->routeMap(['OPTIONS'], $pattern, $handler);
+        $route['methods'] = ['OPTIONS'];
+        return $this->routeMap($route);
     }
 
-    public function routeAny($pattern, $handler)
+    public function routeAny(array $route)
     {
-        return $this->routeMap(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], $pattern, $handler);
+        $route['methods'] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
+        return $this->routeMap($route);
     }
 
-    public function routeMap(array $methods, $pattern, $handler)
+    public function routeMap(array $route)
     {
-        $this->routes[] = [
-            'methods' => $methods,
-            'pattern' => $pattern,
-            'handler' => $handler,
-        ];
+        $route['pattern'] = $route['uri'];
+        $this->routes[] = $route;
 
         return $this;
     }
 
-    public function dispatch(Context $context)
+    protected function finalize()
     {
-        $context->withBundle($this);
-
-        if (is_null($this->stack)) {
+        if (null === $this->stack) {
             $this->stack = [$this];
             if ($this->middlewares) {
                 $len = count($this->middlewares);
                 for ($i = $len - 1; $i >= 0; $i--) {
                     $next = $this->stack[0];
 
-                    $handler = $this->middlewares[$i]->getHandler();
+                    $handler = $this->resolve($this->middlewares[$i]);
+                    // $handler = $this->middlewares[$i]->getHandler();
 
                     array_unshift($this->stack, function (
                         Context $context
@@ -120,15 +127,22 @@ class Bundle extends UtilCollection
                 }
             }
         }
+    }
+
+    public function dispatch(Context $context)
+    {
+        $this->finalize();
+
+        $context['route.uri'] = $context->getUri();
 
         $path = $context->getPathname() ?: '/';
 
         $bundle = $this->getBundleFor($path);
         if (is_null($bundle)) {
             $routeInfo = $this->getDispatcher()->dispatch($context->getMethod(), $path);
-            $context['routeInfo'] = $routeInfo;
+            $context['route.info'] = $routeInfo;
         } else {
-            $context['routeBundle'] = $bundle;
+            $context['route.bundle'] = $bundle;
         }
 
         return $this->stack[0]($context);
@@ -136,20 +150,20 @@ class Bundle extends UtilCollection
 
     public function __invoke(Context $context)
     {
-        $routeInfo = $context['routeInfo'];
+        $routeInfo = $context['route.info'];
         if (isset($routeInfo)) {
             switch ($routeInfo[0]) {
                 case Dispatcher::FOUND:
-                    $context->withStatus(200);
+                    $context->setStatus(200);
 
                     foreach ($routeInfo[2] as $k => $v) {
                         $context[$k] = urldecode($v);
                     }
 
-                    $result = $routeInfo[1]($context);
+                    $state = $routeInfo[1]['handler']($context);
 
-                    if ($result) {
-                        $context->withState($result);
+                    if ($state) {
+                        $context->setState($state);
                     }
                     break;
                 case Dispatcher::METHOD_NOT_ALLOWED:
@@ -157,10 +171,10 @@ class Bundle extends UtilCollection
                     break;
             }
         } else {
-            $routeBundle = $context['routeBundle'];
+            $routeBundle = $context['route.bundle'];
             if (isset($routeBundle)) {
                 $context->shift($routeBundle['uri']);
-                $routeBundle->getHandler()->dispatch($context);
+                $routeBundle->dispatch($context);
                 $context->unshift($routeBundle['uri']);
             }
         }
@@ -168,8 +182,14 @@ class Bundle extends UtilCollection
 
     public function getBundleFor($path)
     {
-        foreach ($this->bundles as $bundle) {
-            if (strpos($path, $bundle['uri']) === 0) {
+        foreach ($this->bundles as $meta) {
+            if (strpos($path, $meta['uri']) === 0) {
+                $bundle = $this->resolve($meta['handler'], [
+                    'options' => [
+                        'uri' => $meta['uri'],
+                    ]
+                ]);
+
                 return $bundle;
             }
         }
@@ -177,11 +197,8 @@ class Bundle extends UtilCollection
 
     public function addMiddleware($middleware)
     {
-        if (!($middleware instanceof Thing)) {
-            $middleware = new Thing($middleware);
-        }
-
         $this->middlewares[] = $middleware;
+        return $this;
     }
 
     public function __debugInfo()
@@ -192,16 +209,17 @@ class Bundle extends UtilCollection
         $attributes = [];
 
         foreach ($this->middlewares as $key => $middleware) {
-            $middlewares[] = $middleware['class'] ?: get_class($middleware->getHandler());
+            $middlewares[] = is_array($middleware) ? $middleware[0] : get_class($middleware);
         }
 
         foreach ($this->bundles as $key => $bundle) {
-            $bundles[$bundle['uri']] = $bundle['class'];
+            $bundles[$bundle['uri']] = is_array($bundle['handler']) ? $bundle['handler'][0] :
+                get_class($bundle['handler']);
         }
 
-        foreach ($this->routes as $key => $route) {
-            $routes[$route['pattern']] = true;
-        }
+        $routes = array_map(function ($route) {
+            return $route['pattern'];
+        }, $this->routes);
 
         foreach ($this->attributes as $key => $attribute) {
             if ($key === 'middlewares' ||
@@ -236,9 +254,12 @@ class Bundle extends UtilCollection
                 if (!isset($route['uri'])) {
                     throw new BonoException('Wrong route value registered');
                 }
-                $method = isset($route['method']) ? $route['method'] : 'get';
+                if (!isset($route['methods'])) {
+                    $route['methods'] = [strtoupper(isset($route['method']) ? $route['method'] : 'get')];
+                    unset($route['method']);
+                }
 
-                call_user_func(array($this, 'routeMap'), [strtoupper($method)], $route['uri'], $route['handler']);
+                $this->routeMap($route);
             }
         }
     }
@@ -255,29 +276,14 @@ class Bundle extends UtilCollection
     protected function getDispatcher()
     {
         if (is_null($this->dispatcher)) {
-            $app = App::getInstance();
-
-            $dispatcherCallback = function (FastRoute\RouteCollector $r) {
-                foreach ($this->routes as $route) {
-                    $r->addRoute($route['methods'], $route['pattern'], $route['handler']);
-                }
-            };
-
-            switch ($app['route.dispatcher']) {
-                case 'simple':
-                    $this->dispatcher = FastRoute\simpleDispatcher($dispatcherCallback);
-                    break;
-                default:
-                    throw new \Exception('Unimplemented yet');
-            }
-            // $dispatcherFactory;
-            // }, [
-            //     'routeParser' => 'FastRoute\\RouteParser\\Std',
-            //     'dataGenerator' => 'FastRoute\\DataGenerator\\GroupCountBased',
-            //     'dispatcher' => 'FastRoute\\Dispatcher\\GroupCountBased',
-            // ]);
+            $this->dispatcher = new BonoDispatcher($this->routes);
         }
 
         return $this->dispatcher;
+    }
+
+    public function resolve($contract, array $args = [])
+    {
+        return $this->app->resolve($contract, $args);
     }
 }

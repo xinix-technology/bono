@@ -1,5 +1,4 @@
-Bono
-====
+# Bono
 
 [![License](http://img.shields.io/packagist/l/xinix-technology/bono.svg?style=flat-square)](https://github.com/xinix-technology/bono/blob/master/LICENSE)
 [![Download](http://img.shields.io/packagist/dm/xinix-technology/bono.svg?style=flat-square)](https://github.com/xinix-technology/bono)
@@ -37,33 +36,9 @@ Bono memiliki hook dan filter yang memudahkan penambahan fungsionalitas tiap-tia
 ## Templating pada Bono
 Bono menyediakan hook dan filter pada template engine-nya. Sehingga memudahkan theme developer dalam mengembangkan desain yang diinginkan.
 
-## Instalasi
+## Kebutuhan Sistem
 
 Yang diperlukan untuk membangun aplikasi menggunakan Bono:
-- Web Server (Apache, Nginx, LigHttpd, dll)
 - PHP 5.4+ (dengan dukungan library MongoDB)
-- MongoDB
-- Xpax*
-
-Xpax (Xinix Package) adalah package management system yang dikembangkan oleh Xinix. Xpax bisa diinstal dengan perintah berikut di Terminal Anda:
-
-```
-npm install -g xinix-pax.
-```
-
-> **Catatan** `-g` pada argumen npm install akan membuat modul npm diinstall secara global, ada kemungkinan perintah ini membutuhkan permission dari superuser, gunakan `sudo` jika perintah ini gagal dijalankan.
-
-Untuk mendapatkan package npm bisa diinstall dari www.nodejs.org
-
-### Mencicipi Bono secara kilat
-- Melalui Terminal ketikkan perintah :
-    + xpax init https://github.com/reekoheek/bono-arch
-    + xpax serve
-- Buka http://localhost:8000 melalui browser Anda
-
-### Menjalankan aplikasi Bono di web server
-- Buatlah sebuah direktori untuk aplikasi Anda di root folder web server Anda.
-- Melalui Terminal masuk ke direktori tersebut, kemudian jalankan perintah:
-    + xpax init https://github.com/reekoheek/bono-arch
-- Aplikasi Bono sudah terinstal di folder yang dibuat sebelumnya.
-- Buka http://localhost/{nama_folder}/www melalui web browser.
+- Composer
+- Web Server (Apache, Nginx, LigHttpd, dll) or PHP Standalone

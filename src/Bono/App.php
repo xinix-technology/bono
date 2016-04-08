@@ -7,10 +7,11 @@ use Bono\Http\Request;
 use Bono\Http\Response;
 use Bono\Exception\ContextException;
 use ROH\Util\Options;
-use Whoops\Handler\PrettyPageHandler;
-use Whoops\Run as WhoopsRun;
+use Bono\ErrorHandler;
+use ROH\Util\Injector;
+use ArrayAccess;
 
-class App extends Bundle
+class App extends Injector implements ArrayAccess
 {
     protected static $instance;
 
@@ -20,7 +21,9 @@ class App extends Bundle
         '304' => true,
     ];
 
-    public static function getInstance(array $options = array())
+    protected $bundle;
+
+    public static function getInstance(array $options = [])
     {
         if (is_null(static::$instance)) {
             static::$instance = new static($options);
@@ -29,12 +32,15 @@ class App extends Bundle
         return static::$instance;
     }
 
-    public function __construct($options = array())
+    public function __construct(array $options = [])
     {
+        // start here end on respond
+        ob_start();
+
         $this->configureErrorHandler();
 
         // configure
-        $mergedOptions = [
+        $defaultOptions = [
             'env' => isset($_SERVER['ENV']) ? $_SERVER['ENV'] : 'development',
             'config.path' => '../config',
             'date.timezone' => 'UTC',
@@ -42,14 +48,18 @@ class App extends Bundle
             'response.chunkSize' => 4096,
             // 'response.contentType' => 'text/html',
         ];
-        $optionsPath = isset($options['config.path']) ? $options['config.path'] : $mergedOptions['config.path'];
+        $optionsPath = isset($options['config.path']) ? $options['config.path'] : $defaultOptions['config.path'];
 
-        $mergedOptions = Options::create($mergedOptions, $mergedOptions['env'])
+        Options::setEnv($defaultOptions['env']);
+
+        $options = Options::create($defaultOptions)
             ->mergeFile($optionsPath . '/config.php')
             ->merge($options)
             ->toArray();
 
-        parent::__construct($mergedOptions);
+        $this->bundle = new Bundle($this, $options);
+
+        $this->singleton(static::class, $this);
     }
 
     public function isCli()
@@ -60,22 +70,8 @@ class App extends Bundle
     protected function configureErrorHandler()
     {
         if (!$this->isCli()) {
-            $whoops = new WhoopsRun();
-            $handler = new PrettyPageHandler();
-            $handler->addResourcePath(__DIR__.'/../../templates/vendor/whoops');
-            $whoops->pushHandler($handler);
-            $whoops->pushHandler(function () use ($handler) {
-                $obs = [];
-                while (ob_get_level() > 0) {
-                    $ob = trim(ob_get_contents());
-                    if ($ob) {
-                        $obs[] = $ob;
-                    }
-                    ob_end_clean();
-                }
-                $handler->addDataTable('Output Buffers', $obs);
-            });
-            $whoops->register();
+            $errorHandler = new ErrorHandler($this);
+            $errorHandler->register();
         }
     }
 
@@ -92,7 +88,7 @@ class App extends Bundle
     {
         $request = Request::getInstance($this->isCli());
         $response = new Response(404);
-        $context = new Context($request, $response);
+        $context = new Context($this, $request, $response);
         return $context;
     }
 
@@ -101,8 +97,9 @@ class App extends Bundle
         date_default_timezone_set($this['date.timezone']);
 
         $context = $this->createContext();
+        $context['route.bundle'] = $this->bundle;
         try {
-            $this->dispatch($context);
+            $this->bundle->dispatch($context);
         } catch (ContextException $e) {
             $context->handleError($e);
         }
@@ -112,11 +109,16 @@ class App extends Bundle
 
     public function respond(Context $context)
     {
+        // do not write directly to response or it will be cleaned
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
         $response = $context->getResponse();
 
         if ($response->getBody()->getSize() === 0) {
             $context->withContentType('text/plain');
-            $context->write($response->getReasonPhrase());
+            $response->write($response->getReasonPhrase());
         }
 
         $headers = $response->getHeaders();
@@ -156,4 +158,33 @@ class App extends Bundle
 
         // see koa for the rest
     }
+
+    public function handleError($level, $message, $file = null, $line = null)
+    {
+        if ($level & error_reporting()) {
+            return new ErrorException($message, /*code*/ $level, /*severity*/ $level, $file, $line);
+        }
+    }
+
+
+    public function offsetExists($offset)
+    {
+        return $this->bundle->offsetExists($offset);
+    }
+
+    public function offsetGet($offset)
+    {
+        return $this->bundle->offsetGet($offset);
+    }
+
+    public function offsetSet($offset, $value)
+    {
+        return $this->bundle->offsetSet($offset);
+    }
+
+    public function offsetUnset($offset)
+    {
+        return $this->bundle->offsetUnset($offset);
+    }
+
 }

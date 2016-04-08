@@ -4,7 +4,9 @@ namespace Bono\Http;
 use Bono\App;
 use Bono\Http\Response;
 use ArrayAccess;
+use Bono\Exception\BonoException;
 use Bono\Exception\ContextException;
+use Bono\Helper\Url;
 
 class Context implements ArrayAccess
 {
@@ -16,9 +18,9 @@ class Context implements ArrayAccess
 
     protected $app;
 
-    public function __construct(Request $request, Response $response)
+    public function __construct(App $app, Request $request, Response $response)
     {
-        $this->app = App::getInstance();
+        $this->app = $app;
         $this->request = $request;
         $this->response = $response;
         $this->state = [];
@@ -39,9 +41,9 @@ class Context implements ArrayAccess
         return $this->app;
     }
 
-    public function getBundle()
+    public function getAttributes()
     {
-        return $this->bundle;
+        return $this->getRequest()->getAttributes();
     }
 
     public function getState()
@@ -64,26 +66,19 @@ class Context implements ArrayAccess
         return $default;
     }
 
-    public function withBundle($bundle)
-    {
-        $this->bundle = $bundle;
-        $this['bundle.uri'] = $this->getUri();
-        return $this;
-    }
-
-    public function withRequest($request)
+    public function setRequest($request)
     {
         $this->request = $request;
         return $this;
     }
 
-    public function withMethod($method)
+    public function setMethod($method)
     {
         $this->request = $this->request->withMethod($method);
         return $this;
     }
 
-    public function withState($key, $state = null)
+    public function setState($key, $state = null)
     {
         if (1 == func_num_args()) {
             $this->state = $key;
@@ -93,10 +88,16 @@ class Context implements ArrayAccess
         return $this;
     }
 
+    public function setBody($body)
+    {
+        $this->response = $this->response->withBody($body);
+        return $this;
+    }
+
     public function handleError($err)
     {
-        $this->withContentType('text/plain')
-            ->withStatus($err->getStatusCode())
+        $this->setContentType('text/plain')
+            ->setStatus($err->getStatusCode())
             ->write($err->getMessage());
     }
 
@@ -136,13 +137,13 @@ class Context implements ArrayAccess
         return $this->request->getUri()->getPathname();
     }
 
-    public function withAttribute($key, $value)
+    public function setAttribute($key, $value)
     {
         $this->request = $this->request->withAttribute($key, $value);
         return $this;
     }
 
-    public function withParsedBody($body)
+    public function setParsedBody($body)
     {
         $this->request = $this->request->withParsedBody($body);
         return $this;
@@ -150,13 +151,13 @@ class Context implements ArrayAccess
 
     public function shift($path)
     {
-        $this->withRequest($this->getRequest()->shift($path));
+        $this->setRequest($this->getRequest()->shift($path));
         return $this;
     }
 
     public function unshift($path)
     {
-        $this->withRequest($this->getRequest()->unshift($path));
+        $this->setRequest($this->getRequest()->unshift($path));
         return $this;
     }
 
@@ -176,21 +177,21 @@ class Context implements ArrayAccess
         return $this->response->getBody();
     }
 
-    public function withStatus($status)
+    public function setStatus($status)
     {
         $this->response = $this->response->withStatus($status);
         return $this;
     }
 
-    public function withHeader($key, $value)
+    public function setHeader($key, $value)
     {
         $this->response = $this->response->withHeader($key, $value);
         return $this;
     }
 
-    public function withContentType($contentType)
+    public function setContentType($contentType)
     {
-        return $this->withHeader('Content-Type', $contentType);
+        return $this->setHeader('Content-Type', $contentType);
     }
 
     public function write($str)
@@ -198,6 +199,23 @@ class Context implements ArrayAccess
         $this->getBody()->write($str);
 
         return $this;
+    }
+
+    public function depends($key)
+    {
+        if (is_null($this[$key])) {
+            throw new BonoException('Unregistered ' . $key . ' middleware!');
+        }
+    }
+
+    public function bundleUrl($uri)
+    {
+        return Url::bundle($uri, $this['route.uri']);
+    }
+
+    public function siteUrl($uri)
+    {
+        return Url::bundle($uri);
     }
 
     // arrayaccess

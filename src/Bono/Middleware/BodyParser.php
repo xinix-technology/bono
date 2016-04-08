@@ -1,6 +1,7 @@
 <?php
 namespace Bono\Middleware;
 
+use Bono\Exception\BonoException;
 use ROH\Util\Options;
 use Bono\Http\Context;
 use Bono\Middleware;
@@ -32,9 +33,9 @@ class BodyParser
     protected function formParser(Context $context)
     {
         if ($context->getRequest()->getOriginalMethod() === 'POST') {
-            return $context->withParsedBody($_POST ?: []);
+            return $context->setParsedBody($_POST ?: []);
         } else {
-            throw new \Exception('Unimplmeneted');
+            throw new \Exception('Unimplemented yet!');
         }
     }
 
@@ -42,16 +43,18 @@ class BodyParser
     {
         $body = (string)$context->getRequest()->getBody();
         if ($body) {
-            return $context->withParsedBody(json_decode($body, true));
+            return $context->setParsedBody(json_decode($body, true));
         }
     }
 
     public function __invoke(Context $context, $next)
     {
+        $context['@bodyParser'] = $this;
+
         if (isset($this->options['allowedMethods'][$context->getMethod()])) {
             $contentType = $context->getRequest()->getContentType();
             if (!isset($this->parsers[$contentType])) {
-                throw new \Exception('Cannot found parser for '.$contentType);
+                throw new BonoException('Cannot found parser for ' . $contentType);
             }
             $parser = $this->parsers[$contentType];
             $context = $parser($context);

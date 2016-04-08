@@ -5,43 +5,25 @@ use Bono\Http\Context;
 
 class StaticPage
 {
-    protected $extension = '.php';
-
-    protected $prefix = 'static';
-
     public function __construct(array $options = [])
     {
-        if (isset($options['extension'])) {
-            $this->extension = $options['extension'];
-        }
-
-        if (isset($options['prefix'])) {
-            $this->prefix = $options['prefix'];
-        }
     }
 
     public function __invoke(Context $context, $next)
     {
-        if (is_null($context['renderer'])) {
+        $renderer = $context['response.renderer'];
+        if (is_null($renderer)) {
             $next($context);
             return;
         }
 
-        $templatePath = $context['renderer']['templatePath'];
+        $templatePath = $renderer['templatePath'];
 
-        $prefixPath = rtrim($templatePath.'/'.$this->prefix, '/');
+        $template = trim($context->getUri()->getPath(), '/') ?: 'index';
 
-        $path = $context->getUri()->getPath();
-        if ($path === '/') {
-            $path = '/index';
-        }
-
-        $file = $prefixPath . $path . $this->extension;
-
-        if (is_readable($file)) {
-            $context->withStatus(200)
-                ->withHeader('Content-Type', 'text/html');
-            $context['template'] = $this->prefix . $path;
+        if ($renderer->resolve($template)) {
+            $context->setStatus(200)->setContentType('text/html');
+            $context['response.template'] = $template;
         } else {
             $next($context);
         }

@@ -13,6 +13,8 @@ class Message implements MessageInterface
 
     protected $body;
 
+    protected $contentType = false;
+
     public function __construct($headers = null)
     {
         $this->headers = new Headers($headers);
@@ -20,9 +22,13 @@ class Message implements MessageInterface
 
     public function getContentType()
     {
-        $result = $this->getHeader('Content-Type');
+        if ($this->contentType === false) {
+            $result = $this->getHeader('Content-Type');
+            $result =  $result ? $result[0] : null;
+            $this->contentType = explode(';', $result, 2)[0] ?: null;
+        }
 
-        return $result ? $result[0] : null;
+        return $this->contentType;
     }
 
     // message interface

@@ -78,20 +78,20 @@ class Response extends Message implements ResponseInterface
 
     protected $reasonPhrase;
 
-    public static function getInstance()
-    {
-        return new Response();
-    }
+    // public static function getInstance()
+    // {
+    //     return new Response();
+    // }
 
-    public static function error($code = 500, $exception = null)
-    {
-        return new Response($code, null, $exception);
-    }
+    // public static function error($code = 500, $exception = null)
+    // {
+    //     return new Response($code, null, $exception);
+    // }
 
-    public static function notFound()
-    {
-        return new Response(404);
-    }
+    // public static function notFound()
+    // {
+    //     return new Response(404);
+    // }
 
     public function __construct($status = 200, $headers = null, Stream $body = null)
     {
