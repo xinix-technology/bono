@@ -34,17 +34,17 @@ class BodyParser
     {
         if ($context->getRequest()->getOriginalMethod() === 'POST') {
             return $context->setParsedBody($_POST ?: []);
-        } else {
-            throw new \Exception('Unimplemented yet!');
+        // } else {
+        //     throw new \Exception('Unimplemented yet!');
         }
+
+        throw new BonoException('Cannot parse form if original method not POST');
     }
 
     protected function jsonParser(Context $context)
     {
         $body = (string)$context->getRequest()->getBody();
-        if ($body) {
-            return $context->setParsedBody(json_decode($body, true));
-        }
+        return $context->setParsedBody(json_decode($body, true));
     }
 
     public function __invoke(Context $context, $next)

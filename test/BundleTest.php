@@ -2,17 +2,20 @@
 namespace Bono\Test;
 
 use Bono\Bundle;
+use Bono\App;
 use Bono\Http\Context;
+use Bono\Http\Uri;
 use Bono\Http\Request;
 use Bono\Http\Response;
-use PHPUnit_Framework_TestCase;
 
-class BundleTest extends PHPUnit_Framework_TestCase
+class BundleTest extends BonoTestCase
 {
-    public function testConstructWillMergeOptions()
+    public function testConstructDoMergeOptions()
     {
-        $bundle = new Bundle([
-            'foo' => 'bar',
+        $bundle = $this->app->resolve(Bundle::class, [
+            'options' => [
+                'foo' => 'bar',
+            ]
         ]);
 
         $this->assertEquals('bar', $bundle['foo']);
@@ -20,8 +23,10 @@ class BundleTest extends PHPUnit_Framework_TestCase
 
     public function testGetReturnOption()
     {
-        $bundle = new Bundle([
-            'foo' => 'bar',
+        $bundle = $this->app->resolve(Bundle::class, [
+            'options' => [
+                'foo' => 'bar',
+            ]
         ]);
 
         $this->assertEquals('bar', $bundle->get('foo'));
@@ -30,18 +35,41 @@ class BundleTest extends PHPUnit_Framework_TestCase
 
     public function testAddBundle()
     {
-        $bundle = new Bundle();
+        $bundle = $this->app->resolve(Bundle::class);
 
         $result = $bundle->addBundle([
-            'class' => Bundle::class,
+            'uri' =>  '/',
+            'handler' => [ Bundle::class ]
         ]);
 
         $this->assertEquals($bundle, $result);
+
+        try {
+            $result = $bundle->addBundle([
+                'handler' => [ Bundle::class ]
+            ]);
+            $this->fail('Except throw error if missing uri');
+        } catch(\Exception $e) {
+            if ($e instanceof \PHPUnit_Framework_AssertionFailedError) {
+                throw $e;
+            }
+        }
+
+        try {
+            $result = $bundle->addBundle([
+                'uri' =>  '/',
+            ]);
+            $this->fail('Except throw error if missing handler');
+        } catch(\Exception $e) {
+            if ($e instanceof \PHPUnit_Framework_AssertionFailedError) {
+                throw $e;
+            }
+        }
     }
 
     public function testRoutes()
     {
-        $bundle = new Bundle();
+        $bundle = $this->app->resolve(Bundle::class);
 
         $getRoute = function () {
 
@@ -51,12 +79,32 @@ class BundleTest extends PHPUnit_Framework_TestCase
         $postRoute = function () {
 
         };
-        $bundle->routePost(['uri' => '/post', 'handler' => $getRoute]);
+        $bundle->routePost(['uri' => '/post', 'handler' => $postRoute]);
 
         $putRoute = function () {
 
         };
-        $bundle->routePut(['uri' => '/put', 'handler' => $getRoute]);
+        $bundle->routePut(['uri' => '/put', 'handler' => $putRoute]);
+
+        $deleteRoute = function () {
+
+        };
+        $bundle->routeDelete(['uri' => '/delete', 'handler' => $deleteRoute]);
+
+        $anyRoute = function () {
+
+        };
+        $bundle->routeAny(['uri' => '/any', 'handler' => $anyRoute]);
+
+        $route = function() {};
+        try {
+            $bundle->routeMap(['handler' => $route]);
+            $this->fail('Uri not specified');
+        } catch(\Exception $e) {
+            if ($e instanceof \PHPUnit_Framework_AssertionFailedError) {
+                throw $e;
+            }
+        }
 
 
         $dumped = $bundle->dumpRoutes();
@@ -72,6 +120,17 @@ class BundleTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(['PUT'], $dumped[2]['methods']);
         $this->assertEquals('/put', $dumped[2]['pattern']);
         $this->assertEquals($putRoute, $dumped[2]['handler']);
+
+        $this->assertEquals(['DELETE'], $dumped[3]['methods']);
+        $this->assertEquals('/delete', $dumped[3]['pattern']);
+        $this->assertEquals($deleteRoute, $dumped[3]['handler']);
+
+        $this->assertTrue(in_array('GET', $dumped[4]['methods']));
+        $this->assertTrue(in_array('POST', $dumped[4]['methods']));
+        $this->assertTrue(in_array('PUT', $dumped[4]['methods']));
+        $this->assertTrue(in_array('DELETE', $dumped[4]['methods']));
+        $this->assertEquals('/any', $dumped[4]['pattern']);
+        $this->assertEquals($anyRoute, $dumped[4]['handler']);
     }
 
     public function testDispatchRunMiddleware()
@@ -82,7 +141,8 @@ class BundleTest extends PHPUnit_Framework_TestCase
         $middlewareMock->expects($this->once())
             ->method('second');
 
-        $bundle = $this->getMock(Bundle::class, ['__invoke']);
+
+        $bundle = $this->getMock(Bundle::class, ['__invoke'], [$this->app]);
         $bundle->method('__invoke')
             ->willReturn(null);
 
@@ -94,32 +154,79 @@ class BundleTest extends PHPUnit_Framework_TestCase
             $middlewareMock->second();
             $next($context);
         });
-        $context = $this->getMock(Context::class, [], [
-            $this->getMock(Request::class),
-            $this->getMock(Response::class),
+
+        $context = $this->app->resolve(Context::class);
+        $bundle->dispatch($context);
+    }
+
+    public function testDispatchToSubBundle()
+    {
+        $bundle = $this->app->resolve(Bundle::class);
+        $fooBundle = $this->getMock(Bundle::class, ['dispatch'], [$this->app]);
+        $fooBundle->expects($this->once())
+            ->method('dispatch');
+
+        $bundle->addBundle([
+            'uri' => '/foo',
+            'handler' => $fooBundle,
         ]);
 
+        $context = $this->app->resolve(Context::class, [
+            'request' => new Request('GET', new Uri('http', 'localhost', 80, '/foo')),
+        ]);
         $bundle->dispatch($context);
     }
 
     public function testInvokeAsFunction()
     {
-        $context = $this->getMock(Context::class, [], [
-            $this->getMock(Request::class),
-            $this->getMock(Response::class),
-        ]);
+        $context = $this->app->resolve(Context::class);
 
-        $bundle = $this->getMock(Bundle::class, null);
+        $bundle = $this->getMock(Bundle::class, null, [$this->app]);
         try {
             $bundle($context);
             $this->fail('Should caught exception');
         } catch (\Exception $e) {
+            if ($e instanceof \PHPUnit_Framework_AssertionFailedError) {
+                throw $e;
+            }
         }
+    }
+
+    public function testInvokeRoute()
+    {
+        $context = $this->app->resolve(Context::class, [
+            'request' => new Request('GET', new Uri('http', 'localhost', 80, '/foo/someBar')),
+        ]);
+
+        $hits = 0;
+
+        $bundle = $this->app->resolve(Bundle::class, [
+            'options' => [
+                'routes' => [
+                    [
+                        'uri' => '/foo/{bar}',
+                        'handler' => function($context) use (&$hits) {
+                            $hits++;
+                            $this->assertEquals($context['bar'], 'someBar');
+                            return [
+                                'foo' => 'bar'
+                            ];
+                        }
+                    ]
+                ]
+            ]
+        ]);
+
+
+        $bundle->dispatch($context);
+        $this->assertEquals($hits, 1);
+        $this->assertEquals($context->getState()['foo'], 'bar');
     }
 
     public function testInvokeMethodNotAllowed()
     {
         $context = $this->getMock(Context::class, [], [
+            $this->app,
             $this->getMock(Request::class),
             $this->getMock(Response::class),
         ]);
@@ -132,7 +239,37 @@ class BundleTest extends PHPUnit_Framework_TestCase
         $context->expects($this->once())
             ->method('throwError');
 
-        $bundle = $this->getMock(Bundle::class, null);
+        $bundle = $this->app->resolve(Bundle::class);
         $bundle($context);
+    }
+
+    public function testDebugInfoShowMiddlewaresBundlesRoutesAttributes()
+    {
+        $bundle = $this->app->resolve(Bundle::class, [
+            'options' => [
+                'middlewares' => [
+                    function() {},
+                ],
+                'bundles' => [
+                    [
+                        'uri' => '/foo',
+                        'handler' => $this->getMock(Bundle::class, [], [$this->app]),
+                    ],
+                ],
+                'routes' => [
+                    [
+                        'uri' => '/bar',
+                        'handler' => function() {}
+                    ]
+                ],
+                'baz' => 'custom attribute'
+            ]
+        ]);
+
+        $debug = $bundle->__debugInfo();
+        $this->assertTrue(is_array($debug['middlewares']));
+        $this->assertTrue(is_array($debug['bundles']));
+        $this->assertTrue(is_array($debug['routes']));
+        $this->assertTrue(is_array($debug['attributes']));
     }
 }

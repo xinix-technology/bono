@@ -36,15 +36,15 @@ class ContentNegotiator extends UtilCollection
         parent::__construct($options);
     }
 
-    public function match($contentType)
-    {
-        $mapper = $this->options['mapper'];
-        if (is_callable($mapper)) {
-            return $mapper($contentType);
-        } else {
-            return isset($mapper[$contentType]) ? $mapper[$contentType] : $contentType;
-        }
-    }
+    // public function match($contentType)
+    // {
+    //     $mapper = $this->options['mapper'];
+    //     if (is_callable($mapper)) {
+    //         return $mapper($contentType);
+    //     } else {
+    //         return isset($mapper[$contentType]) ? $mapper[$contentType] : $contentType;
+    //     }
+    // }
 
     protected function negotiate(Context $context)
     {
@@ -64,7 +64,7 @@ class ContentNegotiator extends UtilCollection
     public function __invoke(Context $context, $next = null)
     {
         // avoid content negotiator on cli
-        if ($context->getApp()->isCli()) {
+        if ($this->app->isCli()) {
             $next($context);
             return;
         }

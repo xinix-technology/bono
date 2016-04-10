@@ -51,12 +51,21 @@ class Stream implements StreamInterface
 
     public function __toString()
     {
-        throw new \Exception('Unimplemented yet');
+        $this->rewind();
+        $result = [];
+        while(!$this->eof()) {
+            $chunk = $this->read(1024);
+            $result[] = $chunk;
+        }
+        return implode('', $result);
     }
 
     public function close()
     {
-        throw new \Exception('Unimplemented yet');
+        if (isset($this->stream)) {
+            fclose($this->stream);
+            $this->stream = null;
+        }
     }
 
     public function detach()

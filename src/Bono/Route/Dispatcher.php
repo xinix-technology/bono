@@ -13,7 +13,7 @@ class Dispatcher implements FastRouteDispatcher
 
     protected $variableRouteData;
 
-    public function __construct($routes)
+    public function __construct(array $routes)
     {
         $this->routes = $routes;
 
@@ -100,32 +100,4 @@ class Dispatcher implements FastRouteDispatcher
 
         return [self::NOT_FOUND];
     }
-
-    // protected function addStaticRoute($httpMethod, $routeData, $handler)
-    // {
-    //     $routeStr = $routeData[0];
-
-    //     if (isset($this->staticRoutes[$httpMethod][$routeStr])) {
-    //         throw new BadRouteException(sprintf(
-    //             'Cannot register two routes matching "%s" for method "%s"',
-    //             $routeStr,
-    //             $httpMethod
-    //         ));
-    //     }
-
-    //     if (isset($this->methodToRegexToRoutesMap[$httpMethod])) {
-    //         foreach ($this->methodToRegexToRoutesMap[$httpMethod] as $route) {
-    //             if ($route->matches($routeStr)) {
-    //                 throw new BadRouteException(sprintf(
-    //                     'Static route "%s" is shadowed by previously defined variable route "%s" for method "%s"',
-    //                     $routeStr,
-    //                     $route->regex,
-    //                     $httpMethod
-    //                 ));
-    //             }
-    //         }
-    //     }
-
-    //     $this->staticRoutes[$httpMethod][$routeStr] = $handler;
-    // }
 }

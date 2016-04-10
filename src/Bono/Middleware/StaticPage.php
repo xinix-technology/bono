@@ -5,13 +5,9 @@ use Bono\Http\Context;
 
 class StaticPage
 {
-    public function __construct(array $options = [])
-    {
-    }
-
     public function __invoke(Context $context, $next)
     {
-        $renderer = $context['response.renderer'];
+        $renderer = $context['@renderer'];
         if (is_null($renderer)) {
             $next($context);
             return;

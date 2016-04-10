@@ -2,7 +2,7 @@
 namespace Bono\Http;
 
 use Psr\Http\Message\UriInterface;
-use InvalidArgumentException;
+use Bono\Exception\BonoException;
 
 class Uri implements UriInterface
 {
@@ -53,16 +53,18 @@ class Uri implements UriInterface
         }
 
         // Authority: Username and password
-        $username = isset($_SERVER['PHP_AUTH_USER']) ? $_SERVER['PHP_AUTH_USER'] : '';
-        $password = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : '';
+        $username = isset($_SERVER['PHP_AUTH_USER']) ? $_SERVER['PHP_AUTH_USER'] : null;
+        $password = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : null;
 
         // Authority: Host
         if (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             $host = trim(current(explode(',', $_SERVER['HTTP_X_FORWARDED_HOST'])));
         } elseif (isset($_SERVER['HTTP_HOST'])) {
             $host = $_SERVER['HTTP_HOST'];
-        } else {
+        } elseif (isset($_SERVER['SERVER_NAME'])) {
             $host = $_SERVER['SERVER_NAME'];
+        } else {
+            $host = '127.0.0.1';
         }
 
         // Authority: Port
@@ -77,14 +79,14 @@ class Uri implements UriInterface
         // Path
         $requestScriptName = parse_url($_SERVER['SCRIPT_NAME'], PHP_URL_PATH);
         $requestScriptDir = dirname($requestScriptName);
-        $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $requestUri = parse_url(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/', PHP_URL_PATH);
         $basePath = '';
 
         if (stripos($requestUri, $requestScriptName) === 0) {
             $basePath = $requestScriptName;
-        } elseif ($requestScriptDir !== '/' && stripos($requestUri, $requestScriptDir) === 0) {
-            // $basePath = $requestScriptDir;
-            throw new \Exception('Never been here yet?');
+        // } elseif ($requestScriptDir !== '/' && stripos($requestUri, $requestScriptDir) === 0) {
+        //     // $basePath = $requestScriptDir;
+        //     throw new \Exception('Never been here yet?');
         }
 
         if ($basePath) {
@@ -108,15 +110,20 @@ class Uri implements UriInterface
         return static::$instance;
     }
 
+    public static function resetInstance()
+    {
+        static::$instance = null;
+    }
+
     public function __construct(
-        $scheme,
-        $host,
-        $port = null,
+        $scheme = 'http',
+        $host = '127.0.0.1',
+        $port = 80,
         $path = '/',
         $query = '',
         $fragment = '',
-        $user = '',
-        $password = ''
+        $user = null,
+        $password = null
     ) {
         $this->scheme = $this->filterScheme($scheme);
         $this->host = $host;
@@ -175,7 +182,7 @@ class Uri implements UriInterface
     public function withPathname($pathname)
     {
         if (!is_string($pathname)) {
-            throw new InvalidArgumentException('Uri pathname must be a string');
+            throw new BonoException('Uri pathname must be a string');
         }
 
         return $this->withPath($pathname . (isset($this->extension) ? '.' . $this->extension : ''));
@@ -218,12 +225,12 @@ class Uri implements UriInterface
         ];
 
         if (!is_string($scheme) && !method_exists($scheme, '__toString')) {
-            throw new InvalidArgumentException('Uri scheme must be a string');
+            throw new BonoException('Uri scheme must be a string');
         }
 
         $scheme = str_replace('://', '', strtolower((string)$scheme));
         if (!isset($valid[$scheme])) {
-            throw new InvalidArgumentException('Uri scheme must be one of: "", "https", "http"');
+            throw new BonoException('Uri scheme must be one of: "", "https", "http"');
         }
 
         return $scheme;
@@ -235,16 +242,14 @@ class Uri implements UriInterface
             return $port;
         }
 
-        throw new InvalidArgumentException('Uri port must be null or an integer between 1 and 65535 (inclusive)');
+        throw new BonoException('Uri port must be null or an integer between 1 and 65535 (inclusive)');
     }
 
     protected function filterQuery($query)
     {
         return preg_replace_callback(
             '/(?:[^a-zA-Z0-9_\-\.~!\$&\'\(\)\*\+,;=%:@\/\?]+|%(?![A-Fa-f0-9]{2}))/',
-            function ($match) {
-                return rawurlencode($match[0]);
-            },
+            [$this, 'rawurlencodeMatchZero'],
             $query
         );
     }
@@ -253,9 +258,7 @@ class Uri implements UriInterface
     {
         return preg_replace_callback(
             '/(?:[^a-zA-Z0-9_\-\.~:@&=\+\$,\/;%]+|%(?![A-Fa-f0-9]{2}))/',
-            function ($match) {
-                return rawurlencode($match[0]);
-            },
+            [$this, 'rawurlencodeMatchZero'],
             $path
         );
     }
@@ -263,7 +266,7 @@ class Uri implements UriInterface
     public function withBasePath($basePath)
     {
         if (!is_string($basePath)) {
-            throw new InvalidArgumentException('Uri path must be a string');
+            throw new BonoException('Uri path must be a string');
         }
         if (!empty($basePath)) {
             $basePath = '/' . trim($basePath, '/'); // <-- Trim on both sides
@@ -354,7 +357,7 @@ class Uri implements UriInterface
     public function withPath($path)
     {
         if (!is_string($path)) {
-            throw new InvalidArgumentException('Uri path must be a string');
+            throw new BonoException('Uri path must be a string');
         }
 
         $clone = clone $this;
@@ -374,9 +377,7 @@ class Uri implements UriInterface
     public function withQuery($query)
     {
         if (!is_string($query) && !method_exists($query, '__toString')) {
-            throw new \InvalidArgumentException(
-                'Query string must be a string'
-            );
+            throw new BonoException('Query string must be a string');
         }
 
         $query = (string) $query;

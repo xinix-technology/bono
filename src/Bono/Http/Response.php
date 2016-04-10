@@ -93,7 +93,7 @@ class Response extends Message implements ResponseInterface
     //     return new Response(404);
     // }
 
-    public function __construct($status = 200, $headers = null, Stream $body = null)
+    public function __construct($status = 404, $headers = null, Stream $body = null)
     {
         $this->status = $status;
 

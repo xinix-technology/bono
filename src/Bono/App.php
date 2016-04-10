@@ -13,7 +13,7 @@ use ArrayAccess;
 
 class App extends Injector implements ArrayAccess
 {
-    protected static $instance;
+    protected static $instance = null;
 
     protected static $STATUSES_EMPTY = [
         '204' => true,
@@ -25,7 +25,7 @@ class App extends Injector implements ArrayAccess
 
     public static function getInstance(array $options = [])
     {
-        if (is_null(static::$instance)) {
+        if (null === static::$instance) {
             static::$instance = new static($options);
         }
 
@@ -34,10 +34,7 @@ class App extends Injector implements ArrayAccess
 
     public function __construct(array $options = [])
     {
-        // start here end on respond
-        ob_start();
-
-        $this->configureErrorHandler();
+        $this->singleton(static::class, $this);
 
         // configure
         $defaultOptions = [
@@ -59,12 +56,16 @@ class App extends Injector implements ArrayAccess
 
         $this->bundle = new Bundle($this, $options);
 
-        $this->singleton(static::class, $this);
+        $this->configureErrorHandler();
+
     }
 
     public function isCli()
     {
-        return PHP_SAPI === 'cli';
+        if (null === $this['cli']) {
+            $this['cli'] = PHP_SAPI === 'cli';
+        }
+        return $this['cli'];
     }
 
     protected function configureErrorHandler()
@@ -75,33 +76,36 @@ class App extends Injector implements ArrayAccess
         }
     }
 
-    // protected function handleError($errno, $errstr = '', $errfile = '', $errline = '')
-    // {
-    //     if (!($errno & error_reporting())) {
-    //         return;
-    //     }
-
-    //     throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
-    // }
-
     public function createContext()
     {
         $request = Request::getInstance($this->isCli());
-        $response = new Response(404);
+        $response = new Response();
         $context = new Context($this, $request, $response);
         return $context;
     }
 
-    public function run()
+    public function run($useOutputBuffering = true)
     {
+        if ($useOutputBuffering) {
+            // start output buffer here
+            ob_start();
+        }
+
         date_default_timezone_set($this['date.timezone']);
 
         $context = $this->createContext();
         $context['route.bundle'] = $this->bundle;
-        try {
-            $this->bundle->dispatch($context);
-        } catch (ContextException $e) {
-            $context->handleError($e);
+        // try {
+        $this->bundle->dispatch($context);
+        // } catch (ContextException $e) {
+        //     $context->handleError($e);
+        // }
+
+        if ($useOutputBuffering) {
+            // do not write directly to response or it will be cleaned
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
         }
 
         $this->respond($context);
@@ -109,15 +113,10 @@ class App extends Injector implements ArrayAccess
 
     public function respond(Context $context)
     {
-        // do not write directly to response or it will be cleaned
-        while (ob_get_level() > 0) {
-            ob_end_clean();
-        }
-
         $response = $context->getResponse();
 
         if ($response->getBody()->getSize() === 0) {
-            $context->withContentType('text/plain');
+            $context->setContentType('text/plain');
             $response->write($response->getReasonPhrase());
         }
 
@@ -159,14 +158,6 @@ class App extends Injector implements ArrayAccess
         // see koa for the rest
     }
 
-    public function handleError($level, $message, $file = null, $line = null)
-    {
-        if ($level & error_reporting()) {
-            return new ErrorException($message, /*code*/ $level, /*severity*/ $level, $file, $line);
-        }
-    }
-
-
     public function offsetExists($offset)
     {
         return $this->bundle->offsetExists($offset);
@@ -179,12 +170,17 @@ class App extends Injector implements ArrayAccess
 
     public function offsetSet($offset, $value)
     {
-        return $this->bundle->offsetSet($offset);
+        return $this->bundle->offsetSet($offset, $value);
     }
 
     public function offsetUnset($offset)
     {
         return $this->bundle->offsetUnset($offset);
+    }
+
+    public function getBundle()
+    {
+        return $this->bundle;
     }
 
 }

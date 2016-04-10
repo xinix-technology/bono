@@ -45,6 +45,14 @@ class Bundle extends UtilCollection
 
     public function addBundle(array $bundle)
     {
+        if (!isset($bundle['uri'])) {
+            throw new BonoException('Bundle descriptor must have uri options');
+        }
+
+        if (!isset($bundle['handler'])) {
+            throw new BonoException('Bundle descriptor must have handler options');
+        }
+
         $this->bundles[] = $bundle;
         return $this;
     }
@@ -78,17 +86,18 @@ class Bundle extends UtilCollection
         return $this->routeMap($route);
     }
 
-    public function routePatch(array $route)
-    {
-        $route['methods'] = ['PATCH'];
-        return $this->routeMap($route);
-    }
+    // implement this later if there is needs
+    // public function routePatch(array $route)
+    // {
+    //     $route['methods'] = ['PATCH'];
+    //     return $this->routeMap($route);
+    // }
 
-    public function routeOptions(array $route)
-    {
-        $route['methods'] = ['OPTIONS'];
-        return $this->routeMap($route);
-    }
+    // public function routeOptions(array $route)
+    // {
+    //     $route['methods'] = ['OPTIONS'];
+    //     return $this->routeMap($route);
+    // }
 
     public function routeAny(array $route)
     {
@@ -98,6 +107,15 @@ class Bundle extends UtilCollection
 
     public function routeMap(array $route)
     {
+        if (!isset($route['uri'])) {
+            throw new BonoException('Wrong route value registered');
+        }
+
+        if (!isset($route['methods'])) {
+            $route['methods'] = [strtoupper(isset($route['method']) ? $route['method'] : 'get')];
+            unset($route['method']);
+        }
+
         $route['pattern'] = $route['uri'];
         $this->routes[] = $route;
 
@@ -151,6 +169,7 @@ class Bundle extends UtilCollection
     public function __invoke(Context $context)
     {
         $routeInfo = $context['route.info'];
+
         if (isset($routeInfo)) {
             switch ($routeInfo[0]) {
                 case Dispatcher::FOUND:
@@ -176,8 +195,11 @@ class Bundle extends UtilCollection
                 $context->shift($routeBundle['uri']);
                 $routeBundle->dispatch($context);
                 $context->unshift($routeBundle['uri']);
+                return;
             }
+            $context->throwError(404);
         }
+
     }
 
     public function getBundleFor($path)
@@ -251,14 +273,6 @@ class Bundle extends UtilCollection
     {
         if (isset($this['routes'])) {
             foreach ($this['routes'] as $route) {
-                if (!isset($route['uri'])) {
-                    throw new BonoException('Wrong route value registered');
-                }
-                if (!isset($route['methods'])) {
-                    $route['methods'] = [strtoupper(isset($route['method']) ? $route['method'] : 'get')];
-                    unset($route['method']);
-                }
-
                 $this->routeMap($route);
             }
         }

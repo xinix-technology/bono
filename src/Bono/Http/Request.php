@@ -36,11 +36,11 @@ class Request extends Message implements ServerRequestInterface
         return static::$instance;
     }
 
-    public function __construct($method = 'GET', $uri = null)
+    public function __construct($method = 'GET', Uri $uri = null)
     {
         $this->method = $method;
         $this->originalMethod = $method;
-        $this->uri = $uri;
+        $this->uri = $uri ?: new Uri();
         $this->attributes = new Collection();
 
         parent::__construct();

@@ -2,20 +2,15 @@
 
 namespace Bono\Test\Middleware;
 
-use PHPUnit_Framework_TestCase;
+use Bono\Test\BonoTestCase;
 use Bono\Http\Context;
 use Bono\Http\Request;
-use Bono\Http\Response;
 use Bono\Http\Uri;
 use Bono\Middleware\TemplateRenderer;
-
 use Bono\Middleware\StaticPage;
-use ROH\Util\Injector;
 
-class StaticPageTest extends PHPUnit_Framework_TestCase
+class StaticPageTest extends BonoTestCase
 {
-    public $injector;
-
     public function deleteDir($dirPath) {
         if (! is_dir($dirPath)) {
             throw new InvalidArgumentException("$dirPath must be a directory");
@@ -36,46 +31,63 @@ class StaticPageTest extends PHPUnit_Framework_TestCase
 
     public function setUp()
     {
+        parent::setUp();
         @mkdir('./tmp', 0777, true);
-        $this->injector = new Injector();
     }
 
     public function tearDown()
     {
         $this->deleteDir('./tmp');
+        parent::tearDown();
     }
 
-    public function testInvoke()
+    public function testInvokeWithoutRenderer()
     {
-        $templateFile = getcwd().'/tmp/index.php';
-        file_put_contents($templateFile, '');
-
         $request = new Request('GET', new Uri('http', 'localhost'));
-        $response = new Response(404);
-        $context = new Context($request, $response);
+        $context = $this->app->resolve(Context::class, [ 'request' => $request ]);
 
-        $middleware = new StaticPage([
-            'prefix' => '',
-        ]);
-        $next = function () {
-
+        $middleware = new StaticPage();
+        $hitNext = false;
+        $next = function () use (&$hitNext) {
+            $hitNext = true;
         };
 
         $middleware($context, $next);
+        $this->assertEquals(true, $hitNext);
         $this->assertEquals(404, $context->getStatusCode());
+    }
 
-        $stub = $this->getMockBuilder(TemplateRenderer::class)->getMock();
+    public function testInvokeWithRenderer()
+    {
+        $request = new Request('GET', new Uri('http', 'localhost'));
 
-        var_dump($stub);
-        exit;
+        $middleware = new StaticPage();
+        $hitNext = false;
+        $next = function () use (&$hitNext) {
+            $hitNext = true;
+        };
 
-        $context['response.renderer'] = [
-            'templatePath' => './tmp'
-        ];
+        // template found
+        $context = $this->app->resolve(Context::class, [ 'request' => $request ]);
+        $renderer = $context['@renderer'] = $this->getMock(TemplateRenderer::class, [], [$this->app, [
+            'renderer' => [],
+        ]]);
+        $renderer->method('resolve')->will($this->returnValue(true));
+
+
         $middleware($context, $next);
         $this->assertEquals(200, $context->getStatusCode());
-        $this->assertEquals('/index', $context['response.template']);
+        $this->assertEquals(false, $hitNext);
 
-        unlink($templateFile);
+        // template not found
+        $context = $this->app->resolve(Context::class, [ 'request' => $request ]);
+        $renderer = $context['@renderer'] = $this->getMock(TemplateRenderer::class, [], [$this->app, [
+            'renderer' => [],
+        ]]);
+        $renderer->method('resolve')->will($this->returnValue(false));
+
+        $middleware($context, $next);
+        $this->assertEquals(404, $context->getStatusCode());
+        $this->assertEquals(true, $hitNext);
     }
 }

@@ -6,6 +6,10 @@ gulp.task('test', () => {
   spawn('./vendor/bin/phpunit', ['test'], { stdio: 'inherit' });
 });
 
+gulp.task('tap', () => {
+  spawn('./vendor/bin/phpunit', ['--tap', 'test'], { stdio: 'inherit' });
+});
+
 gulp.task('coverage', () => {
   fs.remove('./coverage')
     .then(() => fs.mkdirp('./coverage'))
@@ -18,4 +22,5 @@ gulp.task('default', () => {
   console.log('Run:');
   console.log('  test');
   console.log('  coverage');
+  console.log('  tap');
 });

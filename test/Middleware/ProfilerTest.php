@@ -2,18 +2,20 @@
 
 namespace Bono\Test\Middleware;
 
-use PHPUnit_Framework_TestCase;
 use Bono\Middleware\Profiler;
+use Bono\Test\BonoTestCase;
 use Bono\Http\Context;
 use Bono\Http\Request;
 use Bono\Http\Response;
 
-class ProfilerTest extends PHPUnit_Framework_TestCase
+class ProfilerTest extends BonoTestCase
 {
     public function testInvoke()
     {
         $m = new Profiler();
+
         $context = $this->getMock(Context::class, [], [
+            $this->app,
             $this->getMock(Request::class),
             $this->getMock(Response::class),
         ]);
@@ -21,7 +23,7 @@ class ProfilerTest extends PHPUnit_Framework_TestCase
         $set = [];
 
         $context->expects($this->any())
-            ->method('withHeader')
+            ->method('setHeader')
             ->will($this->returnCallback(function ($key) use ($context, &$set) {
                 $set[] = $key;
                 return $context;

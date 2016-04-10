@@ -5,7 +5,7 @@ use Bono\Http\Uri;
 
 class Url
 {
-    public static function bundle($pathname, $relativeTo = null, $options = [])
+    public static function bundle($pathname, $relativeTo = null)
     {
         if (is_null($relativeTo)) {
             $relativeTo = Uri::getInstance();
@@ -16,7 +16,7 @@ class Url
         return $uri->__toString();
     }
 
-    public static function asset($pathname, $relativeTo = null, $options = [])
+    public static function asset($pathname, $relativeTo = null)
     {
         if (is_null($relativeTo)) {
             $relativeTo = Uri::getInstance();
@@ -24,7 +24,7 @@ class Url
         return $relativeTo->withPathname(trim($pathname, '/'))->withBasePath('')->__toString();
     }
 
-    public static function buildPath($path, $meta)
+    public static function format($path, $meta)
     {
         return preg_replace_callback('~{([^}]+)}~', function ($matches) use ($meta) {
             $key = $matches[1];

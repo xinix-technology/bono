@@ -8,29 +8,39 @@ use Exception;
 
 class ErrorHandler extends WhoopsRun
 {
+    protected $handler;
+
     public function __construct($app)
     {
         $this->app = $app;
 
-        $handler = new PrettyPageHandler();
+        $this->handler = new PrettyPageHandler();
 
-        $handler->addResourcePath(__DIR__.'/../../templates/vendor/whoops');
-        $handler->addResourcePath('../templates/vendor/whoops');
+        $this->handler->addResourcePath(__DIR__.'/../../templates/vendor/whoops');
+        if (is_readable('../templates/vendor/whoops')) {
+            $this->handler->addResourcePath('../templates/vendor/whoops');
+        }
 
-        $this->pushHandler($handler);
-        $this->pushHandler(function () use ($handler) {
-            $obs = [];
-            while (ob_get_level() > 0) {
-                $ob = trim(ob_get_contents());
-                if ($ob) {
-                    $obs[] = $ob;
-                }
-                ob_end_clean();
+        $this->pushHandler($this->handler);
+        $this->pushHandler([ $this, 'obHandler' ]);
+    }
+
+    public function obHandler()
+    {
+        $obs = [];
+        $levels = ob_get_level();
+        while (ob_get_level() > 0) {
+            $ob = trim(ob_get_contents());
+            if ($ob) {
+                $obs[] = $ob;
             }
-            $handler->addDataTable('Output Buffers', $obs);
+            ob_end_clean();
+        }
+        $this->handler->addDataTable('Output Buffers', $obs);
 
-            // restart output buffer for error show
+        // restart output buffer for error show
+        for($i = 0; $i < $levels; $i++) {
             ob_start();
-        });
+        }
     }
 }

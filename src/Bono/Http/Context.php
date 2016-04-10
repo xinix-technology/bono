@@ -36,10 +36,10 @@ class Context implements ArrayAccess
         return $this->response;
     }
 
-    public function getApp()
-    {
-        return $this->app;
-    }
+    // public function getApp()
+    // {
+    //     return $this->app;
+    // }
 
     public function getAttributes()
     {
@@ -94,12 +94,12 @@ class Context implements ArrayAccess
         return $this;
     }
 
-    public function handleError($err)
-    {
-        $this->setContentType('text/plain')
-            ->setStatus($err->getStatusCode())
-            ->write($err->getMessage());
-    }
+    // public function handleError($err)
+    // {
+    //     $this->setContentType('text/plain')
+    //         ->setStatus($err->getStatusCode())
+    //         ->write($err->getMessage());
+    // }
 
     public function throwError($status = 500, $message = null, $error = null)
     {
@@ -134,7 +134,8 @@ class Context implements ArrayAccess
 
     public function getPathname()
     {
-        return $this->request->getUri()->getPathname();
+        $uri = $this->getUri();
+        return isset($uri) ? $uri->getPathname() : null;
     }
 
     public function setAttribute($key, $value)

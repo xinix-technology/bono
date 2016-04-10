@@ -29,21 +29,22 @@ class TemplateRenderer extends UtilCollection
             ],
         ])->merge($options);
 
-        parent::__construct($options);
-
-        if (is_null($this['renderer'])) {
+        if (is_null($options['renderer'])) {
             throw new BonoException('Renderer must be set!');
         }
+
+        parent::__construct($options);
+
     }
 
     public function __invoke(Context $context, $next)
     {
-        $context['response.renderer'] = $context['response.renderer'] ?: $this;
+        $context['@renderer'] = $context['@renderer'] ?: $this;
 
         try {
             $next($context);
         } catch (ContextException $err) {
-            $context->withStatus($err->getStatusCode());
+            $context->setStatus($err->getStatusCode());
         }
 
         if (!$context['response.rendered'] && $this['accepts'][$context->getContentType() ?: 'text/html']) {
@@ -97,6 +98,7 @@ class TemplateRenderer extends UtilCollection
         $templatePaths = $this['templatePaths'];
         $templatePaths[] = $templatePath;
         $this['templatePaths'] = $templatePaths;
+        return $this;
     }
 
     protected function getRenderer()
