@@ -151,8 +151,6 @@ class Bundle extends UtilCollection
     {
         $this->finalize();
 
-        $context['route.uri'] = $context->getUri();
-
         $path = $context->getPathname() ?: '/';
 
         $bundle = $this->getBundleFor($path);

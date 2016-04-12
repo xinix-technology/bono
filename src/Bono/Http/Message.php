@@ -5,7 +5,7 @@ namespace Bono\Http;
 use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\StreamInterface;
 
-class Message implements MessageInterface
+abstract class Message implements MessageInterface
 {
     protected $protocolVersion = '1.1';
 
@@ -40,8 +40,9 @@ class Message implements MessageInterface
 
     public function withProtocolVersion($version)
     {
-        throw new \Exception('Unimplemented yet!');
-
+        $clone = clone $this;
+        $clone->protocolVersion = $version;
+        return $clone;
     }
 
     public function getHeaders()
@@ -69,26 +70,21 @@ class Message implements MessageInterface
     {
         $clone = clone $this;
         $clone->headers[$name] = $value;
-
         return $clone;
     }
 
     public function withAddedHeader($name, $value)
     {
-        throw new \Exception('Unimplemented yet!');
-
+        $clone = clone $this;
+        $clone->headers->add($name, $value);
+        return $clone;
     }
 
     public function withoutHeader($name)
     {
-        throw new \Exception('Unimplemented yet!');
-
-    }
-
-    public function getBody()
-    {
-        return $this->body;
-
+        $clone = clone $this;
+        unset($clone->headers[$name]);
+        return $clone;
     }
 
     public function withBody(StreamInterface $body)

@@ -9,6 +9,7 @@ use Bono\Exception\ContextException;
 use ROH\Util\Options;
 use Bono\ErrorHandler;
 use ROH\Util\Injector;
+use Bono\Http\Uri;
 use ArrayAccess;
 
 class App extends Injector implements ArrayAccess
@@ -20,6 +21,8 @@ class App extends Injector implements ArrayAccess
         '205' => true,
         '304' => true,
     ];
+
+    protected $envVars;
 
     protected $bundle;
 
@@ -35,6 +38,8 @@ class App extends Injector implements ArrayAccess
     public function __construct(array $options = [])
     {
         $this->singleton(static::class, $this);
+
+        $this->envVars = $_SERVER;
 
         // configure
         $defaultOptions = [
@@ -78,7 +83,8 @@ class App extends Injector implements ArrayAccess
 
     public function createContext()
     {
-        $request = Request::getInstance($this->isCli());
+        $uri = Uri::byEnvironment($this->envVars, $this->isCli());
+        $request = new Request($this->isCli() ? 'GET' : $this->envVars['REQUEST_METHOD'], $uri);
         $response = new Response();
         $context = new Context($this, $request, $response);
         return $context;
@@ -87,6 +93,7 @@ class App extends Injector implements ArrayAccess
     public function run($useOutputBuffering = true)
     {
         if ($useOutputBuffering) {
+            $level = ob_get_level();
             // start output buffer here
             ob_start();
         }
@@ -103,7 +110,7 @@ class App extends Injector implements ArrayAccess
 
         if ($useOutputBuffering) {
             // do not write directly to response or it will be cleaned
-            while (ob_get_level() > 0) {
+            while (ob_get_level() > $level) {
                 ob_end_clean();
             }
         }
@@ -111,7 +118,7 @@ class App extends Injector implements ArrayAccess
         $this->respond($context);
     }
 
-    public function respond(Context $context)
+    public function respond(Context $context, &$filename = null)
     {
         $response = $context->getResponse();
 

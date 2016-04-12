@@ -6,72 +6,60 @@ use Bono\Http\Uri;
 use Bono\Exception\BonoException;
 
 class UriTest extends PHPUnit_Framework_TestCase {
-    public function setUp()
+    public function testDefaultUri()
     {
-        Uri::resetInstance();
-    }
-
-    public function testGetInstance()
-    {
-        $uri = Uri::getInstance();
+        $uri = new Uri();
         $this->assertEquals($uri->getHost(), '127.0.0.1');
     }
 
-    public function testGetInstanceWithProxy()
+    public function testByEnvironmentWithProxy()
     {
         $_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
         $_SERVER['HTTP_X_FORWARDED_HOST'] = 'www.example.net';
-        $uri = Uri::getInstance();
+        $uri = Uri::byEnvironment($_SERVER);
         $this->assertEquals($uri->getHost(), 'www.example.net');
     }
 
-    public function testGetInstanceWithHost()
+    public function testByEnvironmentWithHost()
     {
         $_SERVER['HTTP_HOST'] = 'www.example.net';
-        $uri = Uri::getInstance();
+        $uri = Uri::byEnvironment($_SERVER);
         $this->assertEquals($uri->getHost(), 'www.example.net');
         $this->assertEquals($uri->getPort(), 80);
 
-        Uri::resetInstance();
         $_SERVER['HTTP_HOST'] = 'www.example.net:8080';
-        $uri = Uri::getInstance();
+        $uri = Uri::byEnvironment($_SERVER);
         $this->assertEquals($uri->getHost(), 'www.example.net');
         $this->assertEquals($uri->getPort(), 8080);
 
     }
 
-    public function testGetInstanceWithServerName()
+    public function testByEnvironmentWithServerName()
     {
         $_SERVER['SERVER_NAME'] = 'www.example.net';
-        $uri = Uri::getInstance();
+        $uri = Uri::byEnvironment($_SERVER);
         $this->assertEquals($uri->getHost(), 'www.example.net');
     }
 
-    public function testGetInstanceWithScriptName()
+    public function testByEnvironmentWithScriptName()
     {
         $_SERVER['SCRIPT_NAME'] = '/main.php';
         $_SERVER['REQUEST_URI'] = '/main.php/foo/bar';
-        $uri = Uri::getInstance();
+        $uri = Uri::byEnvironment($_SERVER);
         $this->assertEquals($uri->getBasePath(), '/main.php');
         $this->assertEquals($uri->getPathname(), '/foo/bar');
     }
 
-    public function testGetInstanceWithQuery()
+    public function testByEnvironmentWithQuery()
     {
         $_SERVER['QUERY_STRING'] = 'foo=bar';
-        $uri = Uri::getInstance();
+        $uri = Uri::byEnvironment($_SERVER);
         $this->assertEquals($uri->getQuery(), 'foo=bar');
-    }
-
-    public function testGetInstanceAsCli()
-    {
-        $uri = Uri::getInstance(true);
-        $this->assertEquals($uri->getHost(), '');
     }
 
     public function testWithPathname()
     {
-        $uri = Uri::getInstance();
+        $uri = Uri::byEnvironment($_SERVER);
         $uri = $uri->withPathname('/foo/bar');
         $this->assertEquals($uri->getPathname(), '/foo/bar');
 
@@ -87,7 +75,7 @@ class UriTest extends PHPUnit_Framework_TestCase {
 
     public function testShiftWithExtension()
     {
-        $uri = Uri::getInstance();
+        $uri = Uri::byEnvironment($_SERVER);
         $uri = $uri->withPath('/user.json');
 
         $uri = $uri->shift('/user');
@@ -130,7 +118,7 @@ class UriTest extends PHPUnit_Framework_TestCase {
 
     public function testWithBasePath()
     {
-        $uri = Uri::getInstance();
+        $uri = Uri::byEnvironment($_SERVER);
         try {
             $uri = $uri->withBasePath(80);
             $this->fail('Uncaught end');
@@ -143,7 +131,7 @@ class UriTest extends PHPUnit_Framework_TestCase {
 
     public function testWithPath()
     {
-        $uri = Uri::getInstance();
+        $uri = Uri::byEnvironment($_SERVER);
         try {
             $uri = $uri->withPath(80);
             $this->fail('Uncaught end');
@@ -156,7 +144,7 @@ class UriTest extends PHPUnit_Framework_TestCase {
 
     public function testWithQuery()
     {
-        $uri = Uri::getInstance();
+        $uri = Uri::byEnvironment($_SERVER);
         try {
             $uri = $uri->withQuery(80);
             $this->fail('Uncaught end');

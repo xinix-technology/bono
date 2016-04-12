@@ -3,6 +3,8 @@
 namespace Bono\Http;
 
 use ROH\Util\Collection;
+use Traversable;
+use Bono\Exception\BonoException;
 
 class Headers extends Collection
 {
@@ -15,31 +17,19 @@ class Headers extends Collection
         'AUTH_TYPE' => 1,
     ];
 
-    protected static $instance = null;
-
-    public static function getInstance()
+    public function __construct($headers = null)
     {
-        if (is_null(static::$instance)) {
-            static::$instance = new Headers();
-            foreach ($_SERVER as $key => $value) {
-                $key = strtoupper($key);
-                if (isset(static::$special[$key]) || strpos($key, 'HTTP_') === 0) {
-                    if ($key === 'HTTP_CONTENT_LENGTH') {
-                        continue;
-                    }
+        parent::__construct();
 
-                    $key = strtr(strtolower($key), '_', '-');
-                    if (strpos($key, 'http-') === 0) {
-                        $key = substr($key, 5);
-                    }
-
-                    static::$instance[$key] = array_map(function ($v) {
-                        return trim($v);
-                    }, explode(',', $value));
+        if (null !== $headers) {
+            if (is_array($headers) || $headers instanceof Traversable) {
+                foreach ($headers as $key => $value) {
+                    $this[$key] = $value;
                 }
+            } else {
+                throw new BonoException('Init headers must be traversable');
             }
         }
-        return static::$instance;
     }
 
     public function normalize()
@@ -55,15 +45,28 @@ class Headers extends Collection
         return $arr;
     }
 
+    public function add($key, $value)
+    {
+        if (is_array($value)) {
+            foreach ($value as $v) {
+                $this->add($key, $v);
+            }
+        } else {
+            $arr = $this->offsetGet($key) ?: [];
+            $arr[] = $value;
+            $this->offsetSet($key, $arr);
+        }
+        return $this;
+    }
+
+    public function offsetExists($key)
+    {
+        return parent::offsetExists(strtolower($key));
+    }
+
     public function offsetSet($key, $value)
     {
-        if (!is_array($value)) {
-            $arr = $this->offsetExists($key) ? $this[$key] : [];
-            $arr[] = $value;
-            $value = $arr;
-        }
-
-        return parent::offsetSet(strtolower($key), $value);
+        return parent::offsetSet(strtolower($key), is_array($value) ? $value : [$value]);
     }
 
     public function offsetGet($key)

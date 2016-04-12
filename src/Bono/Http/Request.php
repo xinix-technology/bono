@@ -8,7 +8,10 @@ use ROH\Util\Collection;
 
 class Request extends Message implements ServerRequestInterface
 {
-    protected static $instance;
+    private static $shortTypes = [
+        'html' => ['text/html'],
+        'json' => ['application/json'],
+    ];
 
     protected $method;
 
@@ -20,28 +23,23 @@ class Request extends Message implements ServerRequestInterface
 
     protected $parsedBody;
 
+    protected $serverParams;
+
+    protected $cookieParams;
+
     protected $queryParams;
 
     protected $attributes;
-
-    public static function getInstance($cli = false)
-    {
-        if (!isset(static::$instance)) {
-            $method = $cli ? 'GET' : $_SERVER['REQUEST_METHOD'];
-            $request = new Request($method, Uri::getInstance($cli));
-            $request->headers = Headers::getInstance();
-            static::$instance = $request;
-        }
-
-        return static::$instance;
-    }
 
     public function __construct($method = 'GET', Uri $uri = null)
     {
         $this->method = $method;
         $this->originalMethod = $method;
         $this->uri = $uri ?: new Uri();
-        $this->attributes = new Collection();
+        $this->attributes = new Collection([
+            'original.uri' => $this->uri,
+            'route.uri' => $this->uri,
+        ]);
 
         parent::__construct();
     }
@@ -83,11 +81,29 @@ class Request extends Message implements ServerRequestInterface
     //     return $this->getMethod() === 'PATCH';
     // }
 
-    public function accepts($types)
+    private function normalizeTypeArrays($types)
     {
+        $normalized = [];
         if (!is_array($types)) {
             $types = [$types];
         }
+
+        foreach ($types as $type) {
+            if (false === strpos($type, '/')) {
+                if (isset(static::$shortTypes[$type])) {
+                    $normalized += static::$shortTypes[$type];
+                }
+            } else {
+                $normalized[] = $type;
+            }
+        }
+
+        return $normalized;
+    }
+
+    public function accepts($types)
+    {
+        $types = $this->normalizeTypeArrays($types);
 
         if (is_null($this->accepts)) {
             $this->accepts = array_map(function ($accept) {
@@ -97,9 +113,6 @@ class Request extends Message implements ServerRequestInterface
 
         if (in_array('*/*', $this->accepts)) {
             foreach ($types as $contentType) {
-                if (strpos($contentType, '/') === false) {
-                    continue;
-                }
                 return $contentType;
             }
         }
@@ -109,12 +122,14 @@ class Request extends Message implements ServerRequestInterface
                 return $type;
             }
         }
-
     }
 
     public function shift($path)
     {
-        return $this->withUri($this->getUri()->shift($path));
+        $uri = $this->getUri()->shift($path);
+        $this->attributes['route.uri'] = $uri;
+        return $this->withUri($uri);
+
     }
 
     public function unshift($path)
@@ -196,15 +211,14 @@ class Request extends Message implements ServerRequestInterface
         $clone = clone $this;
         $clone->uri = $uri;
 
-        if (!$preserveHost) {
-            // if ($uri->getHost() !== '') {
-            //     $clone->headers->set('Host', $uri->getHost());
-            // }
-        } else {
-            throw new \Exception('Unimplemented yet');
-            // if ($this->uri->getHost() !== '' && (!$this->hasHeader('Host') || $this->getHeader('Host') === null)) {
-            //     $clone->headers->set('Host', $uri->getHost());
-            // }
+        if (!empty($uri->getHost())) {
+            if ($preserveHost) {
+                if (!$this->hasHeader('Host') || $this->getHeader('Host') === null) {
+                    $clone->headers['Host'] = $uri->getHost();
+                }
+            } else {
+                $clone->headers['Host'] = $uri->getHost();
+            }
         }
 
         return $clone;
@@ -213,34 +227,32 @@ class Request extends Message implements ServerRequestInterface
     // server request interface
     public function getServerParams()
     {
-        throw new \Exception('Unimplemented yet!');
-
+        if (null === $this->serverParams) {
+            $this->serverParams = array_merge([], $_SERVER);
+        }
+        return $this->serverParams;
     }
 
     public function getCookieParams()
     {
-        throw new \Exception('Unimplemented yet!');
-
+        if (null === $this->cookieParams) {
+            $this->cookieParams = array_merge([], $_COOKIE);
+        }
+        return $this->cookieParams;
     }
 
     public function withCookieParams(array $cookies)
     {
-        throw new \Exception('Unimplemented yet!');
-
+        $new = clone $this;
+        $new->cookieParams = $cookies;
+        return $new;
     }
 
     public function getQueryParams()
     {
-        if ($this->queryParams) {
-            return $this->queryParams;
+        if (null == $this->queryParams) {
+            parse_str($this->uri->getQuery(), $this->queryParams); // <-- URL decodes data
         }
-
-        if ($this->uri === null) {
-            return [];
-        }
-
-        parse_str($this->uri->getQuery(), $this->queryParams); // <-- URL decodes data
-
         return $this->queryParams;
     }
 
@@ -255,13 +267,11 @@ class Request extends Message implements ServerRequestInterface
     public function getUploadedFiles()
     {
         throw new \Exception('Unimplemented yet!');
-
     }
 
     public function withUploadedFiles(array $uploadedFiles)
     {
         throw new \Exception('Unimplemented yet!');
-
     }
 
     public function getParsedBody()

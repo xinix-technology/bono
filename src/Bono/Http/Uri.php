@@ -6,10 +6,10 @@ use Bono\Exception\BonoException;
 
 class Uri implements UriInterface
 {
-    protected static $instance;
-
     private static $charUnreserved = 'a-zA-Z0-9_\-\.~';
+
     private static $charSubDelims = '!\$&\'\(\)\*\+,;=';
+
     private static $replaceQuery = ['=' => '%3D', '&' => '%26'];
 
     protected $scheme = '';
@@ -34,35 +34,30 @@ class Uri implements UriInterface
 
     protected $extension = null;
 
-    public static function getInstance($cli = false)
+    public static function byEnvironment($var, $cli = false)
     {
-        if (isset(static::$instance)) {
-            return static::$instance;
-        }
-
         if ($cli) {
-            static::$instance = new static('', '', null, '/'. implode('/', array_slice($_SERVER['argv'], 1)));
-            return static::$instance;
+            return new static('', '', null, '/'. implode('/', array_slice($var['argv'], 1)));
         }
 
         // Scheme
-        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-            $scheme = $_SERVER['HTTP_X_FORWARDED_PROTO']; // Will be "http" or "https"
+        if (isset($var['HTTP_X_FORWARDED_PROTO'])) {
+            $scheme = $var['HTTP_X_FORWARDED_PROTO']; // Will be "http" or "https"
         } else {
-            $scheme = (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') ? 'http' : 'https';
+            $scheme = (empty($var['HTTPS']) || $var['HTTPS'] === 'off') ? 'http' : 'https';
         }
 
         // Authority: Username and password
-        $username = isset($_SERVER['PHP_AUTH_USER']) ? $_SERVER['PHP_AUTH_USER'] : null;
-        $password = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : null;
+        $username = isset($var['PHP_AUTH_USER']) ? $var['PHP_AUTH_USER'] : null;
+        $password = isset($var['PHP_AUTH_PW']) ? $var['PHP_AUTH_PW'] : null;
 
         // Authority: Host
-        if (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
-            $host = trim(current(explode(',', $_SERVER['HTTP_X_FORWARDED_HOST'])));
-        } elseif (isset($_SERVER['HTTP_HOST'])) {
-            $host = $_SERVER['HTTP_HOST'];
-        } elseif (isset($_SERVER['SERVER_NAME'])) {
-            $host = $_SERVER['SERVER_NAME'];
+        if (isset($var['HTTP_X_FORWARDED_HOST'])) {
+            $host = trim(current(explode(',', $var['HTTP_X_FORWARDED_HOST'])));
+        } elseif (isset($var['HTTP_HOST'])) {
+            $host = $var['HTTP_HOST'];
+        } elseif (isset($var['SERVER_NAME'])) {
+            $host = $var['SERVER_NAME'];
         } else {
             $host = '127.0.0.1';
         }
@@ -73,13 +68,13 @@ class Uri implements UriInterface
             $port = (int)substr($host, $pos + 1);
             $host = strstr($host, ':', true);
         } else {
-            $port = isset($_SERVER['SERVER_PORT']) ? (int) $_SERVER['SERVER_PORT'] : 80;
+            $port = isset($var['SERVER_PORT']) ? (int) $var['SERVER_PORT'] : 80;
         }
 
         // Path
-        $requestScriptName = parse_url($_SERVER['SCRIPT_NAME'], PHP_URL_PATH);
+        $requestScriptName = parse_url($var['SCRIPT_NAME'], PHP_URL_PATH);
         $requestScriptDir = dirname($requestScriptName);
-        $requestUri = parse_url(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/', PHP_URL_PATH);
+        $requestUri = parse_url(isset($var['REQUEST_URI']) ? $var['REQUEST_URI'] : '/', PHP_URL_PATH);
         $basePath = '';
 
         if (stripos($requestUri, $requestScriptName) === 0) {
@@ -96,7 +91,7 @@ class Uri implements UriInterface
         }
 
         // Query string
-        $queryString = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
+        $queryString = isset($var['QUERY_STRING']) ? $var['QUERY_STRING'] : '';
 
         // Fragment
         $fragment = '';
@@ -105,14 +100,8 @@ class Uri implements UriInterface
         if ($basePath) {
             $uri = $uri->withBasePath($basePath);
         }
-        static::$instance = $uri;
 
-        return static::$instance;
-    }
-
-    public static function resetInstance()
-    {
-        static::$instance = null;
+        return $uri;
     }
 
     public function __construct(
@@ -344,8 +333,9 @@ class Uri implements UriInterface
 
     public function withHost($host)
     {
-        throw new \Exception('Unimplemented yet!');
-
+        $new = clone $this;
+        $new->host = $host;
+        return $new;
     }
 
     public function withPort($port)
@@ -418,5 +408,14 @@ class Uri implements UriInterface
             . $path
             . ($query ? '?' . $query : '')
             . ($fragment ? '#' . $fragment : '');
+    }
+
+    public function __debugInfo()
+    {
+        return [
+            'uri' => $this->__toString(),
+            'base' => $this->basePath,
+            'ext' => $this->extension,
+        ];
     }
 }

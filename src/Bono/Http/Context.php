@@ -36,11 +36,6 @@ class Context implements ArrayAccess
         return $this->response;
     }
 
-    // public function getApp()
-    // {
-    //     return $this->app;
-    // }
-
     public function getAttributes()
     {
         return $this->getRequest()->getAttributes();
@@ -216,7 +211,7 @@ class Context implements ArrayAccess
 
     public function siteUrl($uri)
     {
-        return Url::bundle($uri);
+        return Url::bundle($uri, $this['original.uri']);
     }
 
     // arrayaccess

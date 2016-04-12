@@ -3,7 +3,7 @@ namespace Bono\Http;
 
 use Psr\Http\Message\ResponseInterface;
 use ROH\Util\Collection;
-use InvalidArgumentException;
+use Bono\Exception\BonoException;
 
 class Response extends Message implements ResponseInterface
 {
@@ -78,26 +78,11 @@ class Response extends Message implements ResponseInterface
 
     protected $reasonPhrase;
 
-    // public static function getInstance()
-    // {
-    //     return new Response();
-    // }
-
-    // public static function error($code = 500, $exception = null)
-    // {
-    //     return new Response($code, null, $exception);
-    // }
-
-    // public static function notFound()
-    // {
-    //     return new Response(404);
-    // }
-
-    public function __construct($status = 404, $headers = null, Stream $body = null)
+    public function __construct($status = 404, $headers = null, $body = null)
     {
         $this->status = $status;
 
-        $this->headers = $headers ?: new Headers();
+        $this->headers = new Headers($headers);
 
         if (is_string($body)) {
             $this->write($body);
@@ -124,17 +109,17 @@ class Response extends Message implements ResponseInterface
         return $this->body;
     }
 
-    public function getError()
-    {
-        return $this->error;
-    }
+    // public function getError()
+    // {
+    //     return $this->error;
+    // }
 
-    public function withError($error)
-    {
-        $clone = clone $this;
-        $clone->$error = $error;
-        return $clone;
-    }
+    // public function withError($error)
+    // {
+    //     $clone = clone $this;
+    //     $clone->$error = $error;
+    //     return $clone;
+    // }
 
     // response interface
     public function getStatusCode()
@@ -142,36 +127,35 @@ class Response extends Message implements ResponseInterface
         return $this->status;
     }
 
-    public function withStatus($code, $reasonPhrase = '')
+    public function withStatus($code, $reasonPhrase = null)
     {
-        $code = $this->filterStatus($code);
-
-        if (!is_string($reasonPhrase) && !method_exists($reasonPhrase, '__toString')) {
-            throw new InvalidArgumentException('ReasonPhrase must be a string');
-        }
+        $this->filterStatus($code, $reasonPhrase);
 
         $clone = clone $this;
         $clone->status = $code;
         $clone->reasonPhrase = $reasonPhrase;
 
         return $clone;
-
     }
 
     public function getReasonPhrase()
     {
-        if ($this->reasonPhrase) {
+        if (null !== $this->reasonPhrase) {
             return $this->reasonPhrase;
         }
         return static::$messages[$this->status];
     }
 
-    protected function filterStatus($status)
+    protected function filterStatus($code, &$reasonPhrase)
     {
-        if (!is_integer($status) || !isset(static::$messages[$status])) {
-            throw new InvalidArgumentException('Invalid HTTP status code');
+        if (!is_integer($code)) {
+            throw new BonoException('Invalid HTTP status code');
         }
 
-        return $status;
+        $reasonPhrase = $reasonPhrase ?: (isset(static::$messages[$code]) ? static::$messages[$code] : '');
+
+        if (!is_string($reasonPhrase)) {
+            throw new BonoException('ReasonPhrase must be a string');
+        }
     }
 }

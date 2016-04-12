@@ -50,5 +50,10 @@ class AppTest extends BonoTestCase
         $this->app->run(false);
         $result = ob_get_clean();
         $this->assertEquals($result, 'Not Found');
+
+        ob_start();
+        $app = new App();
+        $app->run();
+        ob_end_clean();
     }
 }

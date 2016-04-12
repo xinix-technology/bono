@@ -2,7 +2,7 @@
 
 namespace Bono\Http;
 
-use RuntimeException;
+use Bono\Exception\BonoException;
 use Psr\Http\Message\StreamInterface;
 
 class Stream implements StreamInterface
@@ -65,12 +65,22 @@ class Stream implements StreamInterface
         if (isset($this->stream)) {
             fclose($this->stream);
             $this->stream = null;
+            $this->seekable = false;
+            $this->writable = false;
+            $this->readable = false;
         }
+    }
+
+    public function isOpen()
+    {
+        return null !== $this->stream;
     }
 
     public function detach()
     {
-        throw new \Exception('Unimplemented yet');
+        $stream = $this->stream;
+        $this->stream = null;
+        return $stream;
     }
 
     public function getSize()
@@ -85,7 +95,7 @@ class Stream implements StreamInterface
 
     public function tell()
     {
-        throw new \Exception('Unimplemented yet');
+        return ftell($this->stream);
     }
 
     public function eof()
@@ -106,7 +116,7 @@ class Stream implements StreamInterface
     public function rewind()
     {
         if (!$this->isSeekable() || rewind($this->stream) === false) {
-            throw new RuntimeException('Could not rewind stream');
+            throw new BonoException('Could not rewind stream');
         }
     }
 
@@ -118,7 +128,7 @@ class Stream implements StreamInterface
     public function write($string)
     {
         if (!$this->isWritable() || ($written = fwrite($this->stream, $string)) === false) {
-            throw new RuntimeException('Could not write to stream');
+            throw new BonoException('Could not write to stream');
         }
 
         // reset size so that it will be recalculated on next call to getSize()
@@ -135,7 +145,7 @@ class Stream implements StreamInterface
     public function read($length)
     {
         if (!$this->isReadable() || ($data = fread($this->stream, $length)) === false) {
-            throw new RuntimeException('Could not read from stream');
+            throw new BonoException('Could not read from stream');
         }
 
         return $data;

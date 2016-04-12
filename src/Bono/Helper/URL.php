@@ -5,22 +5,16 @@ use Bono\Http\Uri;
 
 class Url
 {
-    public static function bundle($pathname, $relativeTo = null)
+    public static function bundle($pathname, $relativeTo)
     {
-        if (is_null($relativeTo)) {
-            $relativeTo = Uri::getInstance();
-        }
         $uri = $relativeTo->withPathname(trim($pathname, '/'))->withBasePath($relativeTo->getBasePath());
 
         $uri = $uri->withQuery('');
         return $uri->__toString();
     }
 
-    public static function asset($pathname, $relativeTo = null)
+    public static function asset($pathname, $relativeTo)
     {
-        if (is_null($relativeTo)) {
-            $relativeTo = Uri::getInstance();
-        }
         return $relativeTo->withPathname(trim($pathname, '/'))->withBasePath('')->__toString();
     }
 
