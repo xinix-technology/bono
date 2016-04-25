@@ -101,7 +101,7 @@ class ContentNegotiator extends UtilCollection
                 'message' => $context->getResponse()->getReasonPhrase(),
             ]);
         }
-        $body->write(JsonKit::encode($context->getState()));
+        $body->write(JsonKit::encode($context->getState(), $context->getAttributes()));
         $context = $context->setBody($body);
         return $context;
     }
