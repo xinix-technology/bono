@@ -98,7 +98,6 @@ class RequestTest extends BonoTestCase {
         } catch(BonoException $e) {
 
         }
-
     }
 
     public function testGetBody()
@@ -106,5 +105,39 @@ class RequestTest extends BonoTestCase {
         $request = new Request();
         $body = $request->getBody();
         $this->assertNotNull($body);
+    }
+
+    public function testGetRequestTarget()
+    {
+        $request = new Request();
+        $result = $request->getRequestTarget();
+        $this->assertEquals($result, '/');
+        $this->assertEquals($result, $request->getRequestTarget());
+
+        $request = $request->withRequestTarget('/foo');
+        $this->assertEquals($request->getRequestTarget(), '/foo');
+    }
+
+    public function testGetUploadedFiles()
+    {
+        $request = new Request();
+        $this->assertEquals($request->getUploadedFiles(), []);
+
+        $request = $request->withUploadedFiles([
+            'foo' => [
+                0 => [
+                    'name' => 'file0.txt',
+                    'type' => 'text/plain',
+                ],
+                1 => [
+                    'name' => 'file1.html',
+                    'type' => 'text/html',
+                ],
+            ],
+        ]);
+
+        $this->assertEquals($request->getUploadedFiles()['foo'][0]['name'], 'file0.txt');
+        $this->assertEquals($request->getUploadedFiles()['foo'][1]['name'], 'file1.html');
+
     }
 }

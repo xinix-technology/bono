@@ -81,6 +81,9 @@ class UriTest extends PHPUnit_Framework_TestCase {
         $uri = $uri->shift('/user');
         $this->assertEquals($uri->getBasePath(), '/user');
         $this->assertEquals($uri->getPathname(), '');
+
+        $uri = $uri->withPath(' ');
+        $this->assertEquals($uri->getPath(), '%20');
     }
 
     public function testFilterScheme()
@@ -153,5 +156,55 @@ class UriTest extends PHPUnit_Framework_TestCase {
                 throw $e;
             }
         }
+    }
+
+    public function testScheme()
+    {
+        $uri = Uri::byEnvironment($_SERVER);
+        $this->assertEquals($uri->getScheme(), 'http');
+        $uri = $uri->withScheme('https');
+        $this->assertEquals($uri->getScheme(), 'https');
+    }
+
+    public function testUserInfo()
+    {
+        $uri = Uri::byEnvironment($_SERVER);
+        $this->assertEquals($uri->getUserInfo(), '');
+
+        $uri = $uri->withUserInfo('foo', 'bar');
+        $this->assertEquals($uri->getUserInfo(), 'foo:bar');
+    }
+
+    public function testPort()
+    {
+        $uri = Uri::byEnvironment($_SERVER);
+        $this->assertEquals($uri->getPort(), 80);
+
+        $uri = $uri->withPort(8080);
+        $this->assertEquals($uri->getPort(), 8080);
+    }
+
+    public function testFragment()
+    {
+        $uri = Uri::byEnvironment($_SERVER);
+        $this->assertEquals($uri->getFragment(), '');
+
+        $uri = $uri->withFragment('foo');
+        $this->assertEquals($uri->getFragment(), 'foo');
+
+        try {
+            $uri = $uri->withFragment(new \stdClass());
+            $this->fail('Uncaught end');
+        } catch(BonoException $e) {
+            if ($e->getMessage() !== 'Uri fragment must be a string') {
+                throw $e;
+            }
+        }
+    }
+
+    public function testDebugInfo()
+    {
+        $uri = Uri::byEnvironment($_SERVER);
+        $this->assertEquals($uri->__debugInfo()['uri'], (string) $uri);
     }
 }

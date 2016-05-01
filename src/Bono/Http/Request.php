@@ -29,7 +29,11 @@ class Request extends Message implements ServerRequestInterface
 
     protected $queryParams;
 
+    protected $requestTarget;
+
     protected $attributes;
+
+    protected $uploadedFiles = [];
 
     public function __construct($method = 'GET', Uri $uri = null)
     {
@@ -178,14 +182,31 @@ class Request extends Message implements ServerRequestInterface
 
     public function getRequestTarget()
     {
-        throw new \Exception('Unimplemented yet!');
+        if ($this->requestTarget) {
+            return $this->requestTarget;
+        }
+        // if ($this->uri === null) {
+        //     return '/';
+        // }
+        $basePath = $this->uri->getBasePath();
+        $path = $this->uri->getPath();
+        $query = $this->uri->getQuery();
 
+        $path = $basePath . '/' . ltrim($path, '/') . ($query ? '?' . $query : '');
+        $this->requestTarget = $path;
+        return $this->requestTarget;
     }
 
     public function withRequestTarget($requestTarget)
     {
-        throw new \Exception('Unimplemented yet!');
-
+        // if (preg_match('#\s#', $requestTarget)) {
+        //     throw new InvalidArgumentException(
+        //         'Invalid request target provided; must be a string and cannot contain whitespace'
+        //     );
+        // }
+        $clone = clone $this;
+        $clone->requestTarget = $requestTarget;
+        return $clone;
     }
 
     public function getMethod()
@@ -266,12 +287,14 @@ class Request extends Message implements ServerRequestInterface
 
     public function getUploadedFiles()
     {
-        throw new \Exception('Unimplemented yet!');
+        return $this->uploadedFiles;
     }
 
     public function withUploadedFiles(array $uploadedFiles)
     {
-        throw new \Exception('Unimplemented yet!');
+        $clone = clone $this;
+        $clone->uploadedFiles = $uploadedFiles;
+        return $clone;
     }
 
     public function getParsedBody()

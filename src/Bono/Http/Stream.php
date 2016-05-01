@@ -110,8 +110,12 @@ class Stream implements StreamInterface
 
     public function seek($offset, $whence = SEEK_SET)
     {
-        throw new \Exception('Unimplemented yet');
+        // Note that fseek returns 0 on success!
+        if (!$this->isSeekable() || fseek($this->stream, $offset, $whence) === -1) {
+            throw new BonoException('Could not seek in stream');
+        }
     }
+
 
     public function rewind()
     {
@@ -153,7 +157,10 @@ class Stream implements StreamInterface
 
     public function getContents()
     {
-        throw new \Exception('Unimplemented yet');
+        if (!$this->isReadable() || ($contents = stream_get_contents($this->stream)) === false) {
+            throw new BonoException('Could not get contents of stream');
+        }
+        return $contents;
     }
 
     public function getMetadata($key = null)

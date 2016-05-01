@@ -2,12 +2,15 @@
 
 namespace Bono\Middleware;
 
+use Bono\App;
 use Bono\Http\Context;
 use ROH\Util\Options;
 use ROH\Util\Collection as UtilCollection;
 
 class Notification extends UtilCollection
 {
+    protected $app;
+
     protected $messages = [
         'error' => [
             '' => []
@@ -17,8 +20,10 @@ class Notification extends UtilCollection
         ],
     ];
 
-    public function __construct(array $options = [])
+    public function __construct(App $app, array $options = [])
     {
+        $this->app = $app;
+
         $options = Options::create([])
             ->merge($options);
 

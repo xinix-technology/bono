@@ -321,14 +321,18 @@ class Uri implements UriInterface
 
     public function withScheme($scheme)
     {
-        throw new \Exception('Unimplemented yet!');
-
+        $scheme = $this->filterScheme($scheme);
+        $new = clone $this;
+        $new->scheme = $scheme;
+        return $new;
     }
 
     public function withUserInfo($user, $password = null)
     {
-        throw new \Exception('Unimplemented yet!');
-
+        $clone = clone $this;
+        $clone->user = $user;
+        $clone->password = $password ? $password : '';
+        return $clone;
     }
 
     public function withHost($host)
@@ -340,7 +344,10 @@ class Uri implements UriInterface
 
     public function withPort($port)
     {
-        throw new \Exception('Unimplemented yet!');
+        $port = $this->filterPort($port);
+        $clone = clone $this;
+        $clone->port = $port;
+        return $clone;
 
     }
 
@@ -388,8 +395,13 @@ class Uri implements UriInterface
 
     public function withFragment($fragment)
     {
-        throw new \Exception('Unimplemented yet!');
-
+        if (!is_string($fragment)) {
+            throw new BonoException('Uri fragment must be a string');
+        }
+        $fragment = ltrim($fragment, '#');
+        $clone = clone $this;
+        $clone->fragment = $this->filterQuery($fragment);
+        return $clone;
     }
 
     public function __toString()

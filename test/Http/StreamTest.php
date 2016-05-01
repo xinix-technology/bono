@@ -29,6 +29,44 @@ class StreamTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals($stream->tell(), 3);
     }
 
+    public function testSeek()
+    {
+        $stream = new Stream();
+        $stream->write('foo');
+        $stream->seek(1);
+        $this->assertEquals($stream->read(1), 'o');
+
+        $stream = $this->getMock(Stream::class, ['isSeekable']);
+        $stream->method('isSeekable')->will($this->returnValue(false));
+        try {
+            $stream->seek(1);
+            $this->fail('Must not here');
+        } catch(BonoException $e) {
+            if ($e->getMessage() !== 'Could not seek in stream') {
+                throw $e;
+            }
+        }
+    }
+
+    public function testGetContents()
+    {
+        $stream = new Stream();
+        $stream->write('foo');
+        $stream->rewind();
+        $this->assertEquals($stream->getContents(), 'foo');
+
+        $stream = $this->getMock(Stream::class, ['isReadable']);
+        $stream->method('isReadable')->will($this->returnValue(false));
+        try {
+            $stream->getContents();
+            $this->fail('Must not here');
+        } catch(BonoException $e) {
+            if ($e->getMessage() !== 'Could not get contents of stream') {
+                throw $e;
+            }
+        }
+    }
+
     public function testRewind()
     {
         $stream = new Stream();
