@@ -4,41 +4,47 @@
 [![Download](http://img.shields.io/packagist/dm/xinix-technology/bono.svg?style=flat-square)](https://github.com/xinix-technology/bono)
 [![Version](http://img.shields.io/packagist/v/xinix-technology/bono.svg?style=flat-square)](https://github.com/xinix-technology/bono)
 
-Bono is PHP framework
+Bono, Sebuah Framework PHP
 
 ![Bono PHP](https://raw.githubusercontent.com/xinix-technology/bono/master/img/bono-logo.png "Bono PHP")
 
 ## Apa itu Bono?
 
-Bono adalah framework aplikasi web berbasis PHP.  Pada dasarnya Bono dibangun di atas Slim Framework. Karena itu komponen utamanya adalah routing. Setiap halamannya memiliki representasi routing.
+Bono V2 adalah framework aplikasi web berbasis PHP. Bono versi 2 ini telah di-reengineering dan tidak lagi berbasis Slim Framework dan telah comply dengan standar PSR-7. Komponen utama Bono adalah routing. Setiap halamannya memiliki representasi routing.
 
 
-## Komponen
+## Terminologi
 
-Bono memiliki memiliki dua elemen utama yaitu Provider dan Middleware.
-
-### Provider
-
-Provider berfungsi untuk menambahkan kemampuan Bono dalam menambahkan aplikasi ke dalam Bono. Sebagai contoh untuk menambahkan aplikasi chat, aplikasi CMS, aplikasi Forum dan lain sebagainya. Singkatnya setiap aplikasi di dalam Bono adalah provider.
+Bono memiliki memiliki dua elemen utama yaitu Middleware dan Bundle.
 
 ### Middleware
-Middleware untuk menambahkan fungsionalitas yang berhubungan dengan cara kerja sebuah aplikasi. Misalnya seperti penyimpanan data, penggunaan session, mengirim email, autentikasi dan autorisasi.
 
-Ada satu middleware di dalam Bono yang berfungsi mengumpulkan routing-routing menjadi satu grup dari bisnis unit. Yang dalam konsep MVC dikenal sebagai kontroler.
+Middleware dapat menambahkan kemampuan Request Handling. Contoh: session, autentikasi, dll.
 
-Bono memiliki hook dan filter yang memudahkan penambahan fungsionalitas tiap-tiap middleware yang ada. Perbedaan antara hook dan filter adalah filter dapat mengembalikan nilai sementara hook tidak.
+Sejak versi 2.0, Bono menghilangkan Provider. Fungsionalitas yang biasanya diimplementasi di Bono 1.0 di Provider dialihkan ke implementasi menggunakan Middleware.
 
-## Why Bono?
-- Ridiculously fast in building application.
-- CRUD can be done in a fart.
-- Just type in your terminal, and let the system give what you need
+### Bundle
+
+Sejak versi 2.0, Bono memperkenalkan konsep Bundle. Bundle berlaku seperti layaknya sub aplikasi. Bahkan aplikasi utama pada dasarnya di-compose dalam wujud Bundle.
+
+Bundle juga menggantikan keberadaan Controller pada Bono 1.0.
+Bundle dapat menambahkan kemampuan pada aplikasi berbasis Bono. Contoh: modul chat, mesin CMS dan blog, forum dan komunitas, dll.
+
+### Routing
+
+Routing adalah kemampuan pada Bono untuk mendefinisikan pengalihan Request untuk ditangani oleh spesifik fungsi berdasarkan pola URI.
+
+## Mengapa menggunakan Bono?
+- Sangat cepat dalam membangun aplikasi web.
+- Operasi Search, Create, Read, Update dan Delete dapat dilakukan dengan scaffolding.
 
 ## Templating pada Bono
-Bono menyediakan hook dan filter pada template engine-nya. Sehingga memudahkan theme developer dalam mengembangkan desain yang diinginkan.
+
+Bono V2 tidak menyediakan default templating. Tapi kamu bisa menggunakan Templating engine yang tersedia secara umum dengan mudah dengan sedikit glue-code atau menggunakan basic [T Template](https://github.com/reekoheek/t).
 
 ## Kebutuhan Sistem
 
 Yang diperlukan untuk membangun aplikasi menggunakan Bono:
-- PHP 5.4+ (dengan dukungan library MongoDB)
+- PHP 5.4+
 - Composer
 - Web Server (Apache, Nginx, LigHttpd, dll) or PHP Standalone
