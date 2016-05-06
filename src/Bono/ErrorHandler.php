@@ -5,12 +5,15 @@ namespace Bono;
 use Whoops\Handler\PrettyPageHandler;
 use Whoops\Run as WhoopsRun;
 use Exception;
+use Bono\App;
 
 class ErrorHandler extends WhoopsRun
 {
+    protected $app;
+
     protected $handler;
 
-    public function __construct($app)
+    public function __construct(App $app)
     {
         $this->app = $app;
 
@@ -23,6 +26,8 @@ class ErrorHandler extends WhoopsRun
 
         $this->pushHandler($this->handler);
         $this->pushHandler([ $this, 'obHandler' ]);
+
+        $this->register();
     }
 
     public function obHandler()

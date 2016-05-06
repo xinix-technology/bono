@@ -17,6 +17,22 @@ class Headers extends Collection
         'AUTH_TYPE' => 1,
     ];
 
+    public static function byEnvironment(array $var)
+    {
+        $data = [];
+        foreach ($var as $key => $value) {
+            $key = strtoupper($key);
+            if (isset(static::$special[$key]) || strpos($key, 'HTTP_') === 0) {
+                if ($key !== 'HTTP_CONTENT_LENGTH') {
+                    $k = preg_replace('/^HTTP_([A-Z_]+)$/', '$1', $key);
+                    $data[str_replace('_', '-', $k)] =  $value;
+                }
+            }
+        }
+
+        return new static($data);
+    }
+
     public function __construct($headers = null)
     {
         parent::__construct();

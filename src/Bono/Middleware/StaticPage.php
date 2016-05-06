@@ -8,18 +8,18 @@ class StaticPage
     public function __invoke(Context $context, $next)
     {
         $renderer = $context['@renderer'];
-        if (is_null($renderer)) {
+        if (null === $renderer) {
             $next($context);
             return;
         }
 
-        $templatePath = $renderer['templatePath'];
-
-        $template = trim($context->getUri()->getPath(), '/') ?: 'index';
+        $template = '__static__/' . (trim($context->getUri()->getPath(), '/') ?: 'index');
 
         if ($renderer->resolve($template)) {
-            $context->setStatus(200)->setContentType('text/html');
-            $context['response.template'] = $template;
+            $context->apply(function($context) use ($template) {
+                $context->setStatus(200)->setContentType('text/html');
+                $context['@renderer.template'] = $template;
+            });
         } else {
             $next($context);
         }

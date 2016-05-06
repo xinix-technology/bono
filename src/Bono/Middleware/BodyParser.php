@@ -12,7 +12,7 @@ class BodyParser
 
     public function __construct($options = [])
     {
-        $this->options = Options::create([
+        $this->options = (new Options([
             'allowedMethods' => [
                 'POST' => true,
                 'PUT' => true,
@@ -24,27 +24,21 @@ class BodyParser
                 'multipart/form-data' => [$this, 'formParser'],
                 'application/json' => [$this, 'jsonParser'],
             ]
-        ])
+        ]))
         ->merge($options);
 
         $this->parsers = $this->options['parsers'];
     }
 
-    protected function formParser(Context $context)
+    protected function formParser($body)
     {
-        if ($context->getRequest()->getOriginalMethod() === 'POST') {
-            return $context->setParsedBody($_POST ?: []);
-        // } else {
-        //     throw new \Exception('Unimplemented yet!');
-        }
-
-        throw new BonoException('Cannot parse form if original method not POST');
+        parse_str($body, $result);
+        return $result;
     }
 
-    protected function jsonParser(Context $context)
+    protected function jsonParser($body)
     {
-        $body = (string)$context->getRequest()->getBody();
-        return $context->setParsedBody(json_decode($body, true));
+        return json_decode($body, true);
     }
 
     public function __invoke(Context $context, $next)
@@ -57,7 +51,7 @@ class BodyParser
                 throw new BonoException('Cannot found parser for ' . $contentType);
             }
             $parser = $this->parsers[$contentType];
-            $context = $parser($context);
+            $context->setParsedBody($parser((string)$context->getRequest()->getBody()));
         }
 
         $next($context);

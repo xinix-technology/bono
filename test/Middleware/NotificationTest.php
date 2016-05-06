@@ -8,6 +8,7 @@ use Bono\Http\Request;
 use Bono\Http\Stream;
 use Bono\Middleware\Notification;
 use Bono\Exception\BonoException;
+use ROH\Util\Injector;
 
 class NotificationTest extends BonoTestCase
 {
@@ -15,7 +16,7 @@ class NotificationTest extends BonoTestCase
     {
         $middleware = new Notification($this->app);
 
-        $context = $this->app->resolve(Context::class, [
+        $context = Injector::getInstance()->resolve(Context::class, [
             'request' => new Request(),
         ]);
         $middleware($context, function() {});
@@ -25,6 +26,10 @@ class NotificationTest extends BonoTestCase
 
     public function testNotify()
     {
+        $context = Injector::getInstance()->resolve(Context::class, [
+            'request' => new Request(),
+        ]);
+
         $middleware = new Notification($this->app);
 
         $notif = [
@@ -32,20 +37,40 @@ class NotificationTest extends BonoTestCase
             'message' => 'foo',
         ];
 
-        $middleware->notify($notif);
-        $middleware->notify([
+        $middleware->notify($context, $notif);
+        $middleware->notify($context, [
             'level' => 'info',
             'message' => 'bar',
             'context' => 'baz',
         ]);
 
-        $result = $middleware->query(['level' => 'info']);
+        $result = $middleware->query($context, ['level' => 'info']);
         $this->assertEquals($result[0], $notif);
 
-        $result = $middleware->query(['level' => 'info', 'context' => 'baz']);
+        $result = $middleware->query($context, ['level' => 'info', 'context' => 'baz']);
         $this->assertEquals($result[0]['message'], 'bar');
 
-        $result = $middleware->render();
+        $_SESSION['notification'] = 'foo';
+        $result = $middleware->render($context);
         $this->assertTrue(strpos($result, 'foo') > 0);
+        $this->assertFalse(isset($_SESSION['notification']));
+    }
+
+    public function testInvokeThrowError()
+    {
+        $this->app['cli'] = false;
+        $middleware = $this->getMock(Notification::class, ['finalize'], [$this->app]);
+        $middleware->expects($this->once())->method('finalize');
+
+        $context = Injector::getInstance()->resolve(Context::class);
+        try {
+            $middleware($context, function($context) {
+                $this->fail('Oops');
+            });
+        } catch (\Exception $e) {
+            if ($e->getMessage() !== 'Oops') {
+                throw $e;
+            }
+        }
     }
 }

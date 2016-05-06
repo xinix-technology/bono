@@ -6,10 +6,12 @@ use InvalidArgumentException;
 use FastRoute;
 use FastRoute\Dispatcher;
 use Bono\Http\Context;
+use ROH\Util\Composition;
 use ROH\Util\Collection as UtilCollection;
 use Bono\Exception\ContextException;
 use Bono\Exception\BonoException;
 use Bono\Route\Dispatcher as BonoDispatcher;
+use ROH\Util\Injector;
 
 class Bundle extends UtilCollection
 {
@@ -25,11 +27,13 @@ class Bundle extends UtilCollection
 
     protected $dispatcher;
 
+    protected $composition;
+
     public function __construct(App $app, array $options = [])
     {
-        $this->app = $app;
-
         parent::__construct($options);
+
+        $this->app = $app;
 
         $this->configureMiddlewares();
 
@@ -122,79 +126,65 @@ class Bundle extends UtilCollection
         return $this;
     }
 
-    protected function finalize()
+    public function getComposition()
     {
-        if (null === $this->stack) {
-            $this->stack = [$this];
-            if ($this->middlewares) {
-                $len = count($this->middlewares);
-                for ($i = $len - 1; $i >= 0; $i--) {
-                    $next = $this->stack[0];
-
-                    $handler = $this->resolve($this->middlewares[$i]);
-                    // $handler = $this->middlewares[$i]->getHandler();
-
-                    array_unshift($this->stack, function (
-                        Context $context
-                    ) use (
-                        $next,
-                        $handler
-                    ) {
-                        return call_user_func($handler, $context, $next);
-                    });
-                }
+        if (null === $this->composition) {
+            $this->composition = new Composition();
+            $this->composition->setCore($this);
+            foreach ($this->middlewares as $middleware) {
+                $handler = Injector::getInstance()->resolve($middleware);
+                $this->composition->compose($handler);
             }
         }
+        return $this->composition;
     }
 
     public function dispatch(Context $context)
     {
-        $this->finalize();
-
         $path = $context->getPathname() ?: '/';
 
+        // precompile to seal the middleware so we can add bundle from middleware
+        $composition = $this->getComposition()->compile();
+
         $bundle = $this->getBundleFor($path);
-        if (is_null($bundle)) {
+        if (null === $bundle) {
             $routeInfo = $this->getDispatcher()->dispatch($context->getMethod(), $path);
             $context['route.info'] = $routeInfo;
         } else {
             $context['route.bundle'] = $bundle;
         }
 
-        return $this->stack[0]($context);
+        return $composition->apply($context);
     }
 
     public function __invoke(Context $context)
     {
-        $routeInfo = $context['route.info'];
-
-        if (isset($routeInfo)) {
+        if (null !== ($routeInfo = $context['route.info'])) {
             switch ($routeInfo[0]) {
                 case Dispatcher::FOUND:
-                    $context->setStatus(200);
+                    $context->apply(function($context) use ($routeInfo) {
+                        $context->setStatus(200);
 
-                    foreach ($routeInfo[2] as $k => $v) {
-                        $context[$k] = urldecode($v);
-                    }
+                        foreach ($routeInfo[2] as $k => $v) {
+                            $context[$k] = urldecode($v);
+                        }
 
-                    $state = $routeInfo[1]['handler']($context);
+                        $state = $routeInfo[1]['handler']($context);
 
-                    if ($state) {
-                        $context->setState($state);
-                    }
+                        if ($state) {
+                            $context->setState($state);
+                        }
+                    });
                     break;
                 case Dispatcher::METHOD_NOT_ALLOWED:
                     $context->throwError(405);
                     break;
             }
+        } elseif (null !== ($routeBundle = $context['route.bundle'])) {
+            $context->shift($routeBundle['uri']);
+            $routeBundle->dispatch($context);
+            $context->unshift($routeBundle['uri']);
         } else {
-            $routeBundle = $context['route.bundle'];
-            if (isset($routeBundle)) {
-                $context->shift($routeBundle['uri']);
-                $routeBundle->dispatch($context);
-                $context->unshift($routeBundle['uri']);
-                return;
-            }
             $context->throwError(404);
         }
 
@@ -202,9 +192,11 @@ class Bundle extends UtilCollection
 
     public function getBundleFor($path)
     {
+        $injector = Injector::getInstance();
+
         foreach ($this->bundles as $meta) {
             if (strpos($path, $meta['uri']) === 0) {
-                $bundle = $this->resolve($meta['handler'], [
+                $bundle = $injector->resolve($meta['handler'], [
                     'options' => [
                         'uri' => $meta['uri'],
                     ]
@@ -287,15 +279,10 @@ class Bundle extends UtilCollection
 
     protected function getDispatcher()
     {
-        if (is_null($this->dispatcher)) {
+        if (null === $this->dispatcher) {
             $this->dispatcher = new BonoDispatcher($this->routes);
         }
 
         return $this->dispatcher;
-    }
-
-    public function resolve($contract, array $args = [])
-    {
-        return $this->app->resolve($contract, $args);
     }
 }

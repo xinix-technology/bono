@@ -5,88 +5,107 @@ namespace Bono\Test\Middleware;
 use Bono\Test\BonoTestCase;
 use Bono\Http\Context;
 use Bono\Middleware\ContentNegotiator;
+use ROH\Util\Injector;
 
 class ContentNegotiatorTest extends BonoTestCase
 {
     public function testInvokeIfCli()
     {
-        $middleware = $this->app->resolve(ContentNegotiator::class);
-        $context = $this->app->resolve(Context::class);
+        $middleware = Injector::getInstance()->resolve(ContentNegotiator::class);
+        $context = Injector::getInstance()->resolve(Context::class);
 
         $middleware($context, function() {});
-        $this->assertEquals($context['response.rendered'], null);
+        $this->assertEquals($context['@renderer.rendered'], null);
     }
 
     public function testInvokeIfAlreadyRendered()
     {
         $this->app['cli'] = false;
-        $middleware = $this->app->resolve(ContentNegotiator::class);
-        $context = $this->app->resolve(Context::class);
-        $context['response.rendered'] = 'some-renderer';
+        $middleware = Injector::getInstance()->resolve(ContentNegotiator::class);
+        $context = Injector::getInstance()->resolve(Context::class);
+        $context['@renderer.rendered'] = 'some-renderer';
 
         $hits = 0;
         $middleware($context, function() use (&$hits) {
             $hits++;
         });
         $this->assertEquals($hits, 1);
-        $this->assertEquals($context['response.rendered'], 'some-renderer');
+        $this->assertEquals($context['@renderer.rendered'], 'some-renderer');
     }
 
     public function testInvokeJson()
     {
         $this->app['cli'] = false;
-        $middleware = $this->app->resolve(ContentNegotiator::class);
+        $middleware = Injector::getInstance()->resolve(ContentNegotiator::class);
 
-        $context = $this->app->resolve(Context::class);
+        $context = Injector::getInstance()->resolve(Context::class);
         $context->setRequest($context->getRequest()->withHeader('Content-Type', 'application/json'));
 
         $middleware($context, function($context) {
             $context->setStatus(200)->setState(['foo' => 'bar']);
         });
-        $this->assertEquals($context['response.rendered'], 'content-negotiator');
+        $this->assertEquals($context['@renderer.rendered'], 'content-negotiator');
         $this->assertEquals($context->getBody()->__toString(), json_encode(['foo' => 'bar']));
 
-        $context = $this->app->resolve(Context::class);
+        $context = Injector::getInstance()->resolve(Context::class);
         $context->setRequest($context->getRequest()->withHeader('Content-Type', 'application/json'));
 
         $middleware($context, function($context) {
             $context->setStatus(412);
         });
-        $this->assertEquals($context['response.rendered'], 'content-negotiator');
+        $this->assertEquals($context['@renderer.rendered'], 'content-negotiator');
         $this->assertTrue(strpos($context->getBody()->__toString(), '"code":412') >= 0);
     }
 
     public function testInvokeNegotiateJsonExtension()
     {
         $this->app['cli'] = false;
-        $middleware = $this->app->resolve(ContentNegotiator::class);
+        $middleware = Injector::getInstance()->resolve(ContentNegotiator::class);
 
-        $context = $this->app->resolve(Context::class);
+        $context = Injector::getInstance()->resolve(Context::class);
         $context->setRequest($context->getRequest()->withUri($context->getUri()->withPath('/foo.json')));
 
         $middleware($context, function($context) {
             $context->setStatus(200)->setState(['foo' => 'bar']);
         });
-        $this->assertEquals($context['response.rendered'], 'content-negotiator');
+        $this->assertEquals($context['@renderer.rendered'], 'content-negotiator');
         $this->assertEquals($context->getBody()->__toString(), json_encode(['foo' => 'bar']));
     }
 
     public function testInvokeNegotiateJsonAccept()
     {
         $this->app['cli'] = false;
-        $middleware = $this->app->resolve(ContentNegotiator::class, [
+        $middleware = Injector::getInstance()->resolve(ContentNegotiator::class, [
             'options' => [
                 'accepts' => ['application/json']
             ]
         ]);
 
-        $context = $this->app->resolve(Context::class);
+        $context = Injector::getInstance()->resolve(Context::class);
         $context->setRequest($context->getRequest()->withHeader('Accept', 'application/json'));
 
         $middleware($context, function($context) {
             $context->setStatus(200)->setState(['foo' => 'bar']);
         });
-        $this->assertEquals($context['response.rendered'], 'content-negotiator');
+        $this->assertEquals($context['@renderer.rendered'], 'content-negotiator');
         $this->assertEquals($context->getBody()->__toString(), json_encode(['foo' => 'bar']));
+    }
+
+    public function testInvokeThrowError()
+    {
+        $this->app['cli'] = false;
+        $middleware = $this->getMock(ContentNegotiator::class, ['finalize'], [$this->app]);
+        $middleware->expects($this->once())->method('finalize');
+
+        $context = Injector::getInstance()->resolve(Context::class);
+        try {
+            $middleware($context, function($context) {
+                $this->fail('Oops');
+            });
+        } catch (\Exception $e) {
+            if ($e->getMessage() !== 'Oops') {
+                throw $e;
+            }
+        }
     }
 }

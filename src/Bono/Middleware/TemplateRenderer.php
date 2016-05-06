@@ -4,6 +4,7 @@ namespace Bono\Middleware;
 
 use Bono\Middleware;
 use ROH\Util\Options;
+use ROH\Util\Injector;
 use ROH\Util\Collection as UtilCollection;
 use Bono\Http\Context;
 use Bono\Exception\BonoException;
@@ -22,14 +23,14 @@ class TemplateRenderer extends UtilCollection
     {
         $this->app = $app;
 
-        $options = Options::create([
+        $options = (new Options([
             'templatePaths' => [ '../templates' ],
             'accepts' => [
                 'text/html' => true,
             ],
-        ])->merge($options);
+        ]))->merge($options);
 
-        if (is_null($options['renderer'])) {
+        if (!isset($options['renderer'])) {
             throw new BonoException('Renderer must be set!');
         }
 
@@ -47,34 +48,39 @@ class TemplateRenderer extends UtilCollection
             $context->setStatus($err->getStatusCode());
         }
 
-        if (!$context['response.rendered'] && $this['accepts'][$context->getContentType() ?: 'text/html']) {
-            switch ($context->getStatusCode()) {
-                case 200:
-                    if (isset($context['response.template'])) {
+        if (!$context['@renderer.rendered'] && $this['accepts'][$context->getContentType() ?: 'text/html']) {
+            $statusCode = $context->getStatusCode();
+            if ($statusCode >= 500) {
+                // $context['@renderer.template'] = $statusCode;
+            } elseif ($statusCode < 300 || $statusCode >= 400) {
+                switch ($statusCode) {
+                    case 401:
+                    case 403:
+                    case 404:
+                    case 405:
+                        $context['@renderer.template'] = $statusCode;
                         break;
-                    }
+                    default:
+                        if (isset($context['@renderer.template'])) {
+                            break;
+                        }
 
-                    if (isset($context['route.info'][1]['template'])) {
-                        $context['response.template'] = $context['route.info'][1]['template'];
+                        if (isset($context['route.info'][1]['template'])) {
+                            $context['@renderer.template'] = $context['route.info'][1]['template'];
+                            break;
+                        }
+
+                        $lastSeparator = strrpos($context['route.uri']->getBasePath(), '/');
+                        $bundle = substr($context['route.uri']->getBasePath(), $lastSeparator + 1);
+                        $action = trim($context['route.info'][1]['uri'], '/') ?: 'index';
+
+                        $context['@renderer.template'] = $bundle . ($bundle ? '/' . $action : $action);
                         break;
-                    }
+                }
 
-                    $lastSeparator = strrpos($context['route.uri']->getBasePath(), '/');
-                    $bundle = substr($context['route.uri']->getBasePath(), $lastSeparator + 1);
-                    $action = trim($context['route.info'][1]['uri'], '/') ?: 'index';
-
-                    $context['response.template'] = $bundle . ($bundle ? '/' . $action : $action);
-                    break;
-                case 404:
-                    $context['response.template'] = 'notFound';
-                    break;
-                case 405:
-                    $context['response.template'] = 'methodNotAllowed';
-                    break;
+                $this->write($context);
+                $context['@renderer.rendered'] = true;
             }
-
-            $this->write($context);
-            $context['response.rendered'] = true;
         }
     }
 
@@ -103,8 +109,8 @@ class TemplateRenderer extends UtilCollection
 
     protected function getRenderer()
     {
-        if (is_null($this->renderer)) {
-            $this->renderer = $this->app->resolve($this['renderer'], [
+        if (null === $this->renderer) {
+            $this->renderer = Injector::getInstance()->resolve($this['renderer'], [
                 'options' => [
                     'middleware' => $this,
                 ]

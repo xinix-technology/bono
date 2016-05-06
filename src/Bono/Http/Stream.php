@@ -62,7 +62,7 @@ class Stream implements StreamInterface
 
     public function close()
     {
-        if (isset($this->stream)) {
+        if (null !== $this->stream) {
             fclose($this->stream);
             $this->stream = null;
             $this->seekable = false;
@@ -166,7 +166,7 @@ class Stream implements StreamInterface
     public function getMetadata($key = null)
     {
         $this->meta = stream_get_meta_data($this->stream);
-        if (is_null($key) === true) {
+        if (null === $key) {
             return $this->meta;
         }
 

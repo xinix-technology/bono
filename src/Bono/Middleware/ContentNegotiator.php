@@ -9,6 +9,8 @@ use Bono\Middleware;
 use Bono\Http\Context;
 use Bono\App;
 use JsonKit\JsonKit;
+use ROH\Util\Injector;
+use Exception;
 
 class ContentNegotiator extends UtilCollection
 {
@@ -20,7 +22,7 @@ class ContentNegotiator extends UtilCollection
     {
         $this->app = $app;
 
-        $options = Options::create([
+        $options = (new Options([
                 'renderers' => [
                     'application/json' => [$this, 'jsonRender'],
                 ],
@@ -30,31 +32,21 @@ class ContentNegotiator extends UtilCollection
                     'json' => 'application/json',
                 ],
                 'accepts' => ['text/html'],
-            ])
+            ]))
             ->merge($options);
 
         parent::__construct($options);
     }
 
-    // public function match($contentType)
-    // {
-    //     $mapper = $this->options['mapper'];
-    //     if (is_callable($mapper)) {
-    //         return $mapper($contentType);
-    //     } else {
-    //         return isset($mapper[$contentType]) ? $mapper[$contentType] : $contentType;
-    //     }
-    // }
-
     protected function negotiate(Context $context)
     {
         $extension = $context->getUri()->getExtension();
-        if (isset($extension) && isset($this['mapper'][$extension])) {
+        if (null !== $extension && isset($this['mapper'][$extension])) {
             return $this['mapper'][$extension];
         }
 
         $contentType = $context->getRequest()->getContentType();
-        if (isset($contentType)) {
+        if (null !== $contentType) {
             return isset($this['mapper'][$contentType]) ? $this['mapper'][$contentType] : $contentType;
         }
 
@@ -66,12 +58,22 @@ class ContentNegotiator extends UtilCollection
         // avoid content negotiator on cli
         if ($this->app->isCli()) {
             $next($context);
-            return;
+        } else {
+            try {
+                $next($context);
+            } catch (Exception $e) {
+                $lastError = $e;
+            }
+            $this->finalize($context);
+            if (isset($lastError)) {
+                throw $e;
+            }
         }
+    }
 
-        $next($context);
-
-        if ($context['response.rendered']) {
+    protected function finalize(Context $context)
+    {
+        if ($context['@renderer.rendered']) {
             return;
         }
 
@@ -79,9 +81,9 @@ class ContentNegotiator extends UtilCollection
         if ($contentType) {
             $context->setContentType($contentType);
             if (isset($this['renderers'][$contentType])) {
-                $handler = $this->app->resolve($this['renderers'][$contentType]);
+                $handler = Injector::getInstance()->resolve($this['renderers'][$contentType]);
                 $handler($context);
-                $context['response.rendered'] = 'content-negotiator';
+                $context['@renderer.rendered'] = 'content-negotiator';
             // } elseif ($context->getBody()->getSize() === 0) {
             //     $context->throwError(
             //         406,

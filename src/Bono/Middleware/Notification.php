@@ -6,42 +6,33 @@ use Bono\App;
 use Bono\Http\Context;
 use ROH\Util\Options;
 use ROH\Util\Collection as UtilCollection;
+use Exception;
 
-class Notification extends UtilCollection
+class Notification
 {
     protected $app;
 
-    protected $messages = [
-        'error' => [
-            '' => []
-        ],
-        'info' => [
-            '' => []
-        ],
-    ];
+    // protected $rendered = false;
 
-    public function __construct(App $app, array $options = [])
+    public function __construct(App $app)
     {
         $this->app = $app;
-
-        $options = Options::create([])
-            ->merge($options);
-
-        parent::__construct($options);
     }
 
-    public function query(array $options)
+    public function query(Context $context, array $options)
     {
         $result = [];
-        $levelMessages = $this->messages[$options['level']];
-        if (isset($options['context'])) {
-            if (isset($levelMessages[$options['context']])) {
-                $result = $levelMessages[$options['context']];
-            }
-        } else {
-            foreach ($levelMessages as $messages) {
-                foreach ($messages as $message) {
-                    $result[] = $message;
+        $levelMessages = $context['@notification.data'][$options['level']];
+        if (null !== $levelMessages) {
+            if (isset($options['context'])) {
+                if (isset($levelMessages[$options['context']])) {
+                    $result = $levelMessages[$options['context']];
+                }
+            } else {
+                foreach ($levelMessages as $messages) {
+                    foreach ($messages as $message) {
+                        $result[] = $message;
+                    }
                 }
             }
         }
@@ -49,36 +40,69 @@ class Notification extends UtilCollection
         return $result;
     }
 
-    public function render(array $options = null)
+    public function render(Context $context, array $options = null)
     {
-        // unset($_SESSION['notification']);
-        if (is_null($options)) {
-            return $this->render(['level' => 'error']) . "\n" . $this->render(['level' => 'info']);
+        // low level unset because session already persisted
+        if (isset($_SESSION['notification'])) {
+            unset($_SESSION['notification']);
         }
 
-        $messages = $this->query($options);
+        if (null === $options) {
+            return $this->render($context, ['level' => 'error']) . "\n" . $this->render($context, ['level' => 'info']);
+        }
+
+        $messages = $this->query($context, $options);
         // TODO should defined renderer?
         if (!empty($messages)) {
-            $result = '<div class="alert '.$options['level'].'"><div><p>';
+            $result = '<div class="notification__'.$options['level'].'">';
             foreach ($messages as $message) {
-                $result .= '<span>'.$message['message'].'</span> ';
+                $result .= '<p>'.$message['message'].'</p> ';
             }
-            $result .= '</p><a href="#" class="close button warning button-outline"><i class="xn xn-close"></i>Close</a></div></div>';
+            $result .= '</div>';
             return $result;
         }
     }
 
-    public function notify(array $message)
+    public function notify(Context $context, array $message)
     {
         $level = isset($message['level']) ? $message['level'] : '';
-        $context = isset($message['context']) ? $message['context'] : '';
-        $this->messages[$level][$context][] = $message;
+        $notifyContext = isset($message['context']) ? $message['context'] : '';
+
+        $notificationBag = $this->getData($context);
+        $levelBag = $notificationBag[$level] ?: [];
+        $levelBag[$notifyContext][] = $message;
+        $notificationBag[$level] = $levelBag;
     }
 
     public function __invoke(Context $context, $next)
     {
         $context['@notification'] = $this;
 
-        return $next($context);
+
+        try {
+            $next($context);
+            $this->finalize($context);
+        } catch (Exception $e) {
+            $this->finalize($context);
+            throw $e;
+        }
+    }
+
+    protected function getData(Context $context)
+    {
+        if (null === $context['@notification.data']) {
+            $context['@notification.data'] = new UtilCollection($context->call('@session', 'get', 'notification') ?: []);
+        }
+        return $context['@notification.data'];
+    }
+
+    protected function finalize(Context $context)
+    {
+        $context->call(
+            '@session',
+            'set',
+            'notification',
+            $this->getData($context)->toArray()
+        );
     }
 }

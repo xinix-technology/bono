@@ -15,9 +15,9 @@ abstract class Message implements MessageInterface
 
     protected $contentType = false;
 
-    public function __construct($headers = null)
+    public function __construct(Headers $headers = null)
     {
-        $this->headers = new Headers($headers);
+        $this->headers = $headers ?: new Headers();
     }
 
     public function getContentType()

@@ -17,12 +17,4 @@ class Url
     {
         return $relativeTo->withPathname(trim($pathname, '/'))->withBasePath('')->__toString();
     }
-
-    public static function format($path, $meta)
-    {
-        return preg_replace_callback('~{([^}]+)}~', function ($matches) use ($meta) {
-            $key = $matches[1];
-            return isset($meta[$key]) ? $meta[$key] : '';
-        }, $path);
-    }
 }

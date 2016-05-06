@@ -7,6 +7,7 @@ use Bono\Bundle\Rest;
 use Bono\Http\Context;
 use Bono\Http\Request;
 use Bono\Http\Uri;
+use ROH\Util\Injector;
 
 class RestTest extends BonoTestCase
 {
@@ -14,7 +15,7 @@ class RestTest extends BonoTestCase
     {
         $bundle = $this->getMock(Rest::class, ['search', 'create', 'read', 'update', 'delete', 'getSchema'], [$this->app]);
 
-        $context = $this->app->resolve(Context::class, [
+        $context = Injector::getInstance()->resolve(Context::class, [
             'request' => new Request('GET', new Uri('http', 'localhost', 80, '/'))
         ]);
 
@@ -27,7 +28,7 @@ class RestTest extends BonoTestCase
             }
         }
 
-        $context = $this->app->resolve(Context::class, [
+        $context = Injector::getInstance()->resolve(Context::class, [
             'request' => new Request('GET', new Uri('http', 'localhost', 80, '/'))
         ]);
         $context['@bodyParser'] = $this->getMock(stdClass::class);

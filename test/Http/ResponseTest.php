@@ -4,13 +4,14 @@ namespace Bono\Test\Http;
 use Bono\Test\BonoTestCase;
 use Bono\Http\Response;
 use Bono\Http\Stream;
+use Bono\Http\Headers;
 use Bono\Exception\BonoException;
 
 class ResponseTest extends BonoTestCase {
     public function testConstruct()
     {
         new Response(200, null, new Stream());
-        $response = new Response(200, ['foo' => 'bar'], 'foo bar');
+        $response = new Response(200, new Headers(['foo' => 'bar']), 'foo bar');
         $this->assertEquals($response->getHeaderLine('foo'), 'bar');
         $this->assertEquals($response->getBody()->__toString(), 'foo bar');
     }

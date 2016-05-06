@@ -15,14 +15,12 @@ class MethodOverride
 
     public function __invoke(Context $context, $next)
     {
-        if ($this->app->isCli()) {
-            $next($context);
-            return;
-        }
-
-        $method = $context->getParam('!method');
-        if (isset($method)) {
-            $context->setMethod($method);
+        if (!$this->app->isCli()) {
+            $method = $context->getParam('!method');
+            $context->removeParam('!method');
+            if (null !== $method) {
+                $context->setMethod($method);
+            }
         }
 
         $next($context);

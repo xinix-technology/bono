@@ -8,6 +8,7 @@ use Bono\Http\Uri;
 use Bono\Middleware\TemplateRenderer;
 use Bono\Exception\BonoException;
 use Bono\Renderer\RendererInterface;
+use ROH\Util\Injector;
 
 class TempateRendererTest extends BonoTestCase
 {
@@ -26,7 +27,7 @@ class TempateRendererTest extends BonoTestCase
             'renderer' => $this->getMock(RendererInterface::class),
         ]);
 
-        $context = $this->app->resolve(Context::class);
+        $context = Injector::getInstance()->resolve(Context::class);
         $middleware($context, function($context) {
             $context->throwError(412);
         });
@@ -39,12 +40,12 @@ class TempateRendererTest extends BonoTestCase
             'renderer' => $this->getMock(RendererInterface::class),
         ]);
 
-        $context = $this->app->resolve(Context::class);
+        $context = Injector::getInstance()->resolve(Context::class);
         $middleware($context, function ($context) {
             $context->setStatus(200);
-            $context['response.template'] = 'foobar';
+            $context['@renderer.template'] = 'foobar';
         });
-        $this->assertEquals('foobar', $context['response.template']);
+        $this->assertEquals('foobar', $context['@renderer.template']);
     }
 
     public function testInvokeOn200TemplateSetFromRouteInfo()
@@ -53,12 +54,12 @@ class TempateRendererTest extends BonoTestCase
             'renderer' => $this->getMock(RendererInterface::class),
         ]);
 
-        $context = $this->app->resolve(Context::class);
+        $context = Injector::getInstance()->resolve(Context::class);
         $context['route.info'] = [1, ['template' => 'foo']];
         $middleware($context, function ($context) {
             $context->setStatus(200);
         });
-        $this->assertEquals('foo', $context['response.template']);
+        $this->assertEquals('foo', $context['@renderer.template']);
     }
 
     public function testInvokeOn200DetectTemplate()
@@ -67,12 +68,12 @@ class TempateRendererTest extends BonoTestCase
             'renderer' => $this->getMock(RendererInterface::class),
         ]);
 
-        $context = $this->app->resolve(Context::class);
+        $context = Injector::getInstance()->resolve(Context::class);
         $context['route.uri'] = new Uri();
         $middleware($context, function ($context) {
             $context->setStatus(200);
         });
-        $this->assertEquals('index', $context['response.template']);
+        $this->assertEquals('index', $context['@renderer.template']);
     }
 
     public function testInvokeOn404()
@@ -81,11 +82,11 @@ class TempateRendererTest extends BonoTestCase
             'renderer' => $this->getMock(RendererInterface::class),
         ]);
 
-        $context = $this->app->resolve(Context::class);
+        $context = Injector::getInstance()->resolve(Context::class);
         $middleware($context, function ($context) {
             $context->setStatus(404);
         });
-        $this->assertEquals('notFound', $context['response.template']);
+        $this->assertEquals('404', $context['@renderer.template']);
     }
 
     public function testInvokeOn405()
@@ -94,11 +95,11 @@ class TempateRendererTest extends BonoTestCase
             'renderer' => $this->getMock(RendererInterface::class),
         ]);
 
-        $context = $this->app->resolve(Context::class);
+        $context = Injector::getInstance()->resolve(Context::class);
         $middleware($context, function ($context) {
             $context->setStatus(405);
         });
-        $this->assertEquals('methodNotAllowed', $context['response.template']);
+        $this->assertEquals('405', $context['@renderer.template']);
     }
 
     public function testResolve()

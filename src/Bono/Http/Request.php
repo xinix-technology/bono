@@ -35,7 +35,7 @@ class Request extends Message implements ServerRequestInterface
 
     protected $uploadedFiles = [];
 
-    public function __construct($method = 'GET', Uri $uri = null)
+    public function __construct($method = 'GET', Uri $uri = null, Headers $headers = null)
     {
         $this->method = $method;
         $this->originalMethod = $method;
@@ -45,7 +45,7 @@ class Request extends Message implements ServerRequestInterface
             'route.uri' => $this->uri,
         ]);
 
-        parent::__construct();
+        parent::__construct($headers);
     }
 
     // custom
@@ -109,7 +109,7 @@ class Request extends Message implements ServerRequestInterface
     {
         $types = $this->normalizeTypeArrays($types);
 
-        if (is_null($this->accepts)) {
+        if (null === $this->accepts) {
             $this->accepts = array_map(function ($accept) {
                 return explode(';', $accept)[0];
             }, $this->getHeader('accept') ?: []);
@@ -304,7 +304,7 @@ class Request extends Message implements ServerRequestInterface
 
     public function withParsedBody($data)
     {
-        if (!is_null($data) && !is_object($data) && !is_array($data)) {
+        if (null !== $data && !is_object($data) && !is_array($data)) {
             throw new BonoException('Parsed body value must be an array, an object, or null');
         }
 
@@ -316,7 +316,7 @@ class Request extends Message implements ServerRequestInterface
 
     public function getBody()
     {
-        if (is_null($this->body)) {
+        if (null === $this->body) {
             $stream = fopen('php://temp', 'w+');
             stream_copy_to_stream(fopen('php://input', 'r'), $stream);
             rewind($stream);

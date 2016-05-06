@@ -34,7 +34,7 @@ class Uri implements UriInterface
 
     protected $extension = null;
 
-    public static function byEnvironment($var, $cli = false)
+    public static function byEnvironment(array $var, $cli = false)
     {
         if ($cli) {
             return new static('', '', null, '/'. implode('/', array_slice($var['argv'], 1)));
@@ -174,7 +174,7 @@ class Uri implements UriInterface
             throw new BonoException('Uri pathname must be a string');
         }
 
-        return $this->withPath($pathname . (isset($this->extension) ? '.' . $this->extension : ''));
+        return $this->withPath($pathname . (null !== $this->extension ? '.' . $this->extension : ''));
     }
 
     public function shift($path)
@@ -182,7 +182,7 @@ class Uri implements UriInterface
         $uri = clone $this;
         if ('/' !== $path) {
             $newPath = substr($this->getPath(), strlen($path));
-            if (isset($this->extension) && ('.' . $this->extension) === $newPath) {
+            if (null !== $this->extension && ('.' . $this->extension) === $newPath) {
                 $newPath = '';
             }
             $uri = clone $this
@@ -227,7 +227,7 @@ class Uri implements UriInterface
 
     protected function filterPort($port)
     {
-        if (is_null($port) || (is_integer($port) && ($port >= 1 && $port <= 65535))) {
+        if (null === $port || (is_integer($port) && ($port >= 1 && $port <= 65535))) {
             return $port;
         }
 

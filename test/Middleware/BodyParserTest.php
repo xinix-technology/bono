@@ -8,6 +8,7 @@ use Bono\Http\Request;
 use Bono\Http\Stream;
 use Bono\Middleware\BodyParser;
 use Bono\Exception\BonoException;
+use ROH\Util\Injector;
 
 class BodyParserTest extends BonoTestCase
 {
@@ -15,12 +16,12 @@ class BodyParserTest extends BonoTestCase
     {
         $middleware = new BodyParser();
 
-        $context = $this->app->resolve(Context::class, [
+        $context = Injector::getInstance()->resolve(Context::class, [
             'request' => new Request('POST'),
         ]);
         $context->setRequest($context->getRequest()->withHeader('Content-Type', 'application/x-www-form-urlencoded'));
 
-        $_POST = ['foo' => 'bar'];
+        $context->getRequest()->getBody()->write('foo=bar');
         $middleware($context, function() {
 
         });
@@ -28,19 +29,10 @@ class BodyParserTest extends BonoTestCase
         $body = $context->getParsedBody();
         $this->assertEquals($body['foo'], 'bar');
 
-        $context = $this->app->resolve(Context::class, [
+        $context = Injector::getInstance()->resolve(Context::class, [
             'request' => new Request('PUT'),
         ]);
         $context->setRequest($context->getRequest()->withHeader('Content-Type', 'application/x-www-form-urlencoded'));
-
-        try {
-            $middleware($context, function() {});
-            $this->fail('Must throw exception');
-        } catch(BonoException $e) {
-            if ($e->getMessage() !== 'Cannot parse form if original method not POST') {
-                throw $e;
-            }
-        }
     }
 
     public function testInvokeParseJson()
@@ -52,7 +44,7 @@ class BodyParserTest extends BonoTestCase
             'foo' => 'bar',
         ]));
 
-        $context = $this->app->resolve(Context::class, [
+        $context = Injector::getInstance()->resolve(Context::class, [
             'request' => new Request('POST'),
         ]);
         $context->setRequest($context->getRequest()->withHeader('Content-Type', 'application/json')->withBody($fakeBody));
@@ -70,7 +62,7 @@ class BodyParserTest extends BonoTestCase
     {
         $middleware = new BodyParser();
 
-        $context = $this->app->resolve(Context::class, [
+        $context = Injector::getInstance()->resolve(Context::class, [
             'request' => new Request('POST'),
         ]);
 

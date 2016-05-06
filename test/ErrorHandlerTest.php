@@ -3,35 +3,20 @@
 namespace Bono\Test;
 
 use Bono\ErrorHandler;
+use ROH\Util\File;
 
 class ErrorHandlerTest extends BonoTestCase
 {
-    public function deleteDir($dirPath) {
-        if (! is_dir($dirPath)) {
-            throw new InvalidArgumentException("$dirPath must be a directory");
-        }
-        if (substr($dirPath, strlen($dirPath) - 1, 1) != '/') {
-            $dirPath .= '/';
-        }
-        $files = glob($dirPath . '*', GLOB_MARK);
-        foreach ($files as $file) {
-            if (is_dir($file)) {
-                self::deleteDir($file);
-            } else {
-                unlink($file);
-            }
-        }
-        rmdir($dirPath);
-    }
-
     public function setUp()
     {
+        parent::setUp();
         mkdir('../templates/vendor/whoops', 0755, true);
     }
 
     public function tearDown()
     {
-        $this->deleteDir('../templates/vendor/whoops');
+        File::rm('../templates/vendor/whoops');
+        parent::tearDown();
     }
 
     public function testConstruct()

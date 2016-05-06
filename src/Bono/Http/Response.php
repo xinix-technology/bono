@@ -78,11 +78,9 @@ class Response extends Message implements ResponseInterface
 
     protected $reasonPhrase;
 
-    public function __construct($status = 404, $headers = null, $body = null)
+    public function __construct($status = 404, Headers $headers = null, $body = null)
     {
         $this->status = $status;
-
-        $this->headers = new Headers($headers);
 
         if (is_string($body)) {
             $this->write($body);
@@ -102,7 +100,7 @@ class Response extends Message implements ResponseInterface
 
     public function getBody()
     {
-        if (is_null($this->body)) {
+        if (null === $this->body) {
             $this->body = new Stream();
         }
 

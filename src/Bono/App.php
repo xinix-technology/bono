@@ -5,14 +5,17 @@ namespace Bono;
 use Bono\Http\Context;
 use Bono\Http\Request;
 use Bono\Http\Response;
+use Bono\Http\Headers;
 use Bono\Exception\ContextException;
 use ROH\Util\Options;
 use Bono\ErrorHandler;
 use ROH\Util\Injector;
 use Bono\Http\Uri;
-use ArrayAccess;
+use Psr\Log\LoggerInterface;
+use Monolog\Logger;
+use Monolog\Handler\ErrorLogHandler;
 
-class App extends Injector implements ArrayAccess
+class App extends Bundle
 {
     protected static $instance = null;
 
@@ -26,6 +29,12 @@ class App extends Injector implements ArrayAccess
 
     protected $bundle;
 
+    protected $loggers;
+
+    protected $defaultLogger;
+
+    protected $errorHandler;
+
     public static function getInstance(array $options = [])
     {
         if (null === static::$instance) {
@@ -37,7 +46,7 @@ class App extends Injector implements ArrayAccess
 
     public function __construct(array $options = [])
     {
-        $this->singleton(static::class, $this);
+        Injector::getInstance()->singleton(static::class, $this);
 
         $this->envVars = $_SERVER;
 
@@ -48,21 +57,30 @@ class App extends Injector implements ArrayAccess
             'date.timezone' => 'UTC',
             'route.dispatcher' => 'simple',
             'response.chunkSize' => 4096,
+            'error.handler' => ErrorHandler::class,
             // 'response.contentType' => 'text/html',
         ];
         $optionsPath = isset($options['config.path']) ? $options['config.path'] : $defaultOptions['config.path'];
 
         Options::setEnv($defaultOptions['env']);
 
-        $options = Options::create($defaultOptions)
+        $options = (new Options($defaultOptions))
             ->mergeFile($optionsPath . '/config.php')
             ->merge($options)
             ->toArray();
 
-        $this->bundle = new Bundle($this, $options);
+        date_default_timezone_set($options['date.timezone']);
+
+        parent::__construct($this, $options);
 
         $this->configureErrorHandler();
 
+        $this->configureLoggers();
+    }
+
+    public function getErrorHandler()
+    {
+        return $this->errorHandler;
     }
 
     public function isCli()
@@ -76,15 +94,25 @@ class App extends Injector implements ArrayAccess
     protected function configureErrorHandler()
     {
         if (!$this->isCli()) {
-            $errorHandler = new ErrorHandler($this);
-            $errorHandler->register();
+            $ErrorHandler = $this['error.handler'] ?: 'ErrorHandler';
+            $this->errorHandler = new $ErrorHandler($this);
+        }
+    }
+
+    protected function configureLoggers()
+    {
+        if (is_array($this['loggers'])) {
+            foreach ($this['loggers'] as $key => $value) {
+                $this->addLogger($key, Injector::getInstance()->resolve($value));
+            }
         }
     }
 
     public function createContext()
     {
         $uri = Uri::byEnvironment($this->envVars, $this->isCli());
-        $request = new Request($this->isCli() ? 'GET' : $this->envVars['REQUEST_METHOD'], $uri);
+        $headers = Headers::byEnvironment($this->envVars);
+        $request = new Request($this->isCli() ? 'GET' : $this->envVars['REQUEST_METHOD'], $uri, $headers);
         $response = new Response();
         $context = new Context($this, $request, $response);
         return $context;
@@ -98,12 +126,10 @@ class App extends Injector implements ArrayAccess
             ob_start();
         }
 
-        date_default_timezone_set($this['date.timezone']);
-
         $context = $this->createContext();
-        $context['route.bundle'] = $this->bundle;
+        $context['route.bundle'] = $this;
         // try {
-        $this->bundle->dispatch($context);
+        $this->dispatch($context);
         // } catch (ContextException $e) {
         //     $context->handleError($e);
         // }
@@ -118,7 +144,7 @@ class App extends Injector implements ArrayAccess
         $this->respond($context);
     }
 
-    public function respond(Context $context, &$filename = null)
+    protected function respond(Context $context, &$filename = null)
     {
         $response = $context->getResponse();
 
@@ -128,14 +154,8 @@ class App extends Injector implements ArrayAccess
         }
 
         $headers = $response->getHeaders();
-
-        // remove default content-type
-        // if (is_null($headers['Content-Type']) && isset($this['response.contentType'])) {
-        //     $headers['Content-Type'] = $this['response.contentType'];
-        // }
-
-        if (!headers_sent()) {
-            header(sprintf(
+        if (!headers_sent() || isset($GLOBALS['test-coverage'])) {
+            @header(sprintf(
                 'HTTP/%s %s %s',
                 $response->getProtocolVersion(),
                 $response->getStatusCode(),
@@ -143,7 +163,7 @@ class App extends Injector implements ArrayAccess
             ));
 
             foreach ($response->getHeaders()->normalize() as $name => $value) {
-                header(sprintf('%s: %s', $name, implode(', ', $value ?: [])), false);
+                @header(sprintf('%s: %s', $name, implode(', ', $value ?: [])), false);
             }
         }
 
@@ -155,39 +175,38 @@ class App extends Injector implements ArrayAccess
             }
 
             while (!$body->eof()) {
-                echo $body->read($this['response.chunkSize']);
-                if (connection_status() != CONNECTION_NORMAL) {
-                    break;
+                if (connection_status() === CONNECTION_NORMAL) {
+                    echo $body->read($this['response.chunkSize']);
                 }
             }
         }
-
-        // see koa for the rest
     }
 
-    public function offsetExists($offset)
+    public function addLogger($name, LoggerInterface $logger)
     {
-        return $this->bundle->offsetExists($offset);
+        $name = $name ?: 'bono';
+
+        $this->loggers[$name] = $logger;
+
+        if (null === $this->defaultLogger) {
+            $this->defaultLogger = $name;
+        }
+
+        return $this;
     }
 
-    public function offsetGet($offset)
+    public function getLogger($name = null)
     {
-        return $this->bundle->offsetGet($offset);
-    }
+        if (null === $this->loggers) {
+            $this->loggers = [];
+            $logger = new Logger('bono');
+            $logger->pushHandler(new ErrorLogHandler());
+            $this->addLogger($name, $logger);
+        }
 
-    public function offsetSet($offset, $value)
-    {
-        return $this->bundle->offsetSet($offset, $value);
-    }
+        $name = $name ?: $this->defaultLogger;
 
-    public function offsetUnset($offset)
-    {
-        return $this->bundle->offsetUnset($offset);
-    }
-
-    public function getBundle()
-    {
-        return $this->bundle;
+        return isset($this->loggers[$name]) ? $this->loggers[$name] : null;
     }
 
 }

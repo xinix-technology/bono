@@ -7,6 +7,8 @@ use ArrayAccess;
 use Bono\Exception\BonoException;
 use Bono\Exception\ContextException;
 use Bono\Helper\Url;
+use ROH\Util\StringFormatter;
+use ROH\Util\Composition;
 
 class Context implements ArrayAccess
 {
@@ -17,6 +19,8 @@ class Context implements ArrayAccess
     protected $response;
 
     protected $app;
+
+    protected $composition;
 
     public function __construct(App $app, Request $request, Response $response)
     {
@@ -59,6 +63,13 @@ class Context implements ArrayAccess
         }
 
         return $default;
+    }
+
+    public function removeParam($key)
+    {
+        $postParams = $this->getParsedBody();
+        unset($postParams[$key]);
+        $this->setParsedBody($postParams);
     }
 
     public function setRequest($request)
@@ -130,7 +141,7 @@ class Context implements ArrayAccess
     public function getPathname()
     {
         $uri = $this->getUri();
-        return isset($uri) ? $uri->getPathname() : null;
+        return null !== $uri ? $uri->getPathname() : null;
     }
 
     public function setAttribute($key, $value)
@@ -185,6 +196,16 @@ class Context implements ArrayAccess
         return $this;
     }
 
+    public function getHeader($key)
+    {
+        return $this->request->getHeader($key);
+    }
+
+    public function getHeaderLine($key)
+    {
+        return $this->request->getHeaderLine($key);
+    }
+
     public function setContentType($contentType)
     {
         return $this->setHeader('Content-Type', $contentType);
@@ -199,19 +220,27 @@ class Context implements ArrayAccess
 
     public function depends($key)
     {
-        if (is_null($this[$key])) {
-            throw new BonoException('Unregistered ' . $key . ' middleware!');
+        $keys = func_get_args();
+        foreach ($keys as $key) {
+            if (null === $this[$key]) {
+                throw new BonoException('Unregistered dependency ' . $key . ' middleware!');
+            }
         }
     }
 
-    public function bundleUrl($uri)
+    public function bundleUrl($uri = '/', $data = [])
     {
-        return Url::bundle($uri, $this['route.uri']);
+        return Url::bundle(StringFormatter::format($uri, $data), $this['route.uri']);
     }
 
-    public function siteUrl($uri)
+    public function siteUrl($uri = '/', $data = [])
     {
-        return Url::bundle($uri, $this['original.uri']);
+        return Url::bundle(StringFormatter::format($uri, $data), $this['original.uri']);
+    }
+
+    public function assetUrl($uri, $data = [])
+    {
+        return Url::asset(StringFormatter::format($uri, $data), $this['original.uri']);
     }
 
     // arrayaccess
@@ -242,5 +271,47 @@ class Context implements ArrayAccess
             'response' => $this->getStatusCode(),
             'state' => $this->getState(),
         ];
+    }
+
+    public function addMiddleware($middleware)
+    {
+        $this->getComposition()->compose($middleware);
+        return $this;
+    }
+
+    protected function getComposition()
+    {
+        if (null === $this->composition) {
+            $this->composition = new Composition();
+        }
+        return $this->composition;
+    }
+
+    public function apply(callable $route)
+    {
+        return $this->getComposition()->setCore($route)->apply($this);
+    }
+
+    public function call($middlewareName, $methodName)
+    {
+        if (null === $this[$middlewareName]) {
+            return null;
+        }
+
+        $args = array_slice(func_get_args(), 2);
+        array_unshift($args, $this);
+        return call_user_func_array([$this[$middlewareName], $methodName], $args);
+    }
+
+    public function back()
+    {
+        return $this->redirect($this->getParam('!continue'));
+    }
+
+    public function redirect($url = null, $status = 302)
+    {
+        $url = $url ?: $this->siteUrl();
+        $this->setHeader('Location', $url);
+        return $this->throwError($status);
     }
 }

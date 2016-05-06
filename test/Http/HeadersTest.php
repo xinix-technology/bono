@@ -35,4 +35,13 @@ class HeadersTest extends PHPUnit_Framework_TestCase
         $headers->add('x-foo', ['bar', 'baz']);
         $this->assertEquals($headers['x-foo'], ['bar', 'baz']);
     }
+
+    public function testByEnvironment()
+    {
+        $env = [
+            'HTTP_X_FOO' => 'bar'
+        ];
+        $headers = Headers::byEnvironment($env);
+        $this->assertEquals($headers['x-foo'], ['bar']);
+    }
 }
