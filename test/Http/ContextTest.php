@@ -116,6 +116,12 @@ class ContextTest extends BonoTestCase {
         $context->call('@foo', 'bar');
     }
 
+    public function testIsRouted()
+    {
+        $context = Injector::getInstance()->resolve(Context::class);
+        $this->assertEquals(false, $context->isRouted());
+    }
+
     public function testBackAndRedirect()
     {
         $context = Injector::getInstance()->resolve(Context::class);

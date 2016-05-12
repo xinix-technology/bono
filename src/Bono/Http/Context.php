@@ -112,6 +112,11 @@ class Context implements ArrayAccess
         throw new ContextException($status, $message ?: Response::$messages[$status], $error);
     }
 
+    public function isRouted()
+    {
+        return null !== $this['route.info'] && 1 === $this['route.info'][0];
+    }
+
     // delegates to request
     public function getMethod()
     {
