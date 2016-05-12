@@ -27,13 +27,15 @@ class App extends Bundle
 
     protected $envVars;
 
-    protected $bundle;
+    // protected $bundle;
 
     protected $loggers;
 
     protected $defaultLogger;
 
     protected $errorHandler;
+
+    protected $injector;
 
     public static function getInstance(array $options = [])
     {
@@ -44,9 +46,10 @@ class App extends Bundle
         return static::$instance;
     }
 
-    public function __construct(array $options = [])
+    public function __construct(array $options = [], Injector $injector = null)
     {
-        Injector::getInstance()->singleton(static::class, $this);
+        $this->injector = null === $injector ? Injector::getInstance() : $injector;
+        $this->injector->singleton(static::class, $this);
 
         $this->envVars = $_SERVER;
 
@@ -78,6 +81,11 @@ class App extends Bundle
         $this->configureLoggers();
     }
 
+    public function getInjector()
+    {
+        return $this->injector;
+    }
+
     public function getErrorHandler()
     {
         return $this->errorHandler;
@@ -103,7 +111,7 @@ class App extends Bundle
     {
         if (is_array($this['loggers'])) {
             foreach ($this['loggers'] as $key => $value) {
-                $this->addLogger($key, Injector::getInstance()->resolve($value));
+                $this->addLogger($key, $this->injector->resolve($value));
             }
         }
     }
