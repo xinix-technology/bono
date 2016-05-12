@@ -132,7 +132,7 @@ class Bundle extends UtilCollection
             $this->composition = new Composition();
             $this->composition->setCore($this);
             foreach ($this->middlewares as $middleware) {
-                $handler = Injector::getInstance()->resolve($middleware);
+                $handler = $this->app->getInjector()->resolve($middleware);
                 $this->composition->compose($handler);
             }
         }
@@ -192,7 +192,7 @@ class Bundle extends UtilCollection
 
     public function getBundleFor($path)
     {
-        $injector = Injector::getInstance();
+        $injector = $this->app->getInjector();
 
         foreach ($this->bundles as $meta) {
             if (strpos($path, $meta['uri']) === 0) {
@@ -221,7 +221,17 @@ class Bundle extends UtilCollection
         $attributes = [];
 
         foreach ($this->middlewares as $key => $middleware) {
-            $middlewares[] = is_array($middleware) ? $middleware[0] : get_class($middleware);
+            if (is_callable($middleware)) {
+                if (is_array($middleware)) {
+                    $middlewares[] = get_class($middleware[0]).'::'.$middleware[1];
+                } elseif (is_string($middleware)) {
+                    $middlewares[] = $middleware;
+                } else {
+                    $middlewares[] = get_class($middleware);
+                }
+            } elseif (is_array($middleware)) {
+                $middlewares[] = $middleware[0];
+            }
         }
 
         foreach ($this->bundles as $key => $bundle) {
@@ -229,9 +239,9 @@ class Bundle extends UtilCollection
                 get_class($bundle['handler']);
         }
 
-        $routes = array_map(function ($route) {
-            return $route['pattern'];
-        }, $this->routes);
+        foreach ($this->routes as $route) {
+            $routes[] = implode(',', $route['methods']).' '.$route['pattern'];
+        }
 
         foreach ($this->attributes as $key => $attribute) {
             if ($key === 'middlewares' ||

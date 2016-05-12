@@ -36,5 +36,5 @@ abstract class Rest extends Bundle
     abstract public function read(Context $context);
     abstract public function update(Context $context);
     abstract public function delete(Context $context);
-    abstract public function getSchema();
+    abstract public function getSchema(Context $context);
 }
