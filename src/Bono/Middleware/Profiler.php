@@ -5,7 +5,7 @@ use Bono\Http\Context;
 
 class Profiler
 {
-    public function __invoke(Context $context, $next)
+    public function __invoke(Context $context, callable $next)
     {
         $start = microtime(true);
         $next($context);

@@ -13,7 +13,7 @@ class MethodOverride
         $this->app = $app;
     }
 
-    public function __invoke(Context $context, $next)
+    public function __invoke(Context $context, callable $next)
     {
         if (!$this->app->isCli()) {
             $method = $context->getParam('!method');

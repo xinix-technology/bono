@@ -38,7 +38,7 @@ class TemplateRenderer extends UtilCollection
 
     }
 
-    public function __invoke(Context $context, $next)
+    public function __invoke(Context $context, callable $next)
     {
         $context['@renderer'] = $context['@renderer'] ?: $this;
 
@@ -110,7 +110,7 @@ class TemplateRenderer extends UtilCollection
     protected function getRenderer()
     {
         if (null === $this->renderer) {
-            $this->renderer = Injector::getInstance()->resolve($this['renderer'], [
+            $this->renderer = $this->app->getInjector()->resolve($this['renderer'], [
                 'options' => [
                     'middleware' => $this,
                 ]

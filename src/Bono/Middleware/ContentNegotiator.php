@@ -53,7 +53,7 @@ class ContentNegotiator extends UtilCollection
         return $context->accepts($this['accepts']);
     }
 
-    public function __invoke(Context $context, $next = null)
+    public function __invoke(Context $context, callable $next)
     {
         // avoid content negotiator on cli
         if ($this->app->isCli()) {
@@ -77,11 +77,13 @@ class ContentNegotiator extends UtilCollection
             return;
         }
 
+        $injector = $this->app->getInjector();
+
         $contentType = $this->negotiate($context);
         if ($contentType) {
             $context->setContentType($contentType);
             if (isset($this['renderers'][$contentType])) {
-                $handler = Injector::getInstance()->resolve($this['renderers'][$contentType]);
+                $handler = $injector->resolve($this['renderers'][$contentType]);
                 $handler($context);
                 $context['@renderer.rendered'] = 'content-negotiator';
             // } elseif ($context->getBody()->getSize() === 0) {

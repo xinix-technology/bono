@@ -74,7 +74,7 @@ class Notification
         $notificationBag[$level] = $levelBag;
     }
 
-    public function __invoke(Context $context, $next)
+    public function __invoke(Context $context, callable $next)
     {
         $context['@notification'] = $this;
 

@@ -41,7 +41,7 @@ class BodyParser
         return json_decode($body, true);
     }
 
-    public function __invoke(Context $context, $next)
+    public function __invoke(Context $context, callable $next)
     {
         $context['@bodyParser'] = $this;
 

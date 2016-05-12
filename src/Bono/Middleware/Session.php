@@ -37,7 +37,7 @@ class Session
         ini_set('session.gc_maxlifetime', 24 * 30 * 24 * 60 * 60);
     }
 
-    public function __invoke(Context $context, $next)
+    public function __invoke(Context $context, callable $next)
     {
         if ($this->app->isCli()) {
             return $next($context);

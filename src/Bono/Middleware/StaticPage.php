@@ -5,7 +5,7 @@ use Bono\Http\Context;
 
 class StaticPage
 {
-    public function __invoke(Context $context, $next)
+    public function __invoke(Context $context, callable $next)
     {
         $renderer = $context['@renderer'];
         if (null === $renderer) {
