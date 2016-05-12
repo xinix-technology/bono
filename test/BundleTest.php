@@ -246,10 +246,14 @@ class BundleTest extends BonoTestCase
 
     public function testDebugInfoShowMiddlewaresBundlesRoutesAttributes()
     {
+        $foo = new \Exception();
         $bundle = Injector::getInstance()->resolve(Bundle::class, [
             'options' => [
                 'middlewares' => [
                     function() {},
+                    'trim',
+                    [ 'Foo' ],
+                    [ $foo, 'getMessage' ],
                 ],
                 'bundles' => [
                     [
