@@ -317,16 +317,16 @@
         },
         {
             "name": "reekoheek/util",
-            "version": "1.2.0",
+            "version": "1.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reekoheek/php-util.git",
-                "reference": "af9a7ad5675f6a1cda42aa6af6840e1060524249"
+                "reference": "6ae3c82205841632d8394bba787860a17e5abc32"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reekoheek/php-util/zipball/af9a7ad5675f6a1cda42aa6af6840e1060524249",
-                "reference": "af9a7ad5675f6a1cda42aa6af6840e1060524249",
+                "url": "https://api.github.com/repos/reekoheek/php-util/zipball/6ae3c82205841632d8394bba787860a17e5abc32",
+                "reference": "6ae3c82205841632d8394bba787860a17e5abc32",
                 "shasum": ""
             },
             "require": {
@@ -354,7 +354,7 @@
                 }
             ],
             "description": "php common utility library",
-            "time": "2016-05-06 02:18:06"
+            "time": "2016-05-11 13:12:21"
         }
     ],
     "packages-dev": [
@@ -1451,7 +1451,7 @@
         },
         {
             "name": "symfony/yaml",
-            "version": "v3.0.5",
+            "version": "v3.0.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",

@@ -23,6 +23,9 @@ class DispatcherTest extends PHPUnit_Framework_TestCase
         $result = $dispatcher->dispatch('GET', '/missing');
         $this->assertEquals($result[0], 0);
 
+        $result = $dispatcher->dispatch('HEAD', '/missing');
+        $this->assertEquals($result[0], 0);
+
         $result = $dispatcher->dispatch('GET', '/');
         $this->assertEquals($result[0], 1);
 

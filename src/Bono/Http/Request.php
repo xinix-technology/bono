@@ -115,14 +115,9 @@ class Request extends Message implements ServerRequestInterface
             }, $this->getHeader('accept') ?: []);
         }
 
-        if (in_array('*/*', $this->accepts)) {
-            foreach ($types as $contentType) {
-                return $contentType;
-            }
-        }
-
+        $acceptAny = in_array('*/*', $this->accepts);
         foreach ($types as $type) {
-            if (in_array($type, $this->accepts)) {
+            if ($acceptAny || in_array($type, $this->accepts)) {
                 return $type;
             }
         }
