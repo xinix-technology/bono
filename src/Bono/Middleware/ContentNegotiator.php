@@ -40,6 +40,12 @@ class ContentNegotiator extends UtilCollection
 
     protected function negotiate(Context $context)
     {
+        // if route already set content type, use this instead
+        $responseContentType = $context->getContentType();
+        if ($responseContentType) {
+            return $responseContentType;
+        }
+
         $extension = $context->getUri()->getExtension();
         if (null !== $extension && isset($this['mapper'][$extension])) {
             return $this['mapper'][$extension];
