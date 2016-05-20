@@ -149,6 +149,11 @@ class Context implements ArrayAccess
         return null !== $uri ? $uri->getPathname() : null;
     }
 
+    public function getUploadedFiles()
+    {
+        return $this->request->getUploadedFiles();
+    }
+
     public function setAttribute($key, $value)
     {
         $this->request = $this->request->withAttribute($key, $value);

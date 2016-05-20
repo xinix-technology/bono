@@ -5,6 +5,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Bono\Exception\BonoException;
 use ROH\Util\Collection;
+use Bono\Http\UploadedFile;
 
 class Request extends Message implements ServerRequestInterface
 {
@@ -33,7 +34,7 @@ class Request extends Message implements ServerRequestInterface
 
     protected $attributes;
 
-    protected $uploadedFiles = [];
+    protected $uploadedFiles;
 
     public function __construct($method = 'GET', Uri $uri = null, Headers $headers = null)
     {
@@ -282,6 +283,10 @@ class Request extends Message implements ServerRequestInterface
 
     public function getUploadedFiles()
     {
+        if (null === $this->uploadedFiles) {
+            $this->uploadedFiles = UploadedFile::byEnvironment($_FILES);
+        }
+
         return $this->uploadedFiles;
     }
 
