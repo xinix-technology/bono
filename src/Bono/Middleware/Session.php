@@ -7,12 +7,15 @@ use Bono\Http\Context;
 use ROH\Util\Options;
 use ROH\Util\Collection as UtilCollection;
 use Exception;
+use Bono\Session\Native;
 
 class Session
 {
     protected $app;
 
     protected $options;
+
+    protected $adapter;
 
     public function __construct(App $app, array $options = [])
     {
@@ -25,16 +28,16 @@ class Session
             'domain' => '',
             'secure' => false,
             'httpOnly' => false,
-            'autorefresh' => false,
+            'adapter' => [ Native::class ],
+            'autoRefresh' => false,
         ]))->merge($options)->toArray();
 
         if (is_string($this->options['lifetime'])) {
             $this->options['lifetime'] = strtotime($this->options['lifetime']) - time();
         }
 
-        ini_set('session.gc_probability', 1);
-        ini_set('session.gc_divisor', 1);
-        ini_set('session.gc_maxlifetime', 24 * 30 * 24 * 60 * 60);
+        $this->adapter = $app->getInjector()->resolve($this->options['adapter']);
+        unset($this->options['adapter']);
     }
 
     public function __invoke(Context $context, callable $next)
@@ -69,62 +72,37 @@ class Session
         $options['path'] = rtrim(rtrim($context['original.uri']->getBasepath(), '/index.php'), '/') . '/';
 
         if (!$keep) {
-            $options['lifetime'] = isset($_COOKIE['keep']) ? (int) $_COOKIE['keep'] : 0;
+            $options['lifetime'] = $context->getCookie('keep') ?: 0;
         }
 
         $context['@session.options'] = $options;
 
-        session_set_cookie_params(
-            $options['lifetime'],
-            $options['path'],
-            $options['domain'],
-            $options['secure'],
-            $options['httpOnly']
-        );
-        session_name($options['name']);
-        session_cache_limiter(false);
-        @session_start();
+        $context['@session.id'] = $this->adapter->getId($context, $options);
 
-        if (ini_get('session.use_cookies') && $options['lifetime'] > 0) {
-            @setcookie(session_name(), session_id(), time() + $options['lifetime'], $options['path']);
-            @setcookie('keep', $options['lifetime'], time() + $options['lifetime'], $options['path']);
-            $_COOKIE['keep'] = $options['lifetime'];
+        if ($options['lifetime'] > 0) {
+            $context->setCookie($options['name'], $context['@session.id'], time() + $options['lifetime'], $options['path']);
+            $context->setCookie('keep', $options['lifetime'], time() + $options['lifetime'], $options['path']);
+        } else {
+            $context->setCookie($options['name'], $context['@session.id'], 0, $options['path']);
         }
 
-        $context['@session.data'] = new UtilCollection($_SESSION);
+        $context['@session.data'] = new UtilCollection($this->adapter->read($context));
     }
 
     protected function stop(Context $context)
     {
-        foreach ($context['@session.data'] as $key => $value) {
-            $_SESSION[$key] = $value;
-        }
+        $this->adapter->write($context, $context['@session.data']);
+        $context['@session.written'] = true;
     }
 
     protected function destroy(Context $context)
     {
         $options = $context['@session.options'];
 
-        unset($_SESSION);
-        session_unset();
-        session_destroy();
-        session_write_close();
+        $this->adapter->destroy($context);
 
-        if (ini_get('session.use_cookies')) {
-            $params = session_get_cookie_params();
-            @setcookie(
-                session_name(),
-                '',
-                time() - 3600,
-                $params['path'],
-                $params['domain'],
-                $params['secure'],
-                $params['httponly']
-            );
-            unset($_COOKIE['keep']);
-            @setcookie('keep', '', time() - 3600, $options['path']);
-        }
-
+        $context->removeCookie($options['name'], $options['path']);
+        $context->removeCookie('keep', $options['path']);
 
         unset($context['@session.options']);
     }
@@ -133,7 +111,6 @@ class Session
     {
         $this->destroy($context);
         $this->start($context, $keep);
-        @session_regenerate_id(true);
     }
 
     public function get(Context $context, $key, $default = null)
@@ -148,5 +125,16 @@ class Session
     public function set(Context $context, $key, $value)
     {
         $context['@session.data'][$key] = $value;
+        if (null !== $context['@session.written']) {
+            $this->adapter->write($context, $context['@session.data']);
+        }
+    }
+
+    public function remove(Context $context, $key)
+    {
+        unset($context['@session.data'][$key]);
+        if (null !== $context['@session.written']) {
+            $this->adapter->write($context, $context['@session.data']);
+        }
     }
 }

@@ -281,6 +281,7 @@ class Request extends Message implements ServerRequestInterface
         return $clone;
     }
 
+    // FIXME stream not close yet
     public function getUploadedFiles()
     {
         if (null === $this->uploadedFiles) {
@@ -317,12 +318,23 @@ class Request extends Message implements ServerRequestInterface
     public function getBody()
     {
         if (null === $this->body) {
-            $stream = fopen('php://temp', 'w+');
-            stream_copy_to_stream(fopen('php://input', 'r'), $stream);
-            rewind($stream);
+            $stream = fopen('php://input', 'r');
+            // $inputStream = fopen('php://input', 'r');
+
+            // $stream = fopen('php://temp', 'w+');
+            // stream_copy_to_stream($inputStream, $stream);
+            // rewind($stream);
+
+            // fclose($inputStream);
+
             $this->body = new Stream($stream);
         }
 
         return $this->body;
+    }
+
+    public function getCookie($name)
+    {
+        return $this->cookies->get($name);
     }
 }

@@ -4,9 +4,10 @@
 
 ### Common Attributes
 
-response.template = Template to use for response
-response.renderer = Default response renderer instance
-response.rendered = If set then response render already handled by the value 
+@renderer          = Renderer middleware
+@renderer.template = Template to use for renderer
+@renderer.rendered = If set then response render already handled by the value 
 
-route.uri
-route.bundle
+route.uri          = Uri of current route
+route.info         = Route info from dispatcher
+route.bundle       = Bundle of current route

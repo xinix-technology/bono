@@ -15,9 +15,23 @@ abstract class Message implements MessageInterface
 
     protected $contentType = false;
 
+    protected $cookies;
+
     public function __construct(Headers $headers = null)
     {
         $this->headers = $headers ?: new Headers();
+    }
+
+    public function withCookies(Cookies $cookies)
+    {
+        $clone = clone $this;
+        $clone->cookies = $cookies;
+        return $clone;
+    }
+
+    public function getCookies()
+    {
+        return $this->cookies;
     }
 
     public function getContentType()
@@ -85,6 +99,11 @@ abstract class Message implements MessageInterface
         $clone = clone $this;
         unset($clone->headers[$name]);
         return $clone;
+    }
+
+    public function hasBody()
+    {
+        return null !== $this->body;
     }
 
     public function withBody(StreamInterface $body)

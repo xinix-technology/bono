@@ -21,7 +21,10 @@ class BodyParserTest extends BonoTestCase
         ]);
         $context->setRequest($context->getRequest()->withHeader('Content-Type', 'application/x-www-form-urlencoded'));
 
-        $context->getRequest()->getBody()->write('foo=bar');
+        $stream = new Stream();
+        $stream->write('foo=bar');
+        $stream->rewind();
+        $context->setRequest($context->getRequest()->withBody($stream));
         $middleware($context, function() {
 
         });

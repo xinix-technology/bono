@@ -96,6 +96,9 @@ class Context implements ArrayAccess
 
     public function setBody($body)
     {
+        if ($this->response->hasBody()) {
+            $this->response->getBody()->close();
+        }
         $this->response = $this->response->withBody($body);
         return $this;
     }
@@ -214,6 +217,23 @@ class Context implements ArrayAccess
     public function getHeaderLine($key)
     {
         return $this->request->getHeaderLine($key);
+    }
+
+    public function getCookie($name)
+    {
+        return $this->request->getCookie($name);
+    }
+
+    public function setCookie($name, $value = '', $expire = 0, $path = '', $domain = '', $secure = false, $httponly = false)
+    {
+        $this->response = $this->response->withCookie($name, $value, $expire, $path, $domain, $secure, $httponly);
+        return $this;
+    }
+
+    public function removeCookie($name, $path = '', $domain = '', $secure = false, $httponly = false)
+    {
+        $this->response = $this->response->withoutCookie($name, $path, $domain, $secure, $httponly);
+        return $this;
     }
 
     public function setContentType($contentType)

@@ -79,7 +79,7 @@ class ContentNegotiator extends UtilCollection
 
     protected function finalize(Context $context)
     {
-        if ($context['@renderer.rendered']) {
+        if ($context['@renderer.rendered'] || $context->getResponse()->hasBody()) {
             return;
         }
 

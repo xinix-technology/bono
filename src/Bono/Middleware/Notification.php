@@ -43,9 +43,7 @@ class Notification
     public function render(Context $context, array $options = null)
     {
         // low level unset because session already persisted
-        if (isset($_SESSION['notification'])) {
-            unset($_SESSION['notification']);
-        }
+        $context->call('@session', 'remove', 'notification');
 
         if (null === $options) {
             return $this->render($context, ['level' => 'error']) . "\n" . $this->render($context, ['level' => 'info']);

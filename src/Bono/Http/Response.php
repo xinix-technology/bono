@@ -156,4 +156,16 @@ class Response extends Message implements ResponseInterface
             throw new BonoException('ReasonPhrase must be a string');
         }
     }
+
+    public function withCookie($name, $value = '', $expire = 0, $path = '', $domain = '', $secure = false, $httponly = false)
+    {
+        $this->cookies->set($name, $value, $expire, $path, $domain, $secure, $httponly);
+        return $this;
+    }
+
+    public function withoutCookie($name, $path = '', $domain = '', $secure = false, $httponly = false)
+    {
+        $this->cookies->remove($name, $path, $domain, $secure, $httponly);
+        return $this;
+    }
 }

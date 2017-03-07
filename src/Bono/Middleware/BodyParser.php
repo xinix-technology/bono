@@ -50,8 +50,11 @@ class BodyParser
             if (!isset($this->parsers[$contentType])) {
                 throw new BonoException('Cannot found parser for ' . $contentType);
             }
+
+            $bodyString = (string)$context->getRequest()->getBody();
+
             $parser = $this->parsers[$contentType];
-            $context->setParsedBody($parser((string)$context->getRequest()->getBody()));
+            $context->setParsedBody($parser($bodyString));
         }
 
         $next($context);

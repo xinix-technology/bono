@@ -23,7 +23,7 @@ class Headers extends Collection
         foreach ($var as $key => $value) {
             $key = strtoupper($key);
             if (isset(static::$special[$key]) || strpos($key, 'HTTP_') === 0) {
-                if ($key !== 'HTTP_CONTENT_LENGTH') {
+                if ('HTTP_CONTENT_LENGTH' !== $key && 'HTTP_COOKIE' !== $key) {
                     $k = preg_replace('/^HTTP_([A-Z_]+)$/', '$1', $key);
                     $data[str_replace('_', '-', $k)] =  $value;
                 }

@@ -3,6 +3,7 @@
 namespace Bono;
 
 use Bono\Http\Context;
+use Bono\Http\Cookies;
 use Bono\Http\Request;
 use Bono\Http\Response;
 use Bono\Http\Headers;
@@ -48,8 +49,10 @@ class App extends Bundle
 
     public function __construct(array $options = [], Injector $injector = null)
     {
+        $this->configureErrorHandler(isset($options['error.handler']) ? $options['error.handler'] : ErrorHandler::class);
+
         $this->injector = null === $injector ? Injector::getInstance() : $injector;
-        $this->injector->singleton(static::class, $this);
+        $this->injector->singleton(App::class, $this);
 
         $this->envVars = $_SERVER;
 
@@ -60,23 +63,22 @@ class App extends Bundle
             'date.timezone' => 'UTC',
             'route.dispatcher' => 'simple',
             'response.chunkSize' => 4096,
-            'error.handler' => ErrorHandler::class,
             // 'response.contentType' => 'text/html',
         ];
         $optionsPath = isset($options['config.path']) ? $options['config.path'] : $defaultOptions['config.path'];
 
         Options::setEnv($defaultOptions['env']);
 
+
         $options = (new Options($defaultOptions))
             ->mergeFile($optionsPath . '/config.php')
             ->merge($options)
             ->toArray();
 
+
         date_default_timezone_set($options['date.timezone']);
 
         parent::__construct($this, $options);
-
-        $this->configureErrorHandler();
 
         $this->configureLoggers();
     }
@@ -99,11 +101,11 @@ class App extends Bundle
         return $this['cli'];
     }
 
-    protected function configureErrorHandler()
+    protected function configureErrorHandler($ErrorHandler)
     {
         if (!$this->isCli()) {
-            $ErrorHandler = $this['error.handler'] ?: 'ErrorHandler';
             $this->errorHandler = new $ErrorHandler($this);
+            $this->errorHandler->register();
         }
     }
 
@@ -120,8 +122,10 @@ class App extends Bundle
     {
         $uri = Uri::byEnvironment($this->envVars, $this->isCli());
         $headers = Headers::byEnvironment($this->envVars);
-        $request = new Request($this->isCli() ? 'GET' : $this->envVars['REQUEST_METHOD'], $uri, $headers);
-        $response = new Response();
+        $cookies = Cookies::byEnvironment($this->envVars);
+        $request = (new Request($this->isCli() ? 'GET' : $this->envVars['REQUEST_METHOD'], $uri, $headers))
+            ->withCookies($cookies);
+        $response = (new Response())->withCookies($cookies);
         $context = new Context($this, $request, $response);
         return $context;
     }
@@ -152,7 +156,7 @@ class App extends Bundle
         $this->respond($context);
     }
 
-    protected function respond(Context $context, &$filename = null)
+    protected function respond(Context $context)
     {
         $response = $context->getResponse();
 
@@ -161,7 +165,6 @@ class App extends Bundle
             $response->write($response->getReasonPhrase());
         }
 
-        $headers = $response->getHeaders();
         if (!headers_sent() || isset($GLOBALS['test-coverage'])) {
             @header(sprintf(
                 'HTTP/%s %s %s',
@@ -172,6 +175,10 @@ class App extends Bundle
 
             foreach ($response->getHeaders()->normalize() as $name => $value) {
                 @header(sprintf('%s: %s', $name, implode(', ', $value ?: [])), false);
+            }
+
+            foreach ($response->getCookies()->getSets() as $name => $value) {
+                call_user_func_array('setcookie', $value);
             }
         }
 
@@ -187,6 +194,8 @@ class App extends Bundle
                     echo $body->read($this['response.chunkSize']);
                 }
             }
+
+            $body->close();
         }
     }
 

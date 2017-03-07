@@ -116,7 +116,7 @@ class Bundle extends UtilCollection
         }
 
         if (!isset($route['methods'])) {
-            $route['methods'] = [strtoupper(isset($route['method']) ? $route['method'] : 'get')];
+            $route['methods'] = [strtoupper(isset($route['method']) ? $route['method'] : 'GET')];
             unset($route['method']);
         }
 
@@ -187,7 +187,6 @@ class Bundle extends UtilCollection
         } else {
             $context->throwError(404);
         }
-
     }
 
     public function getBundleFor($path)

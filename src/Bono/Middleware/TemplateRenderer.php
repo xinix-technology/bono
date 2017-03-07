@@ -48,7 +48,10 @@ class TemplateRenderer extends UtilCollection
             $context->setStatus($err->getStatusCode());
         }
 
-        if (!$context['@renderer.rendered'] && $this['accepts'][$context->getContentType() ?: 'text/html']) {
+        if (
+            (!($context['@renderer.rendered'] || $context->getResponse()->hasBody())) &&
+            $this['accepts'][$context->getContentType() ?: 'text/html']
+        ) {
             $statusCode = $context->getStatusCode();
             if ($statusCode >= 500) {
                 // $context['@renderer.template'] = $statusCode;

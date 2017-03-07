@@ -10,18 +10,17 @@ class StaticPage
         $renderer = $context['@renderer'];
         if (null === $renderer) {
             $next($context);
-            return;
-        }
-
-        $template = '__static__/' . (trim($context->getUri()->getPath(), '/') ?: 'index');
-
-        if ($renderer->resolve($template)) {
-            $context->apply(function($context) use ($template) {
-                $context->setStatus(200)->setContentType('text/html');
-                $context['@renderer.template'] = $template;
-            });
         } else {
-            $next($context);
+            $template = '__static__/' . (trim($context->getUri()->getPath(), '/') ?: 'index');
+
+            if ($renderer->resolve($template)) {
+                $context->apply(function($context) use ($template) {
+                    $context->setStatus(200)->setContentType('text/html');
+                    $context['@renderer.template'] = $template;
+                });
+            } else {
+                $next($context);
+            }
         }
     }
 }

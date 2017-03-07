@@ -17,6 +17,8 @@ class ErrorHandler extends WhoopsRun
     {
         $this->app = $app;
 
+        $this->allowQuit(false);
+
         $this->handler = new PrettyPageHandler();
 
         $this->handler->addResourcePath(__DIR__.'/../../templates/vendor/whoops');
@@ -26,8 +28,11 @@ class ErrorHandler extends WhoopsRun
 
         $this->pushHandler($this->handler);
         $this->pushHandler([ $this, 'obHandler' ]);
+    }
 
-        $this->register();
+    public function getHandler()
+    {
+        return $this->handler;
     }
 
     public function obHandler()
@@ -46,6 +51,19 @@ class ErrorHandler extends WhoopsRun
         // restart output buffer for error show
         for($i = 0; $i < $levels; $i++) {
             ob_start();
+        }
+    }
+
+    public function handleException(Exception $exception, $returnResult = false)
+    {
+        if ($returnResult) {
+            $writeToOutput = $this->writeToOutput();
+            $this->writeToOutput(false);
+            $result = parent::handleException($exception);
+            $this->writeToOutput($writeToOutput);
+            return $result;
+        } else {
+            parent::handleException($exception);
         }
     }
 }
