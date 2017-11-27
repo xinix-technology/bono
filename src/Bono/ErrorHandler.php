@@ -24,10 +24,10 @@ class ErrorHandler
 
         $this->handler = new PrettyPageHandler();
 
-        $this->handler->addResourcePath(__DIR__.'/../../templates/vendor/whoops');
-        if (is_readable('../templates/vendor/whoops')) {
-            $this->handler->addResourcePath('../templates/vendor/whoops');
-        }
+        // $this->handler->addResourcePath(__DIR__.'/../../templates/vendor/whoops');
+        // if (is_readable('../templates/vendor/whoops')) {
+        //     $this->handler->addResourcePath('../templates/vendor/whoops');
+        // }
 
         $this->runner->pushHandler($this->handler);
         $this->runner->pushHandler([ $this, 'obHandler' ]);
