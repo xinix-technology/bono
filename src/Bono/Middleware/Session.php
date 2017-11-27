@@ -80,7 +80,12 @@ class Session
         $context['@session.id'] = $this->adapter->getId($context, $options);
 
         if ($options['lifetime'] > 0) {
-            $context->setCookie($options['name'], $context['@session.id'], time() + $options['lifetime'], $options['path']);
+            $context->setCookie(
+                $options['name'],
+                $context['@session.id'],
+                time() + $options['lifetime'],
+                $options['path']
+            );
             $context->setCookie('keep', $options['lifetime'], time() + $options['lifetime'], $options['path']);
         } else {
             $context->setCookie($options['name'], $context['@session.id'], 0, $options['path']);

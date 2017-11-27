@@ -129,7 +129,6 @@ class Request extends Message implements ServerRequestInterface
         $uri = $this->getUri()->shift($path);
         $this->attributes['route.uri'] = $uri;
         return $this->withUri($uri);
-
     }
 
     public function unshift($path)

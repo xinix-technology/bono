@@ -79,7 +79,7 @@ class Uri implements UriInterface
 
         if (stripos($requestUri, $requestScriptName) === 0) {
             $basePath = $requestScriptName;
-        // } elseif ($requestScriptDir !== '/' && stripos($requestUri, $requestScriptDir) === 0) {
+            // } elseif ($requestScriptDir !== '/' && stripos($requestUri, $requestScriptDir) === 0) {
         //     // $basePath = $requestScriptDir;
         //     throw new \Exception('Never been here yet?');
         }
@@ -348,7 +348,6 @@ class Uri implements UriInterface
         $clone = clone $this;
         $clone->port = $port;
         return $clone;
-
     }
 
     public function withPath($path)
@@ -368,7 +367,6 @@ class Uri implements UriInterface
         $clone->calculatePath($clone->path);
 
         return $clone;
-
     }
 
     public function withQuery($query)

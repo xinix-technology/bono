@@ -89,7 +89,9 @@ class Notification
     protected function getData(Context $context)
     {
         if (null === $context['@notification.data']) {
-            $context['@notification.data'] = new UtilCollection($context->call('@session', 'get', 'notification') ?: []);
+            $context['@notification.data'] = new UtilCollection(
+                $context->call('@session', 'get', 'notification') ?: []
+            );
         }
         return $context['@notification.data'];
     }

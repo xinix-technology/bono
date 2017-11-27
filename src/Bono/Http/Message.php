@@ -67,7 +67,6 @@ abstract class Message implements MessageInterface
     public function hasHeader($name)
     {
         return isset($this->headers[$name]);
-
     }
 
     public function getHeader($name)

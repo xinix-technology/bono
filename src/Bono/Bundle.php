@@ -162,7 +162,7 @@ class Bundle extends UtilCollection
         if (null !== ($routeInfo = $context['route.info'])) {
             switch ($routeInfo[0]) {
                 case Dispatcher::FOUND:
-                    $context->apply(function($context) use ($routeInfo) {
+                    $context->apply(function ($context) use ($routeInfo) {
                         $context->setStatus(200);
 
                         foreach ($routeInfo[2] as $k => $v) {

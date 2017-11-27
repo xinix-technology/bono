@@ -53,7 +53,7 @@ class Stream implements StreamInterface
     {
         $this->rewind();
         $result = [];
-        while(!$this->eof()) {
+        while (!$this->eof()) {
             $chunk = $this->read(1024);
             $result[] = $chunk;
         }

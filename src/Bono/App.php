@@ -78,7 +78,9 @@ class App extends Bundle
 
         parent::__construct($this, $options);
 
-        $this->configureErrorHandler(isset($options['error.handler']) ? $options['error.handler'] : ErrorHandler::class);
+        $this->configureErrorHandler(
+            isset($options['error.handler']) ? $options['error.handler'] : ErrorHandler::class
+        );
         $this->configureLoggers();
     }
 
@@ -224,5 +226,4 @@ class App extends Bundle
 
         return isset($this->loggers[$name]) ? $this->loggers[$name] : null;
     }
-
 }

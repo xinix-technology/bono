@@ -1,8 +1,8 @@
 <?php
 namespace Bono\Http;
 
-class Cookies {
-
+class Cookies
+{
     protected $attributes;
 
     protected $sets = [];

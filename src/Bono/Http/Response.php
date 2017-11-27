@@ -157,8 +157,15 @@ class Response extends Message implements ResponseInterface
         }
     }
 
-    public function withCookie($name, $value = '', $expire = 0, $path = '', $domain = '', $secure = false, $httponly = false)
-    {
+    public function withCookie(
+        $name,
+        $value = '',
+        $expire = 0,
+        $path = '',
+        $domain = '',
+        $secure = false,
+        $httponly = false
+    ) {
         $this->cookies->set($name, $value, $expire, $path, $domain, $secure, $httponly);
         return $this;
     }

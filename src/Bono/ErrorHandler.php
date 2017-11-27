@@ -7,9 +7,11 @@ use Whoops\Run as WhoopsRun;
 use Exception;
 use Bono\App;
 
-class ErrorHandler extends WhoopsRun
+class ErrorHandler
 {
     protected $app;
+
+    protected $runner;
 
     protected $handler;
 
@@ -17,7 +19,8 @@ class ErrorHandler extends WhoopsRun
     {
         $this->app = $app;
 
-        $this->allowQuit(false);
+        $this->runner = new WhoopsRun();
+        $this->runner->allowQuit(false);
 
         $this->handler = new PrettyPageHandler();
 
@@ -26,8 +29,13 @@ class ErrorHandler extends WhoopsRun
             $this->handler->addResourcePath('../templates/vendor/whoops');
         }
 
-        $this->pushHandler($this->handler);
-        $this->pushHandler([ $this, 'obHandler' ]);
+        $this->runner->pushHandler($this->handler);
+        $this->runner->pushHandler([ $this, 'obHandler' ]);
+    }
+
+    public function register()
+    {
+        $this->runner->register();
     }
 
     public function getHandler()
@@ -49,7 +57,7 @@ class ErrorHandler extends WhoopsRun
         $this->handler->addDataTable('Output Buffers', $obs);
 
         // restart output buffer for error show
-        for($i = 0; $i < $levels; $i++) {
+        for ($i = 0; $i < $levels; $i++) {
             ob_start();
         }
     }
@@ -59,11 +67,11 @@ class ErrorHandler extends WhoopsRun
         if ($returnResult) {
             $writeToOutput = $this->writeToOutput();
             $this->writeToOutput(false);
-            $result = parent::handleException($exception);
+            $result = $this->runner->handleException($exception);
             $this->writeToOutput($writeToOutput);
             return $result;
         } else {
-            parent::handleException($exception);
+            $this->runner->handleException($exception);
         }
     }
 }

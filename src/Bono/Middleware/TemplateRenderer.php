@@ -35,7 +35,6 @@ class TemplateRenderer extends UtilCollection
         }
 
         parent::__construct($options);
-
     }
 
     public function __invoke(Context $context, callable $next)
@@ -48,8 +47,7 @@ class TemplateRenderer extends UtilCollection
             $context->setStatus($err->getStatusCode());
         }
 
-        if (
-            (!($context['@renderer.rendered'] || $context->getResponse()->hasBody())) &&
+        if ((!($context['@renderer.rendered'] || $context->getResponse()->hasBody())) &&
             $this['accepts'][$context->getContentType() ?: 'text/html']
         ) {
             $statusCode = $context->getStatusCode();

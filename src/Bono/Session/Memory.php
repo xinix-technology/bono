@@ -13,7 +13,7 @@ class Memory
         if (!isset($this->data[$id])) {
             do {
                 $id = uniqid('');
-            } while(isset($this->data[$id]));
+            } while (isset($this->data[$id]));
             $this->data[$id] = [];
         }
         return $id;

@@ -224,8 +224,15 @@ class Context implements ArrayAccess
         return $this->request->getCookie($name);
     }
 
-    public function setCookie($name, $value = '', $expire = 0, $path = '', $domain = '', $secure = false, $httponly = false)
-    {
+    public function setCookie(
+        $name,
+        $value = '',
+        $expire = 0,
+        $path = '',
+        $domain = '',
+        $secure = false,
+        $httponly = false
+    ) {
         $this->response = $this->response->withCookie($name, $value, $expire, $path, $domain, $secure, $httponly);
         return $this;
     }
