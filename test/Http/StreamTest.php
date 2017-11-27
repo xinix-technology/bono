@@ -1,11 +1,12 @@
 <?php
 namespace Bono\Test\Http;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Http\Stream;
 use Bono\Exception\BonoException;
 
-class StreamTest extends PHPUnit_Framework_TestCase {
+class StreamTest extends TestCase
+{
     public function testClose()
     {
         $stream = new Stream();
@@ -36,12 +37,14 @@ class StreamTest extends PHPUnit_Framework_TestCase {
         $stream->seek(1);
         $this->assertEquals($stream->read(1), 'o');
 
-        $stream = $this->getMock(Stream::class, ['isSeekable']);
+        $stream = $this->getMockBuilder(Stream::class)
+            ->setMethods(['isSeekable'])
+            ->getMock();
         $stream->method('isSeekable')->will($this->returnValue(false));
         try {
             $stream->seek(1);
             $this->fail('Must not here');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Could not seek in stream') {
                 throw $e;
             }
@@ -55,12 +58,14 @@ class StreamTest extends PHPUnit_Framework_TestCase {
         $stream->rewind();
         $this->assertEquals($stream->getContents(), 'foo');
 
-        $stream = $this->getMock(Stream::class, ['isReadable']);
+        $stream = $this->getMockBuilder(Stream::class)
+            ->setMethods(['isReadable'])
+            ->getMock();
         $stream->method('isReadable')->will($this->returnValue(false));
         try {
             $stream->getContents();
             $this->fail('Must not here');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Could not get contents of stream') {
                 throw $e;
             }
@@ -78,7 +83,7 @@ class StreamTest extends PHPUnit_Framework_TestCase {
             $stream->close();
             $stream->rewind();
             $this->fail('Must not reach here');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Could not rewind stream') {
                 throw $e;
             }
@@ -93,10 +98,11 @@ class StreamTest extends PHPUnit_Framework_TestCase {
             $stream->close();
             $stream->write('foo bar');
             $this->fail('Must not reach here');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Could not write to stream') {
                 throw $e;
             }
+            $this->assertTrue(true);
         }
     }
 
@@ -110,7 +116,7 @@ class StreamTest extends PHPUnit_Framework_TestCase {
             $stream->close();
             $stream->read(4);
             $this->fail('Must not reach here');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Could not read from stream') {
                 throw $e;
             }

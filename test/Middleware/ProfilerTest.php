@@ -14,11 +14,14 @@ class ProfilerTest extends BonoTestCase
     {
         $m = new Profiler();
 
-        $context = $this->getMock(Context::class, [], [
-            $this->app,
-            $this->getMock(Request::class),
-            $this->getMock(Response::class),
-        ]);
+        $context = $this->getMockBuilder(Context::class)
+            // ->setMethods([])
+            ->setConstructorArgs([
+                $this->app,
+                $this->createMock(Request::class),
+                $this->createMock(Response::class),
+            ])
+            ->getMock();
 
         $set = [];
 

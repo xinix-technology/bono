@@ -1,11 +1,12 @@
 <?php
 namespace Bono\Test\Http;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Http\Uri;
 use Bono\Exception\BonoException;
 
-class UriTest extends PHPUnit_Framework_TestCase {
+class UriTest extends TestCase
+{
     public function testDefaultUri()
     {
         $uri = new Uri();
@@ -27,11 +28,10 @@ class UriTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals($uri->getHost(), 'www.example.net');
         $this->assertEquals($uri->getPort(), 80);
 
-        $_SERVER['HTTP_HOST'] = 'www.example.net:8080';
+        $_SERVER['HTTP_X_FORWARDED_HOST'] = 'www.example.net:8080';
         $uri = Uri::byEnvironment($_SERVER);
         $this->assertEquals($uri->getHost(), 'www.example.net');
         $this->assertEquals($uri->getPort(), 8080);
-
     }
 
     public function testByEnvironmentWithServerName()
@@ -66,7 +66,7 @@ class UriTest extends PHPUnit_Framework_TestCase {
         try {
             $uri = $uri->withPathname(80);
             $this->fail('Uncaught end');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Uri pathname must be a string') {
                 throw $e;
             }
@@ -91,7 +91,7 @@ class UriTest extends PHPUnit_Framework_TestCase {
         try {
             $uri = new Uri(33);
             $this->fail('Uncaught end');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Uri scheme must be a string') {
                 throw $e;
             }
@@ -100,10 +100,11 @@ class UriTest extends PHPUnit_Framework_TestCase {
         try {
             $uri = new Uri('some-scheme');
             $this->fail('Uncaught end');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if (strpos($e->getMessage(), 'Uri scheme must be one of') !== 0) {
                 throw $e;
             }
+            $this->assertTrue(true);
         }
     }
 
@@ -112,10 +113,11 @@ class UriTest extends PHPUnit_Framework_TestCase {
         try {
             $uri = new Uri('', '', 'unknown-port');
             $this->fail('Uncaught end');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if (strpos($e->getMessage(), 'Uri port must be null or an integer') !== 0) {
                 throw $e;
             }
+            $this->assertTrue(true);
         }
     }
 
@@ -125,10 +127,11 @@ class UriTest extends PHPUnit_Framework_TestCase {
         try {
             $uri = $uri->withBasePath(80);
             $this->fail('Uncaught end');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Uri path must be a string') {
                 throw $e;
             }
+            $this->assertTrue(true);
         }
     }
 
@@ -138,10 +141,11 @@ class UriTest extends PHPUnit_Framework_TestCase {
         try {
             $uri = $uri->withPath(80);
             $this->fail('Uncaught end');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Uri path must be a string') {
                 throw $e;
             }
+            $this->assertTrue(true);
         }
     }
 
@@ -151,16 +155,18 @@ class UriTest extends PHPUnit_Framework_TestCase {
         try {
             $uri = $uri->withQuery(80);
             $this->fail('Uncaught end');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Query string must be a string') {
                 throw $e;
             }
+            $this->assertTrue(true);
         }
     }
 
     public function testScheme()
     {
         $uri = Uri::byEnvironment($_SERVER);
+        $uri = $uri->withScheme('http');
         $this->assertEquals($uri->getScheme(), 'http');
         $uri = $uri->withScheme('https');
         $this->assertEquals($uri->getScheme(), 'https');
@@ -177,6 +183,7 @@ class UriTest extends PHPUnit_Framework_TestCase {
 
     public function testPort()
     {
+        $_SERVER['HTTP_X_FORWARDED_HOST'] = 'www.example.net';
         $uri = Uri::byEnvironment($_SERVER);
         $this->assertEquals($uri->getPort(), 80);
 
@@ -195,7 +202,7 @@ class UriTest extends PHPUnit_Framework_TestCase {
         try {
             $uri = $uri->withFragment(new \stdClass());
             $this->fail('Uncaught end');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Uri fragment must be a string') {
                 throw $e;
             }

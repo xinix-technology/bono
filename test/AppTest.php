@@ -51,8 +51,12 @@ class AppTest extends BonoTestCase
         $app = new App(['cli' => false ]);
         $this->assertInstanceOf(ErrorHandler::class, $app->getErrorHandler());
 
-        $app = new App(['cli' => false, 'error.handler' => Foo::class ]);
-        $this->assertInstanceOf(Foo::class, $app->getErrorHandler());
+        $errorHandler = $this->getMockBuilder(\stdClass::class)
+            ->setMethods(['register'])
+            ->getMock();
+
+        $app = new App(['cli' => false, 'error.handler' => $errorHandler ]);
+        $this->assertEquals($errorHandler, $app->getErrorHandler());
     }
 
     public function testAddAndGetLogger()
@@ -75,5 +79,3 @@ class AppTest extends BonoTestCase
         $this->assertInstanceOf(\Monolog\Logger::class, $app->getLogger('bar'));
     }
 }
-
-class Foo {}

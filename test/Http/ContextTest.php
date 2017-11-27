@@ -1,7 +1,7 @@
 <?php
 namespace Bono\Test\Http;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Test\BonoTestCase;
 use Bono\Http\Context;
 use Bono\Http\Request;
@@ -28,11 +28,14 @@ class ContextTest extends BonoTestCase {
 
     public function testGetParam()
     {
-        $context = $this->getMock(Context::class, ['getParsedBody'], [
-            $this->app,
-            new Request(),
-            new Response()
-        ]);
+        $context = $this->getMockBuilder(Context::class)
+            ->setMethods(['getParsedBody'])
+            ->setConstructorArgs([
+                $this->app,
+                new Request(),
+                new Response()
+            ])
+            ->getMock();
 
         $context->method('getParsedBody')->will($this->returnValue([
             'post-foo' => 'post-bar',
@@ -110,7 +113,9 @@ class ContextTest extends BonoTestCase {
     public function testCall()
     {
         $context = Injector::getInstance()->resolve(Context::class);
-        $context['@foo'] = $this->getMock(\stdClass::class, ['bar']);
+        $context['@foo'] = $this->getMockBuilder(\stdClass::class)
+            ->setMethods(['bar'])
+            ->getMock();
         $context['@foo']->expects($this->once())->method('bar');
 
         $context->call('@foo', 'bar');

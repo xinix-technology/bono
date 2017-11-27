@@ -17,27 +17,29 @@ class TempateRendererTest extends BonoTestCase
         try {
             new TemplateRenderer($this->app);
             $this->fail('Must throw Exception');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
+            $this->assertTrue(true);
         }
     }
 
     public function testInvokeOnContextExceptionThrown()
     {
         $middleware = new TemplateRenderer($this->app, [
-            'renderer' => $this->getMock(RendererInterface::class),
+            'renderer' => $this->createMock(RendererInterface::class),
         ]);
 
         $context = Injector::getInstance()->resolve(Context::class);
-        $middleware($context, function($context) {
+        $middleware($context, function ($context) {
             $context->throwError(412);
         });
+        $this->assertTrue(true);
     }
 
 
     public function testInvokeOn200AlreadyDefineResponseTemplate()
     {
         $middleware = new TemplateRenderer($this->app, [
-            'renderer' => $this->getMock(RendererInterface::class),
+            'renderer' => $this->createMock(RendererInterface::class),
         ]);
 
         $context = Injector::getInstance()->resolve(Context::class);
@@ -51,7 +53,7 @@ class TempateRendererTest extends BonoTestCase
     public function testInvokeOn200TemplateSetFromRouteInfo()
     {
         $middleware = new TemplateRenderer($this->app, [
-            'renderer' => $this->getMock(RendererInterface::class),
+            'renderer' => $this->createMock(RendererInterface::class),
         ]);
 
         $context = Injector::getInstance()->resolve(Context::class);
@@ -65,7 +67,7 @@ class TempateRendererTest extends BonoTestCase
     public function testInvokeOn200DetectTemplate()
     {
         $middleware = new TemplateRenderer($this->app, [
-            'renderer' => $this->getMock(RendererInterface::class),
+            'renderer' => $this->createMock(RendererInterface::class),
         ]);
 
         $context = Injector::getInstance()->resolve(Context::class);
@@ -79,7 +81,7 @@ class TempateRendererTest extends BonoTestCase
     public function testInvokeOn404()
     {
         $middleware = new TemplateRenderer($this->app, [
-            'renderer' => $this->getMock(RendererInterface::class),
+            'renderer' => $this->createMock(RendererInterface::class),
         ]);
 
         $context = Injector::getInstance()->resolve(Context::class);
@@ -92,7 +94,7 @@ class TempateRendererTest extends BonoTestCase
     public function testInvokeOn405()
     {
         $middleware = new TemplateRenderer($this->app, [
-            'renderer' => $this->getMock(RendererInterface::class),
+            'renderer' => $this->createMock(RendererInterface::class),
         ]);
 
         $context = Injector::getInstance()->resolve(Context::class);
@@ -104,7 +106,7 @@ class TempateRendererTest extends BonoTestCase
 
     public function testResolve()
     {
-        $renderer = $this->getMock(RendererInterface::class);
+        $renderer = $this->createMock(RendererInterface::class);
         $renderer->expects($this->once())->method('resolve');
         $middleware = new TemplateRenderer($this->app, [
             'renderer' => $renderer,
@@ -115,7 +117,7 @@ class TempateRendererTest extends BonoTestCase
 
     public function testRender()
     {
-        $renderer = $this->getMock(RendererInterface::class);
+        $renderer = $this->createMock(RendererInterface::class);
         $renderer->expects($this->once())->method('render');
         $middleware = new TemplateRenderer($this->app, [
             'renderer' => $renderer,
@@ -127,7 +129,7 @@ class TempateRendererTest extends BonoTestCase
     public function testAddTemplatePath()
     {
         $middleware = new TemplateRenderer($this->app, [
-            'renderer' => $this->getMock(RendererInterface::class),
+            'renderer' => $this->createMock(RendererInterface::class),
         ]);
 
         $this->assertEquals(count($middleware['templatePaths']), 1);
@@ -139,13 +141,13 @@ class TempateRendererTest extends BonoTestCase
     public function testGetRendererThrowExceptionOnRendererNotRendererInterface()
     {
         $middleware = new TemplateRenderer($this->app, [
-            'renderer' => $this->getMock(stdClass::class),
+            'renderer' => $this->createMock(\stdClass::class),
         ]);
 
         try {
             $middleware->resolve('/');
             $this->fail('Should throw exception');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             $this->assertEquals($e->getMessage(), 'Renderer must be instance of RendererInterface');
         }
     }

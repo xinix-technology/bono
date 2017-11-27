@@ -13,7 +13,10 @@ class RestTest extends BonoTestCase
 {
     public function testConstruct()
     {
-        $bundle = $this->getMock(Rest::class, ['search', 'create', 'read', 'update', 'delete', 'getSchema'], [$this->app]);
+        $bundle = $this->getMockBuilder(Rest::class)
+            ->setMethods(['search', 'create', 'read', 'update', 'delete', 'getSchema'])
+            ->setConstructorArgs([$this->app])
+            ->getMock();
 
         $context = Injector::getInstance()->resolve(Context::class, [
             'request' => new Request('GET', new Uri('http', 'localhost', 80, '/'))
@@ -22,16 +25,17 @@ class RestTest extends BonoTestCase
         try {
             $bundle->dispatch($context);
             $this->fail('Must throw exception');
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             if ($e instanceof \PHPUnit_Framework_AssertionFailedError) {
                 throw $e;
             }
+            $this->assertTrue(true);
         }
 
         $context = Injector::getInstance()->resolve(Context::class, [
             'request' => new Request('GET', new Uri('http', 'localhost', 80, '/'))
         ]);
-        $context['@bodyParser'] = $this->getMock(stdClass::class);
+        $context['@bodyParser'] = $this->createMock(\stdClass::class);
 
         $bundle->dispatch($context);
     }

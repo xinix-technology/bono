@@ -12,7 +12,6 @@ Bono, Sebuah Framework PHP
 
 Bono V2 adalah framework aplikasi web berbasis PHP. Bono versi 2 ini telah di-reengineering dan tidak lagi berbasis Slim Framework dan telah comply dengan standar PSR-7. Komponen utama Bono adalah routing. Setiap halamannya memiliki representasi routing.
 
-
 ## Terminologi
 
 Bono memiliki memiliki dua elemen utama yaitu Middleware dan Bundle.
@@ -35,6 +34,7 @@ Bundle dapat menambahkan kemampuan pada aplikasi berbasis Bono. Contoh: modul ch
 Routing adalah kemampuan pada Bono untuk mendefinisikan pengalihan Request untuk ditangani oleh spesifik fungsi berdasarkan pola URI.
 
 ## Mengapa menggunakan Bono?
+
 - Sangat cepat dalam membangun aplikasi web.
 - Operasi Search, Create, Read, Update dan Delete dapat dilakukan dengan scaffolding.
 
@@ -45,6 +45,7 @@ Bono V2 tidak menyediakan default templating. Tapi kamu bisa menggunakan Templat
 ## Kebutuhan Sistem
 
 Yang diperlukan untuk membangun aplikasi menggunakan Bono:
+
 - PHP 5.4+
 - Composer
 - Web Server (Apache, Nginx, LigHttpd, dll) or PHP Standalone

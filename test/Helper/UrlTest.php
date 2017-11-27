@@ -1,11 +1,11 @@
 <?php
 namespace Bono\Test\Helper;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Http\Uri;
 use Bono\Helper\Url;
 
-class UrlTest extends PHPUnit_Framework_TestCase
+class UrlTest extends TestCase
 {
     protected $uri;
 

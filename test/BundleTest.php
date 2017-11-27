@@ -50,7 +50,7 @@ class BundleTest extends BonoTestCase
                 'handler' => [ Bundle::class ]
             ]);
             $this->fail('Except throw error if missing uri');
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             if ($e instanceof \PHPUnit_Framework_AssertionFailedError) {
                 throw $e;
             }
@@ -61,7 +61,7 @@ class BundleTest extends BonoTestCase
                 'uri' =>  '/',
             ]);
             $this->fail('Except throw error if missing handler');
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             if ($e instanceof \PHPUnit_Framework_AssertionFailedError) {
                 throw $e;
             }
@@ -73,35 +73,31 @@ class BundleTest extends BonoTestCase
         $bundle = Injector::getInstance()->resolve(Bundle::class);
 
         $getRoute = function () {
-
         };
         $bundle->routeGet(['uri' => '/get', 'handler' => $getRoute]);
 
         $postRoute = function () {
-
         };
         $bundle->routePost(['uri' => '/post', 'handler' => $postRoute]);
 
         $putRoute = function () {
-
         };
         $bundle->routePut(['uri' => '/put', 'handler' => $putRoute]);
 
         $deleteRoute = function () {
-
         };
         $bundle->routeDelete(['uri' => '/delete', 'handler' => $deleteRoute]);
 
         $anyRoute = function () {
-
         };
         $bundle->routeAny(['uri' => '/any', 'handler' => $anyRoute]);
 
-        $route = function() {};
+        $route = function () {
+        };
         try {
             $bundle->routeMap(['handler' => $route]);
             $this->fail('Uri not specified');
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             if ($e instanceof \PHPUnit_Framework_AssertionFailedError) {
                 throw $e;
             }
@@ -136,14 +132,21 @@ class BundleTest extends BonoTestCase
 
     public function testDispatchRunMiddleware()
     {
-        $middlewareMock = $this->getMock(stdClass::class, ['first', 'second']);
+        $middlewareMock = $this->getMockBuilder(Observer::class)
+            ->setMethods(['first', 'second'])
+            ->getMock();
+
         $middlewareMock->expects($this->once())
             ->method('first');
         $middlewareMock->expects($this->once())
             ->method('second');
 
 
-        $bundle = $this->getMock(Bundle::class, ['__invoke'], [$this->app]);
+        $bundle = $this->getMockBuilder(Bundle::class)
+            ->setMethods(['__invoke'])
+            ->setConstructorArgs([$this->app])
+            ->getMock();
+
         $bundle->method('__invoke')
             ->willReturn(null);
 
@@ -163,7 +166,11 @@ class BundleTest extends BonoTestCase
     public function testDispatchToSubBundle()
     {
         $bundle = Injector::getInstance()->resolve(Bundle::class);
-        $fooBundle = $this->getMock(Bundle::class, ['dispatch'], [$this->app]);
+        $fooBundle = $this->getMockBuilder(Bundle::class)
+            ->setMethods(['dispatch'])
+            ->setConstructorArgs([$this->app])
+            ->getMock();
+
         $fooBundle->expects($this->once())
             ->method('dispatch');
 
@@ -182,7 +189,9 @@ class BundleTest extends BonoTestCase
     {
         $context = Injector::getInstance()->resolve(Context::class);
 
-        $bundle = $this->getMock(Bundle::class, null, [$this->app]);
+        $bundle = $this->getMockBuilder(Bundle::class)
+            ->setConstructorArgs([$this->app])
+            ->getMock();
         try {
             $bundle($context);
             $this->fail('Should caught exception');
@@ -206,7 +215,7 @@ class BundleTest extends BonoTestCase
                 'routes' => [
                     [
                         'uri' => '/foo/{bar}',
-                        'handler' => function($context) use (&$hits) {
+                        'handler' => function ($context) use (&$hits) {
                             $hits++;
                             $this->assertEquals($context['bar'], 'someBar');
                             return [
@@ -226,11 +235,14 @@ class BundleTest extends BonoTestCase
 
     public function testInvokeMethodNotAllowed()
     {
-        $context = $this->getMock(Context::class, [], [
-            $this->app,
-            $this->getMock(Request::class),
-            $this->getMock(Response::class),
-        ]);
+        $context = $this->getMockBuilder(Context::class)
+            ->setConstructorArgs([
+                $this->app,
+                $this->createMock(Request::class),
+                $this->createMock(Response::class),
+            ])
+            ->getMock();
+
         $context->method('offsetGet')
             ->will($this->returnCallback(function ($key) {
                 if ($key === 'route.info') {
@@ -250,7 +262,8 @@ class BundleTest extends BonoTestCase
         $bundle = Injector::getInstance()->resolve(Bundle::class, [
             'options' => [
                 'middlewares' => [
-                    function() {},
+                    function () {
+                    },
                     'trim',
                     [ 'Foo' ],
                     [ $foo, 'getMessage' ],
@@ -258,13 +271,14 @@ class BundleTest extends BonoTestCase
                 'bundles' => [
                     [
                         'uri' => '/foo',
-                        'handler' => $this->getMock(Bundle::class, [], [$this->app]),
+                        'handler' => $this->createMock(Bundle::class),
                     ],
                 ],
                 'routes' => [
                     [
                         'uri' => '/bar',
-                        'handler' => function() {}
+                        'handler' => function () {
+                        }
                     ]
                 ],
                 'baz' => 'custom attribute'

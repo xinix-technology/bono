@@ -1,21 +1,22 @@
 <?php
 namespace Bono\Test\Http;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Http\Headers;
 use Bono\Exception\BonoException;
 
-class HeadersTest extends PHPUnit_Framework_TestCase
+class HeadersTest extends TestCase
 {
     public function testConstruct()
     {
         try {
             $headers = new Headers('none');
             $this->fail('Must not here');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Init headers must be traversable') {
                 throw $e;
             }
+            $this->assertTrue(true);
         }
     }
 

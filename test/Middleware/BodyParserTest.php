@@ -25,8 +25,7 @@ class BodyParserTest extends BonoTestCase
         $stream->write('foo=bar');
         $stream->rewind();
         $context->setRequest($context->getRequest()->withBody($stream));
-        $middleware($context, function() {
-
+        $middleware($context, function () {
         });
 
         $body = $context->getParsedBody();
@@ -53,8 +52,7 @@ class BodyParserTest extends BonoTestCase
         $context->setRequest($context->getRequest()->withHeader('Content-Type', 'application/json')->withBody($fakeBody));
 
         // $_POST = ['foo' => 'bar'];
-        $middleware($context, function() {
-
+        $middleware($context, function () {
         });
 
         $body = $context->getParsedBody();
@@ -70,14 +68,16 @@ class BodyParserTest extends BonoTestCase
         ]);
 
         try {
-            $middleware($context, function($context) {
+            $middleware($context, function ($context) {
                 $body = $context->getParsedBody();
             });
             $this->fail('Must throw exception');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if (strpos($e->getMessage(), 'Cannot found parser for') !== 0) {
                 throw $e;
             }
+
+            $this->assertTrue(true);
         }
     }
 }

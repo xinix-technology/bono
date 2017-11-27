@@ -1,10 +1,10 @@
 <?php
 namespace Bono\Test\Exception;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Exception\ContextException;
 
-class ContextExceptionTest extends PHPUnit_Framework_TestCase
+class ContextExceptionTest extends TestCase
 {
     public function testConstructWithStatus()
     {

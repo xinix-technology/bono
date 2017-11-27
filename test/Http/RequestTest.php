@@ -5,7 +5,13 @@ use Bono\Test\BonoTestCase;
 use Bono\Http\Request;
 use Bono\Exception\BonoException;
 
-class RequestTest extends BonoTestCase {
+class RequestTest extends BonoTestCase
+{
+    public function setUp()
+    {
+        $_COOKIE = [];
+    }
+
     public function testAccepts()
     {
         $request = (new Request())

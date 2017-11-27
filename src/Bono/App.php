@@ -49,8 +49,6 @@ class App extends Bundle
 
     public function __construct(array $options = [], Injector $injector = null)
     {
-        $this->configureErrorHandler(isset($options['error.handler']) ? $options['error.handler'] : ErrorHandler::class);
-
         $this->injector = null === $injector ? Injector::getInstance() : $injector;
         $this->injector->singleton(App::class, $this);
 
@@ -80,6 +78,7 @@ class App extends Bundle
 
         parent::__construct($this, $options);
 
+        $this->configureErrorHandler(isset($options['error.handler']) ? $options['error.handler'] : ErrorHandler::class);
         $this->configureLoggers();
     }
 

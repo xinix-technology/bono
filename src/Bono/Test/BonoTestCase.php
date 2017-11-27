@@ -2,10 +2,10 @@
 
 namespace Bono\Test;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\App;
 
-class BonoTestCase extends PHPUnit_Framework_TestCase {
+class BonoTestCase extends TestCase {
     protected $app;
 
     public function setUp()

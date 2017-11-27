@@ -53,9 +53,11 @@ class StaticPageTest extends BonoTestCase
 
         // template found
         $context = Injector::getInstance()->resolve(Context::class, [ 'request' => $request ]);
-        $renderer = $context['@renderer'] = $this->getMock(TemplateRenderer::class, [], [$this->app, [
-            'renderer' => [],
-        ]]);
+        $renderer = $context['@renderer'] = $this->getMockBuilder(TemplateRenderer::class)
+            ->setConstructorArgs([$this->app, [
+                'renderer' => [],
+            ]])
+            ->getMock();
         $renderer->method('resolve')->will($this->returnValue(true));
 
 
@@ -65,9 +67,11 @@ class StaticPageTest extends BonoTestCase
 
         // template not found
         $context = Injector::getInstance()->resolve(Context::class, [ 'request' => $request ]);
-        $renderer = $context['@renderer'] = $this->getMock(TemplateRenderer::class, [], [$this->app, [
-            'renderer' => [],
-        ]]);
+        $renderer = $context['@renderer'] = $this->getMockBuilder(TemplateRenderer::class)
+            ->setConstructorArgs([$this->app, [
+                'renderer' => [],
+            ]])
+            ->getMock();
         $renderer->method('resolve')->will($this->returnValue(false));
 
         $middleware($context, $next);

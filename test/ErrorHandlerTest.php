@@ -22,6 +22,7 @@ class ErrorHandlerTest extends BonoTestCase
     public function testConstruct()
     {
         $errorHandler = new ErrorHandler($this->app);
+        $this->assertTrue(true);
     }
 
     public function testHandleException()
@@ -29,5 +30,6 @@ class ErrorHandlerTest extends BonoTestCase
         $errorHandler = new ErrorHandler($this->app);
         echo 'fill the ob';
         $errorHandler->handleException(new \Exception('Unfortunate event arise'));
+        $this->assertTrue(true);
     }
 }

@@ -2,10 +2,10 @@
 
 namespace Bono\Test\Route;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Route\Dispatcher;
 
-class DispatcherTest extends PHPUnit_Framework_TestCase
+class DispatcherTest extends TestCase
 {
     public function testDispatch()
     {
