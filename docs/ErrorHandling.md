@@ -6,11 +6,11 @@ Errors rise on development environment will be handled by Whoops.
 
 You can modify whoops layout templates inside `templates` directory.
 
-```
+```yml
 templates
-    - vendor
-        + whoops
-            * views
-                - ... here ...
-                - layout.html.php *example*
+  - vendor
+    + whoops
+      * views
+        - ... here ...
+        - layout.html.php *example*
 ```

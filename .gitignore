@@ -1,9 +1,8 @@
+# os specific
 .DS_Store
-/vendor
-/docs/api
 
 # dev only
-node_modules
 *.sublime-*
-/composer-*.json
-/coverage
+vendor
+node_modules
+coverage
