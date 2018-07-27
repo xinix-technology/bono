@@ -52,9 +52,9 @@ class Notification
         $messages = $this->query($context, $options);
         // TODO should defined renderer?
         if (!empty($messages)) {
-            $result = '<div class="notification__'.$options['level'].'">';
+            $result = '<div class="notification__' . $options['level'] . '">';
             foreach ($messages as $message) {
-                $result .= '<p>'.$message['message'].'</p> ';
+                $result .= '<p>' . $message['message'] . '</p> ';
             }
             $result .= '</div>';
             return $result;

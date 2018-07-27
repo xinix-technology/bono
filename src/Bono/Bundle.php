@@ -222,7 +222,7 @@ class Bundle extends UtilCollection
         foreach ($this->middlewares as $key => $middleware) {
             if (is_callable($middleware)) {
                 if (is_array($middleware)) {
-                    $middlewares[] = get_class($middleware[0]).'::'.$middleware[1];
+                    $middlewares[] = get_class($middleware[0]) . '::' . $middleware[1];
                 } elseif (is_string($middleware)) {
                     $middlewares[] = $middleware;
                 } else {
@@ -239,7 +239,7 @@ class Bundle extends UtilCollection
         }
 
         foreach ($this->routes as $route) {
-            $routes[] = implode(',', $route['methods']).' '.$route['pattern'];
+            $routes[] = implode(',', $route['methods']) . ' ' . $route['pattern'];
         }
 
         foreach ($this->attributes as $key => $attribute) {

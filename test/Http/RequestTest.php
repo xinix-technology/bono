@@ -101,8 +101,7 @@ class RequestTest extends BonoTestCase
         try {
             $request = $request->withParsedBody(3333);
             $this->fail('Must not here');
-        } catch(BonoException $e) {
-
+        } catch (BonoException $e) {
         }
     }
 
@@ -144,6 +143,5 @@ class RequestTest extends BonoTestCase
 
         $this->assertEquals($request->getUploadedFiles()['foo'][0]['name'], 'file0.txt');
         $this->assertEquals($request->getUploadedFiles()['foo'][1]['name'], 'file1.html');
-
     }
 }

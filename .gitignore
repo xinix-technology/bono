@@ -2,7 +2,5 @@
 .DS_Store
 
 # dev only
-*.sublime-*
 vendor
-node_modules
 coverage

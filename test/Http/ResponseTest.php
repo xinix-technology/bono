@@ -7,7 +7,8 @@ use Bono\Http\Stream;
 use Bono\Http\Headers;
 use Bono\Exception\BonoException;
 
-class ResponseTest extends BonoTestCase {
+class ResponseTest extends BonoTestCase
+{
     public function testConstruct()
     {
         new Response(200, null, new Stream());
@@ -26,7 +27,7 @@ class ResponseTest extends BonoTestCase {
         try {
             $response = $response->withStatus('404');
             $this->fail('Must not here');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'Invalid HTTP status code') {
                 throw $e;
             }
@@ -35,7 +36,7 @@ class ResponseTest extends BonoTestCase {
         try {
             $response = $response->withStatus(404, new \stdClass());
             $this->fail('Must not here');
-        } catch(BonoException $e) {
+        } catch (BonoException $e) {
             if ($e->getMessage() !== 'ReasonPhrase must be a string') {
                 throw $e;
             }

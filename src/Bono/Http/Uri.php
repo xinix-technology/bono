@@ -37,7 +37,7 @@ class Uri implements UriInterface
     public static function byEnvironment(array $var, $cli = false)
     {
         if ($cli) {
-            return new static('', '', null, '/'. implode('/', array_slice($var['argv'], 1)));
+            return new static('', '', null, '/' . implode('/', array_slice($var['argv'], 1)));
         }
 
         // Scheme
@@ -159,9 +159,9 @@ class Uri implements UriInterface
 
             // when pathinfo[dirname] is /, then / + pathinfo[filename] is the true pathname
             if ($pathInfo['dirname'] === '/') {
-                $this->pathname = '/'.$pathInfo['filename'];
+                $this->pathname = '/' . $pathInfo['filename'];
             } else {
-                $this->pathname = $pathInfo['dirname'].'/'.$pathInfo['filename'];
+                $this->pathname = $pathInfo['dirname'] . '/' . $pathInfo['filename'];
             }
         } else {
             $this->pathname = $path;
@@ -187,7 +187,7 @@ class Uri implements UriInterface
             }
             $uri = clone $this
                 ->withPath($newPath ?: '')
-                ->withBasePath($this->getBasePath().$path);
+                ->withBasePath($this->getBasePath() . $path);
         }
         return $uri;
     }
@@ -199,7 +199,7 @@ class Uri implements UriInterface
             $segments = explode('/', $this->basePath);
             $lastSegment = array_pop($segments);
             $uri = $this
-                ->withPath('/'.$lastSegment)
+                ->withPath('/' . $lastSegment)
                 ->withBasePath(implode('/', $segments));
         }
         return $uri;

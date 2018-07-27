@@ -54,7 +54,7 @@ class Headers extends Collection
         foreach ($this as $key => $value) {
             $keyArr = explode('-', $key);
             foreach ($keyArr as &$keyToken) {
-                $keyToken = strtoupper($keyToken[0]).substr($keyToken, 1);
+                $keyToken = strtoupper($keyToken[0]) . substr($keyToken, 1);
             }
             $arr[implode('-', $keyArr)] = $value;
         }

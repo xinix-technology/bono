@@ -14,7 +14,7 @@ class MiddlewareTest extends BonoTestCase
         $bundle = Injector::getInstance()->resolve(Bundle::class);
 
         $hit = 0;
-        $bundle->addMiddleware(function($context, $next) use (&$hit) {
+        $bundle->addMiddleware(function ($context, $next) use (&$hit) {
             $hit++;
             $next($context);
         });

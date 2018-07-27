@@ -15,7 +15,8 @@ class MethodOverrideTest extends BonoTestCase
         $context = Injector::getInstance()->resolve(Context::class);
 
         $context->setRequest($context->getRequest()->withUri($context->getRequest()->getUri()->withQuery('?!method=put')));
-        $middleware($context, function() {});
+        $middleware($context, function () {
+        });
         $this->assertEquals($context->getMethod(), 'GET');
     }
 
@@ -26,7 +27,8 @@ class MethodOverrideTest extends BonoTestCase
         $context = Injector::getInstance()->resolve(Context::class);
 
         $context->setRequest($context->getRequest()->withUri($context->getRequest()->getUri()->withQuery('?!method=put')));
-        $middleware($context, function() {});
+        $middleware($context, function () {
+        });
         $this->assertEquals($context->getMethod(), 'PUT');
     }
 }

@@ -11,7 +11,8 @@ use Bono\Exception\BonoException;
 use Bono\Exception\ContextException;
 use ROH\Util\Injector;
 
-class ContextTest extends BonoTestCase {
+class ContextTest extends BonoTestCase
+{
     public function testGetAttributes()
     {
         $context = Injector::getInstance()->resolve(Context::class);
@@ -98,12 +99,12 @@ class ContextTest extends BonoTestCase {
     public function testContextMiddleware()
     {
         $context = Injector::getInstance()->resolve(Context::class);
-        $context->addMiddleware(function($context, $next) use (&$hits) {
+        $context->addMiddleware(function ($context, $next) use (&$hits) {
             $hits .= '1';
             $next($context);
             $hits .= '3';
         });
-        $context->apply(function() use (&$hits) {
+        $context->apply(function () use (&$hits) {
             $hits .= '2';
         });
 
