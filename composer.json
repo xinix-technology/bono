@@ -8,7 +8,9 @@
     "coverage": [
       "rm -rf ./coverage",
       "phpunit --whitelist=./src/ --coverage-html=./coverage test"
-    ]
+    ],
+    "post-install-cmd": "cghooks add --ignore-lock",
+    "post-update-cmd": "cghooks update"
   },
   "require": {
     "php": "^5.4 | ^7.0",
