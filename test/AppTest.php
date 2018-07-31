@@ -6,12 +6,6 @@ use Bono\ErrorHandler;
 
 class AppTest extends BonoTestCase
 {
-    public function testStaticGetInstance()
-    {
-        $app = App::getInstance();
-        $this->assertEquals($app, App::getInstance());
-    }
-
     public function testIsCli()
     {
         $this->assertEquals($this->app->isCli(), true);

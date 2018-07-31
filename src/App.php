@@ -38,15 +38,6 @@ class App extends Bundle
 
     protected $injector;
 
-    public static function getInstance(array $options = [])
-    {
-        if (null === static::$instance) {
-            static::$instance = new static($options);
-        }
-
-        return static::$instance;
-    }
-
     public function __construct(array $options = [], Injector $injector = null)
     {
         $this->injector = null === $injector ? Injector::getInstance() : $injector;
