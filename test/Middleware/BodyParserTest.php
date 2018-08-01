@@ -2,7 +2,7 @@
 
 namespace Bono\Test\Middleware;
 
-use Bono\Test\BonoTestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Http\Context;
 use Bono\Http\Request;
 use Bono\Http\Stream;
@@ -10,13 +10,13 @@ use Bono\Middleware\BodyParser;
 use Bono\Exception\BonoException;
 use ROH\Util\Injector;
 
-class BodyParserTest extends BonoTestCase
+class BodyParserTest extends TestCase
 {
     public function testInvokeParseForm()
     {
         $middleware = new BodyParser();
 
-        $context = Injector::getInstance()->resolve(Context::class, [
+        $context = (new Injector())->resolve(Context::class, [
             'request' => new Request('POST'),
         ]);
         $context->setRequest($context->getRequest()->withHeader('Content-Type', 'application/x-www-form-urlencoded'));
@@ -31,7 +31,7 @@ class BodyParserTest extends BonoTestCase
         $body = $context->getParsedBody();
         $this->assertEquals($body['foo'], 'bar');
 
-        $context = Injector::getInstance()->resolve(Context::class, [
+        $context = (new Injector())->resolve(Context::class, [
             'request' => new Request('PUT'),
         ]);
         $context->setRequest($context->getRequest()->withHeader('Content-Type', 'application/x-www-form-urlencoded'));
@@ -46,7 +46,7 @@ class BodyParserTest extends BonoTestCase
             'foo' => 'bar',
         ]));
 
-        $context = Injector::getInstance()->resolve(Context::class, [
+        $context = (new Injector())->resolve(Context::class, [
             'request' => new Request('POST'),
         ]);
         $context->setRequest($context->getRequest()->withHeader('Content-Type', 'application/json')->withBody($fakeBody));
@@ -63,7 +63,7 @@ class BodyParserTest extends BonoTestCase
     {
         $middleware = new BodyParser();
 
-        $context = Injector::getInstance()->resolve(Context::class, [
+        $context = (new Injector())->resolve(Context::class, [
             'request' => new Request('POST'),
         ]);
 

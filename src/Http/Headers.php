@@ -17,7 +17,7 @@ class Headers extends Collection
         'AUTH_TYPE' => 1,
     ];
 
-    public static function byEnvironment(array $var)
+    public static function fromServerVars(array $var)
     {
         $data = [];
         foreach ($var as $key => $value) {

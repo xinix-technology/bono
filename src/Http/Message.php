@@ -20,6 +20,7 @@ abstract class Message implements MessageInterface
     public function __construct(Headers $headers = null)
     {
         $this->headers = $headers ?: new Headers();
+        $this->cookies = new Cookies();
     }
 
     public function withCookies(Cookies $cookies)

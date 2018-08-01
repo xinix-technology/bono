@@ -1,7 +1,6 @@
 <?php
 namespace Bono\Http;
 
-use Bono\App;
 use Bono\Http\Response;
 use ArrayAccess;
 use Bono\Exception\BonoException;
@@ -18,15 +17,12 @@ class Context implements ArrayAccess
 
     protected $response;
 
-    protected $app;
-
     protected $composition;
 
-    public function __construct(App $app, Request $request, Response $response)
+    public function __construct(Request $request, Response $response = null)
     {
-        $this->app = $app;
         $this->request = $request;
-        $this->response = $response;
+        $this->response = $response ?: (new Response())->withCookies($request->getCookies());
         $this->state = [];
     }
 

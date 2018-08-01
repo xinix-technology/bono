@@ -2,7 +2,6 @@
 
 namespace Bono\Middleware;
 
-use Bono\App;
 use Bono\Http\Context;
 use ROH\Util\Options;
 use ROH\Util\Collection as UtilCollection;
@@ -10,15 +9,6 @@ use Exception;
 
 class Notification
 {
-    protected $app;
-
-    // protected $rendered = false;
-
-    public function __construct(App $app)
-    {
-        $this->app = $app;
-    }
-
     public function query(Context $context, array $options)
     {
         $result = [];

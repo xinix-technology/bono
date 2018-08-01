@@ -2,16 +2,16 @@
 
 namespace Bono\Test;
 
-use Bono\Test\BonoTestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Bundle;
 use Bono\Http\Context;
 use ROH\Util\Injector;
 
-class MiddlewareTest extends BonoTestCase
+class MiddlewareTest extends TestCase
 {
     public function testUseMiddlewareAsFunction()
     {
-        $bundle = Injector::getInstance()->resolve(Bundle::class);
+        $bundle = (new Injector())->resolve(Bundle::class);
 
         $hit = 0;
         $bundle->addMiddleware(function ($context, $next) use (&$hit) {
@@ -19,7 +19,7 @@ class MiddlewareTest extends BonoTestCase
             $next($context);
         });
 
-        $context = Injector::getInstance()->resolve(Context::class);
+        $context = (new Injector())->resolve(Context::class);
         $bundle->dispatch($context);
         $this->assertEquals($hit, 1);
     }

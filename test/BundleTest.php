@@ -1,19 +1,19 @@
 <?php
 namespace Bono\Test;
 
+use PHPUnit\Framework\TestCase;
 use Bono\Bundle;
-use Bono\App;
 use Bono\Http\Context;
 use Bono\Http\Uri;
 use Bono\Http\Request;
 use Bono\Http\Response;
 use ROH\Util\Injector;
 
-class BundleTest extends BonoTestCase
+class BundleTest extends TestCase
 {
     public function testConstructDoMergeOptions()
     {
-        $bundle = Injector::getInstance()->resolve(Bundle::class, [
+        $bundle = (new Injector())->resolve(Bundle::class, [
             'options' => [
                 'foo' => 'bar',
             ]
@@ -24,7 +24,7 @@ class BundleTest extends BonoTestCase
 
     public function testGetReturnOption()
     {
-        $bundle = Injector::getInstance()->resolve(Bundle::class, [
+        $bundle = (new Injector())->resolve(Bundle::class, [
             'options' => [
                 'foo' => 'bar',
             ]
@@ -36,7 +36,7 @@ class BundleTest extends BonoTestCase
 
     public function testAddBundle()
     {
-        $bundle = Injector::getInstance()->resolve(Bundle::class);
+        $bundle = (new Injector())->resolve(Bundle::class);
 
         $result = $bundle->addBundle([
             'uri' =>  '/',
@@ -70,7 +70,7 @@ class BundleTest extends BonoTestCase
 
     public function testRoutes()
     {
-        $bundle = Injector::getInstance()->resolve(Bundle::class);
+        $bundle = (new Injector())->resolve(Bundle::class);
 
         $getRoute = function () {
         };
@@ -144,7 +144,7 @@ class BundleTest extends BonoTestCase
 
         $bundle = $this->getMockBuilder(Bundle::class)
             ->setMethods(['__invoke'])
-            ->setConstructorArgs([$this->app])
+            ->setConstructorArgs([new Injector()])
             ->getMock();
 
         $bundle->method('__invoke')
@@ -159,16 +159,16 @@ class BundleTest extends BonoTestCase
             $next($context);
         });
 
-        $context = Injector::getInstance()->resolve(Context::class);
+        $context = (new Injector())->resolve(Context::class);
         $bundle->dispatch($context);
     }
 
     public function testDispatchToSubBundle()
     {
-        $bundle = Injector::getInstance()->resolve(Bundle::class);
+        $bundle = (new Injector())->resolve(Bundle::class);
         $fooBundle = $this->getMockBuilder(Bundle::class)
             ->setMethods(['dispatch'])
-            ->setConstructorArgs([$this->app])
+            ->setConstructorArgs([new Injector()])
             ->getMock();
 
         $fooBundle->expects($this->once())
@@ -179,7 +179,7 @@ class BundleTest extends BonoTestCase
             'handler' => $fooBundle,
         ]);
 
-        $context = Injector::getInstance()->resolve(Context::class, [
+        $context = (new Injector())->resolve(Context::class, [
             'request' => new Request('GET', new Uri('http', 'localhost', 80, '/foo')),
         ]);
         $bundle->dispatch($context);
@@ -187,10 +187,10 @@ class BundleTest extends BonoTestCase
 
     public function testInvokeAsFunction()
     {
-        $context = Injector::getInstance()->resolve(Context::class);
+        $context = (new Injector())->resolve(Context::class);
 
         $bundle = $this->getMockBuilder(Bundle::class)
-            ->setConstructorArgs([$this->app])
+            ->setConstructorArgs([new Injector()])
             ->getMock();
         try {
             $bundle($context);
@@ -204,13 +204,13 @@ class BundleTest extends BonoTestCase
 
     public function testInvokeRoute()
     {
-        $context = Injector::getInstance()->resolve(Context::class, [
+        $context = (new Injector())->resolve(Context::class, [
             'request' => new Request('GET', new Uri('http', 'localhost', 80, '/foo/someBar')),
         ]);
 
         $hits = 0;
 
-        $bundle = Injector::getInstance()->resolve(Bundle::class, [
+        $bundle = (new Injector())->resolve(Bundle::class, [
             'options' => [
                 'routes' => [
                     [
@@ -237,7 +237,6 @@ class BundleTest extends BonoTestCase
     {
         $context = $this->getMockBuilder(Context::class)
             ->setConstructorArgs([
-                $this->app,
                 $this->createMock(Request::class),
                 $this->createMock(Response::class),
             ])
@@ -252,14 +251,14 @@ class BundleTest extends BonoTestCase
         $context->expects($this->once())
             ->method('throwError');
 
-        $bundle = Injector::getInstance()->resolve(Bundle::class);
+        $bundle = (new Injector())->resolve(Bundle::class);
         $bundle($context);
     }
 
     public function testDebugInfoShowMiddlewaresBundlesRoutesAttributes()
     {
         $foo = new \Exception();
-        $bundle = Injector::getInstance()->resolve(Bundle::class, [
+        $bundle = (new Injector())->resolve(Bundle::class, [
             'options' => [
                 'middlewares' => [
                     function () {

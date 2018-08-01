@@ -5,20 +5,15 @@ namespace Bono;
 use Whoops\Handler\PrettyPageHandler;
 use Whoops\Run as WhoopsRun;
 use Exception;
-use Bono\App;
 
 class ErrorHandler
 {
-    protected $app;
-
     protected $runner;
 
     protected $handler;
 
-    public function __construct(App $app)
+    public function __construct()
     {
-        $this->app = $app;
-
         $this->runner = new WhoopsRun();
         $this->runner->allowQuit(false);
 

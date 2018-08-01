@@ -5,11 +5,10 @@ namespace Bono\Bundle;
 use Bono\Bundle;
 use Bono\Http\Context;
 use LogicException;
-use Bono\App;
 
 abstract class Rest extends Bundle
 {
-    public function __construct(App $app, array $options = [])
+    public function __construct(array $options = [])
     {
         $this->addMiddleware(function (Context $context, $next) {
             $context->depends('@bodyParser');
@@ -17,7 +16,7 @@ abstract class Rest extends Bundle
             $next($context);
         });
 
-        parent::__construct($app, $options);
+        parent::__construct($options);
 
         $this->routeMap([ 'methods' => ['GET'], 'uri' => '/', 'handler' => [$this, 'search'] ]);
         $this->routeMap([ 'methods' => ['POST'], 'uri' => '/', 'handler' => [$this, 'create'] ]);

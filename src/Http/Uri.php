@@ -34,12 +34,19 @@ class Uri implements UriInterface
 
     protected $extension = null;
 
-    public static function byEnvironment(array $var, $cli = false)
+    public static function fromUriString(string $uriString)
     {
-        if ($cli) {
-            return new static('', '', null, '/' . implode('/', array_slice($var['argv'], 1)));
-        }
+        $uriArr = explode('?', $uriString);
+        return new static('http', '127.0.0.1', 80, $uriArr[0], @$uriArr[1] ?: '');
+    }
 
+    public static function fromCommandArgv(array $argv)
+    {
+        return new static('', '', null, '/' . implode('/', array_slice($argv, 1)));
+    }
+
+    public static function fromServerVars(array $var)
+    {
         // Scheme
         if (isset($var['HTTP_X_FORWARDED_PROTO'])) {
             $scheme = $var['HTTP_X_FORWARDED_PROTO']; // Will be "http" or "https"
@@ -73,7 +80,7 @@ class Uri implements UriInterface
 
         // Path
         $requestScriptName = parse_url($var['SCRIPT_NAME'], PHP_URL_PATH);
-        $requestScriptDir = dirname($requestScriptName);
+        // $requestScriptDir = dirname($requestScriptName);
         $requestUri = parse_url(isset($var['REQUEST_URI']) ? $var['REQUEST_URI'] : '/', PHP_URL_PATH);
         $basePath = '';
 

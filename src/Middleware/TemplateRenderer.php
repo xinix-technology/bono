@@ -11,17 +11,19 @@ use Bono\Exception\BonoException;
 use Bono\Renderer\RendererInterface;
 use Bono\Exception\ContextException;
 use Bono\Renderer;
-use Bono\App;
 
 class TemplateRenderer extends UtilCollection
 {
     protected $renderer;
 
-    protected $app;
+    /**
+     * @var Injector
+     */
+    protected $injector;
 
-    public function __construct(App $app, $options = [])
+    public function __construct(Injector $injector, $options = [])
     {
-        $this->app = $app;
+        $this->injector = $injector;
 
         $options = (new Options([
             'templatePaths' => [ '../templates' ],
@@ -111,7 +113,7 @@ class TemplateRenderer extends UtilCollection
     protected function getRenderer()
     {
         if (null === $this->renderer) {
-            $this->renderer = $this->app->getInjector()->resolve($this['renderer'], [
+            $this->renderer = $this->injector->resolve($this['renderer'], [
                 'options' => [
                     'middleware' => $this,
                 ]

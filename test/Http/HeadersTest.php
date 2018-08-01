@@ -42,7 +42,7 @@ class HeadersTest extends TestCase
         $env = [
             'HTTP_X_FOO' => 'bar'
         ];
-        $headers = Headers::byEnvironment($env);
+        $headers = Headers::fromServerVars($env);
         $this->assertEquals($headers['x-foo'], ['bar']);
     }
 }

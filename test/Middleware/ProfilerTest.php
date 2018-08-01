@@ -3,12 +3,12 @@
 namespace Bono\Test\Middleware;
 
 use Bono\Middleware\Profiler;
-use Bono\Test\BonoTestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Http\Context;
 use Bono\Http\Request;
 use Bono\Http\Response;
 
-class ProfilerTest extends BonoTestCase
+class ProfilerTest extends TestCase
 {
     public function testInvoke()
     {
@@ -17,7 +17,6 @@ class ProfilerTest extends BonoTestCase
         $context = $this->getMockBuilder(Context::class)
             // ->setMethods([])
             ->setConstructorArgs([
-                $this->app,
                 $this->createMock(Request::class),
                 $this->createMock(Response::class),
             ])

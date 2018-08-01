@@ -1,11 +1,11 @@
 <?php
 namespace Bono\Test\Http;
 
-use Bono\Test\BonoTestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Http\Request;
 use Bono\Exception\BonoException;
 
-class RequestTest extends BonoTestCase
+class RequestTest extends TestCase
 {
     public function setUp()
     {

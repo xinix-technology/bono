@@ -2,7 +2,6 @@
 
 namespace Bono\Middleware;
 
-use Bono\App;
 use Bono\Http\Context;
 use ROH\Util\Options;
 use ROH\Util\Collection as UtilCollection;
@@ -11,15 +10,13 @@ use Bono\Session\Native;
 
 class Session
 {
-    protected $app;
-
     protected $options;
 
     protected $adapter;
 
-    public function __construct(App $app, array $options = [])
+    public function __construct(Executor $executor, array $options = [])
     {
-        $this->app = $app;
+        $this->executor = $executor;
 
         $this->options = (new Options([
             'name' => 'BSESS',
@@ -42,21 +39,22 @@ class Session
 
     public function __invoke(Context $context, callable $next)
     {
-        if ($this->app->isCli()) {
+        if ($this->executor['process.cli']) {
             return $next($context);
-        } else {
-            $this->start($context);
-            try {
-                $next($context);
-            } catch (Exception $e) {
-                $lastError = $e;
-            }
+        }
 
-            $this->stop($context);
+        $this->start($context);
 
-            if (isset($lastError)) {
-                throw $lastError;
-            }
+        try {
+            $next($context);
+        } catch (Exception $e) {
+            $lastError = $e;
+        }
+
+        $this->stop($context);
+
+        if (isset($lastError)) {
+            throw $lastError;
         }
     }
 

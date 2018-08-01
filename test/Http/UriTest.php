@@ -17,19 +17,19 @@ class UriTest extends TestCase
     {
         $_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
         $_SERVER['HTTP_X_FORWARDED_HOST'] = 'www.example.net';
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $this->assertEquals($uri->getHost(), 'www.example.net');
     }
 
     public function testByEnvironmentWithHost()
     {
         $_SERVER['HTTP_HOST'] = 'www.example.net';
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $this->assertEquals($uri->getHost(), 'www.example.net');
         $this->assertEquals($uri->getPort(), 80);
 
         $_SERVER['HTTP_X_FORWARDED_HOST'] = 'www.example.net:8080';
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $this->assertEquals($uri->getHost(), 'www.example.net');
         $this->assertEquals($uri->getPort(), 8080);
     }
@@ -37,7 +37,7 @@ class UriTest extends TestCase
     public function testByEnvironmentWithServerName()
     {
         $_SERVER['SERVER_NAME'] = 'www.example.net';
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $this->assertEquals($uri->getHost(), 'www.example.net');
     }
 
@@ -45,7 +45,7 @@ class UriTest extends TestCase
     {
         $_SERVER['SCRIPT_NAME'] = '/main.php';
         $_SERVER['REQUEST_URI'] = '/main.php/foo/bar';
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $this->assertEquals($uri->getBasePath(), '/main.php');
         $this->assertEquals($uri->getPathname(), '/foo/bar');
     }
@@ -53,13 +53,13 @@ class UriTest extends TestCase
     public function testByEnvironmentWithQuery()
     {
         $_SERVER['QUERY_STRING'] = 'foo=bar';
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $this->assertEquals($uri->getQuery(), 'foo=bar');
     }
 
     public function testWithPathname()
     {
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $uri = $uri->withPathname('/foo/bar');
         $this->assertEquals($uri->getPathname(), '/foo/bar');
 
@@ -75,7 +75,7 @@ class UriTest extends TestCase
 
     public function testShiftWithExtension()
     {
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $uri = $uri->withPath('/user.json');
 
         $uri = $uri->shift('/user');
@@ -123,7 +123,7 @@ class UriTest extends TestCase
 
     public function testWithBasePath()
     {
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         try {
             $uri = $uri->withBasePath(80);
             $this->fail('Uncaught end');
@@ -137,7 +137,7 @@ class UriTest extends TestCase
 
     public function testWithPath()
     {
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         try {
             $uri = $uri->withPath(80);
             $this->fail('Uncaught end');
@@ -151,7 +151,7 @@ class UriTest extends TestCase
 
     public function testWithQuery()
     {
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         try {
             $uri = $uri->withQuery(80);
             $this->fail('Uncaught end');
@@ -165,7 +165,7 @@ class UriTest extends TestCase
 
     public function testScheme()
     {
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $uri = $uri->withScheme('http');
         $this->assertEquals($uri->getScheme(), 'http');
         $uri = $uri->withScheme('https');
@@ -174,7 +174,7 @@ class UriTest extends TestCase
 
     public function testUserInfo()
     {
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $this->assertEquals($uri->getUserInfo(), '');
 
         $uri = $uri->withUserInfo('foo', 'bar');
@@ -184,7 +184,7 @@ class UriTest extends TestCase
     public function testPort()
     {
         $_SERVER['HTTP_X_FORWARDED_HOST'] = 'www.example.net';
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $this->assertEquals($uri->getPort(), 80);
 
         $uri = $uri->withPort(8080);
@@ -193,7 +193,7 @@ class UriTest extends TestCase
 
     public function testFragment()
     {
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $this->assertEquals($uri->getFragment(), '');
 
         $uri = $uri->withFragment('foo');
@@ -211,7 +211,7 @@ class UriTest extends TestCase
 
     public function testDebugInfo()
     {
-        $uri = Uri::byEnvironment($_SERVER);
+        $uri = Uri::fromServerVars($_SERVER);
         $this->assertEquals($uri->__debugInfo()['uri'], (string) $uri);
     }
 }

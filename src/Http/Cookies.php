@@ -7,11 +7,6 @@ class Cookies
 
     protected $sets = [];
 
-    public static function byEnvironment($vars)
-    {
-        return new Cookies($_COOKIE);
-    }
-
     public function __construct(array $vars = [])
     {
         $this->attributes = $vars;

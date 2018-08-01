@@ -1,13 +1,13 @@
 <?php
 namespace Bono\Test\Http;
 
-use Bono\Test\BonoTestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Http\Response;
 use Bono\Http\Stream;
 use Bono\Http\Headers;
 use Bono\Exception\BonoException;
 
-class ResponseTest extends BonoTestCase
+class ResponseTest extends TestCase
 {
     public function testConstruct()
     {

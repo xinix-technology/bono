@@ -15,8 +15,6 @@ use ROH\Util\Injector;
 
 class Bundle extends UtilCollection
 {
-    protected $app;
-
     protected $middlewares = [];
 
     protected $bundles = [];
@@ -29,11 +27,11 @@ class Bundle extends UtilCollection
 
     protected $composition;
 
-    public function __construct(App $app, array $options = [])
+    public function __construct(Injector $injector, array $options = [])
     {
         parent::__construct($options);
 
-        $this->app = $app;
+        $this->injector = $injector;
 
         $this->configureMiddlewares();
 
@@ -132,7 +130,7 @@ class Bundle extends UtilCollection
             $this->composition = new Composition();
             $this->composition->setCore($this);
             foreach ($this->middlewares as $middleware) {
-                $handler = $this->app->getInjector()->resolve($middleware);
+                $handler = $this->injector->resolve($middleware);
                 $this->composition->compose($handler);
             }
         }
@@ -191,11 +189,9 @@ class Bundle extends UtilCollection
 
     public function getBundleFor($path)
     {
-        $injector = $this->app->getInjector();
-
         foreach ($this->bundles as $meta) {
             if (strpos($path, $meta['uri']) === 0) {
-                $bundle = $injector->resolve($meta['handler'], [
+                $bundle = $this->injector->resolve($meta['handler'], [
                     'options' => [
                         'uri' => $meta['uri'],
                     ]

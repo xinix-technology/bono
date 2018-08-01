@@ -2,7 +2,6 @@
 namespace Bono\Test\Http;
 
 use PHPUnit\Framework\TestCase;
-use Bono\Test\BonoTestCase;
 use Bono\Http\Context;
 use Bono\Http\Request;
 use Bono\Http\Response;
@@ -11,11 +10,11 @@ use Bono\Exception\BonoException;
 use Bono\Exception\ContextException;
 use ROH\Util\Injector;
 
-class ContextTest extends BonoTestCase
+class ContextTest extends TestCase
 {
     public function testGetAttributes()
     {
-        $context = Injector::getInstance()->resolve(Context::class);
+        $context = (new Injector())->resolve(Context::class);
 
         $context['foo'] = 'bar';
 
@@ -32,7 +31,6 @@ class ContextTest extends BonoTestCase
         $context = $this->getMockBuilder(Context::class)
             ->setMethods(['getParsedBody'])
             ->setConstructorArgs([
-                $this->app,
                 new Request(),
                 new Response()
             ])
@@ -51,7 +49,7 @@ class ContextTest extends BonoTestCase
 
     public function testGetHeader()
     {
-        $context = Injector::getInstance()->resolve(Context::class, [
+        $context = (new Injector())->resolve(Context::class, [
             'request' => (new Request())->withHeader('foo', 'bar')
         ]);
 
@@ -61,7 +59,7 @@ class ContextTest extends BonoTestCase
 
     public function testAttributes()
     {
-        $context = Injector::getInstance()->resolve(Context::class);
+        $context = (new Injector())->resolve(Context::class);
         $context->setAttribute('foo', 'bar');
         $this->assertEquals($context->getRequest()->getAttribute('foo'), 'bar');
 
@@ -71,14 +69,14 @@ class ContextTest extends BonoTestCase
 
     public function testWrite()
     {
-        $context = Injector::getInstance()->resolve(Context::class);
+        $context = (new Injector())->resolve(Context::class);
         $result = $context->write('foo bar');
         $this->assertEquals($result, $context);
     }
 
     public function testDebugInfo()
     {
-        $context = Injector::getInstance()->resolve(Context::class);
+        $context = (new Injector())->resolve(Context::class);
         $info = $context->__debugInfo();
         $this->assertEquals($info['request'], 'GET /');
         $this->assertEquals($info['response'], 404);
@@ -86,7 +84,7 @@ class ContextTest extends BonoTestCase
 
     public function testBundleAndSiteAndAssetUrl()
     {
-        $context = Injector::getInstance()->resolve(Context::class);
+        $context = (new Injector())->resolve(Context::class);
         $this->assertEquals($context->bundleUrl('/foo'), 'http://127.0.0.1:80/foo');
         $this->assertEquals($context->siteUrl('/foo'), 'http://127.0.0.1:80/foo');
         $this->assertEquals($context->assetUrl('/foo'), 'http://127.0.0.1:80/foo');
@@ -98,7 +96,7 @@ class ContextTest extends BonoTestCase
 
     public function testContextMiddleware()
     {
-        $context = Injector::getInstance()->resolve(Context::class);
+        $context = (new Injector())->resolve(Context::class);
         $context->addMiddleware(function ($context, $next) use (&$hits) {
             $hits .= '1';
             $next($context);
@@ -113,7 +111,7 @@ class ContextTest extends BonoTestCase
 
     public function testCall()
     {
-        $context = Injector::getInstance()->resolve(Context::class);
+        $context = (new Injector())->resolve(Context::class);
         $context['@foo'] = $this->getMockBuilder(\stdClass::class)
             ->setMethods(['bar'])
             ->getMock();
@@ -124,13 +122,13 @@ class ContextTest extends BonoTestCase
 
     public function testIsRouted()
     {
-        $context = Injector::getInstance()->resolve(Context::class);
+        $context = (new Injector())->resolve(Context::class);
         $this->assertEquals(false, $context->isRouted());
     }
 
     public function testBackAndRedirect()
     {
-        $context = Injector::getInstance()->resolve(Context::class);
+        $context = (new Injector())->resolve(Context::class);
         try {
             $context->back();
             $this->fail('Must not here');

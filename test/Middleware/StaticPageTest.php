@@ -2,7 +2,7 @@
 
 namespace Bono\Test\Middleware;
 
-use Bono\Test\BonoTestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Http\Context;
 use Bono\Http\Request;
 use Bono\Http\Uri;
@@ -11,7 +11,7 @@ use Bono\Middleware\StaticPage;
 use ROH\Util\Injector;
 use ROH\Util\File;
 
-class StaticPageTest extends BonoTestCase
+class StaticPageTest extends TestCase
 {
     public function setUp()
     {
@@ -28,7 +28,7 @@ class StaticPageTest extends BonoTestCase
     public function testInvokeWithoutRenderer()
     {
         $request = new Request('GET', new Uri('http', 'localhost'));
-        $context = Injector::getInstance()->resolve(Context::class, [ 'request' => $request ]);
+        $context = (new Injector())->resolve(Context::class, [ 'request' => $request ]);
 
         $middleware = new StaticPage();
         $hitNext = false;
@@ -52,9 +52,9 @@ class StaticPageTest extends BonoTestCase
         };
 
         // template found
-        $context = Injector::getInstance()->resolve(Context::class, [ 'request' => $request ]);
+        $context = (new Injector())->resolve(Context::class, [ 'request' => $request ]);
         $renderer = $context['@renderer'] = $this->getMockBuilder(TemplateRenderer::class)
-            ->setConstructorArgs([$this->app, [
+            ->setConstructorArgs([new Injector(), [
                 'renderer' => [],
             ]])
             ->getMock();
@@ -66,9 +66,9 @@ class StaticPageTest extends BonoTestCase
         $this->assertEquals(false, $hitNext);
 
         // template not found
-        $context = Injector::getInstance()->resolve(Context::class, [ 'request' => $request ]);
+        $context = (new Injector())->resolve(Context::class, [ 'request' => $request ]);
         $renderer = $context['@renderer'] = $this->getMockBuilder(TemplateRenderer::class)
-            ->setConstructorArgs([$this->app, [
+            ->setConstructorArgs([new Injector(), [
                 'renderer' => [],
             ]])
             ->getMock();

@@ -2,7 +2,7 @@
 
 namespace Bono\Test\Middleware;
 
-use Bono\Test\BonoTestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Http\Context;
 use Bono\Http\Request;
 use Bono\Http\Stream;
@@ -10,7 +10,7 @@ use Bono\Middleware\Notification;
 use Bono\Exception\BonoException;
 use ROH\Util\Injector;
 
-class NotificationTest extends BonoTestCase
+class NotificationTest extends TestCase
 {
     public function testInvoke()
     {
@@ -20,7 +20,7 @@ class NotificationTest extends BonoTestCase
     // {
     //     $middleware = new Notification($this->app);
 
-    //     $context = Injector::getInstance()->resolve(Context::class, [
+    //     $context = (new Injector())->resolve(Context::class, [
     //         'request' => new Request(),
     //     ]);
     //     $middleware($context, function () {
@@ -31,7 +31,7 @@ class NotificationTest extends BonoTestCase
 
     // public function testNotify()
     // {
-    //     $context = Injector::getInstance()->resolve(Context::class, [
+    //     $context = (new Injector())->resolve(Context::class, [
     //         'request' => new Request(),
     //     ]);
 
@@ -67,7 +67,7 @@ class NotificationTest extends BonoTestCase
     //     $middleware = $this->getMock(Notification::class, ['finalize'], [$this->app]);
     //     $middleware->expects($this->once())->method('finalize');
 
-    //     $context = Injector::getInstance()->resolve(Context::class);
+    //     $context = (new Injector())->resolve(Context::class);
     //     try {
     //         $middleware($context, function ($context) {
     //             $this->fail('Oops');

@@ -2,13 +2,13 @@
 
 namespace Bono\Test\Middleware;
 
-use Bono\Test\BonoTestCase;
+use PHPUnit\Framework\TestCase;
 use Bono\Middleware\Session;
 use Bono\Http\Context;
 use ROH\Util\Injector;
 use Bono\Exception\BonoException;
 
-class SessionTest extends BonoTestCase
+class SessionTest extends TestCase
 {
     public function testAsCli()
     {
@@ -20,7 +20,7 @@ class SessionTest extends BonoTestCase
     //     $session->expects($this->never())->method('start');
 
     //     try {
-    //         $session->__invoke(Injector::getInstance()->resolve(Context::class), function ($context) {
+    //         $session->__invoke((new Injector())->resolve(Context::class), function ($context) {
     //             $context->depends('@session');
     //         });
     //         $this->fail('must not here');
@@ -36,7 +36,7 @@ class SessionTest extends BonoTestCase
     //     $this->app['cli'] = false;
     //     $session = new Session($this->app);
 
-    //     $session->__invoke(Injector::getInstance()->resolve(Context::class), function ($context) {
+    //     $session->__invoke((new Injector())->resolve(Context::class), function ($context) {
     //         $context->depends('@session');
     //         $context['@session.data'] = [];
     //     });
@@ -49,7 +49,7 @@ class SessionTest extends BonoTestCase
 
     //     $_SESSION = ['foo' => 'bar'];
 
-    //     $session->__invoke(Injector::getInstance()->resolve(Context::class), function ($context) {
+    //     $session->__invoke((new Injector())->resolve(Context::class), function ($context) {
     //         $this->assertEquals($context['@session']->get($context, 'foo'), 'bar');
     //         $this->assertEquals($context['@session']->get($context, 'bar', 'default'), 'default');
     //     });
@@ -62,7 +62,7 @@ class SessionTest extends BonoTestCase
 
     //     $_SESSION = [];
 
-    //     $session->__invoke(Injector::getInstance()->resolve(Context::class), function ($context) {
+    //     $session->__invoke((new Injector())->resolve(Context::class), function ($context) {
     //         $context['@session']->set($context, 'foo', 'bar');
     //     });
 
@@ -81,7 +81,7 @@ class SessionTest extends BonoTestCase
 
     //     try {
     //         $_SESSION = [];
-    //         $session->__invoke(Injector::getInstance()->resolve(Context::class), function ($context) {
+    //         $session->__invoke((new Injector())->resolve(Context::class), function ($context) {
     //             throw new \Exception('Ouch');
     //         });
     //     } catch (\Exception $e) {
@@ -95,12 +95,12 @@ class SessionTest extends BonoTestCase
     // {
     //     $session = new Session($this->app);
     //     $_SESSION = [ 'foo' => 'bar' ];
-    //     $session->reset(Injector::getInstance()->resolve(Context::class));
+    //     $session->reset((new Injector())->resolve(Context::class));
     //     $this->assertEquals($_SESSION, []);
 
     //     $session = new Session($this->app);
     //     $_SESSION = [ 'foo' => 'bar' ];
-    //     $session->reset(Injector::getInstance()->resolve(Context::class), true);
+    //     $session->reset((new Injector())->resolve(Context::class), true);
     //     $this->assertEquals(array_keys($_COOKIE), ['keep']);
     // }
 }

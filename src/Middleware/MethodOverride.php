@@ -1,21 +1,24 @@
 <?php
 namespace Bono\Middleware;
 
+use Bono\Executor;
 use Bono\Http\Context;
-use Bono\App;
 
 class MethodOverride
 {
-    protected $app;
+    /**
+     * @var Executor
+     */
+    protected $executor;
 
-    public function __construct(App $app, array $options = [])
+    public function __construct(Executor $executor)
     {
-        $this->app = $app;
+        $this->executor = $executor;
     }
 
     public function __invoke(Context $context, callable $next)
     {
-        if (!$this->app->isCli()) {
+        if (!$this->executor['process.cli']) {
             $method = $context->getParam('!method');
             $context->removeParam('!method');
             if (null !== $method) {

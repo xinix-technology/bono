@@ -4,38 +4,43 @@ namespace Bono\Middleware;
 
 use Bono\Http\Stream;
 use ROH\Util\Options;
-use ROH\Util\Collection as UtilCollection;
 use Bono\Middleware;
 use Bono\Http\Context;
-use Bono\App;
 use JsonKit\JsonKit;
 use ROH\Util\Injector;
 use Exception;
 
-class ContentNegotiator extends UtilCollection
+class ContentNegotiator extends Options
 {
-    protected $app;
+    /**
+     * @var Injector
+     */
+    protected $injector;
+
+    /**
+     * @var Executor
+     */
+    protected $executor;
 
     protected $options;
 
-    public function __construct(App $app, array $options = [])
+    public function __construct(Injector $injector, Executor $executor, array $options = [])
     {
-        $this->app = $app;
+        parent::__construct([
+            'renderers' => [
+                'application/json' => [$this, 'jsonRender'],
+            ],
+            'mapper' => [
+                'application/x-www-form-urlencoded' => 'text/html',
+                'multipart/form-data' => 'text/html',
+                'json' => 'application/json',
+            ],
+            'accepts' => ['text/html'],
+        ]);
+        $this->merge($options);
 
-        $options = (new Options([
-                'renderers' => [
-                    'application/json' => [$this, 'jsonRender'],
-                ],
-                'mapper' => [
-                    'application/x-www-form-urlencoded' => 'text/html',
-                    'multipart/form-data' => 'text/html',
-                    'json' => 'application/json',
-                ],
-                'accepts' => ['text/html'],
-            ]))
-            ->merge($options);
-
-        parent::__construct($options);
+        $this->executor = $executor;
+        $this->injector = $injector;
     }
 
     protected function negotiate(Context $context)
@@ -62,18 +67,21 @@ class ContentNegotiator extends UtilCollection
     public function __invoke(Context $context, callable $next)
     {
         // avoid content negotiator on cli
-        if ($this->app->isCli()) {
+        if ($this->executor['process.cli']) {
             $next($context);
-        } else {
-            try {
-                $next($context);
-            } catch (Exception $e) {
-                $lastError = $e;
-            }
-            $this->finalize($context);
-            if (isset($lastError)) {
-                throw $e;
-            }
+            return;
+        }
+
+        try {
+            $next($context);
+        } catch (Exception $e) {
+            $lastError = $e;
+        }
+
+        $this->finalize($context);
+
+        if (isset($lastError)) {
+            throw $e;
         }
     }
 
@@ -83,13 +91,11 @@ class ContentNegotiator extends UtilCollection
             return;
         }
 
-        $injector = $this->app->getInjector();
-
         $contentType = $this->negotiate($context);
         if ($contentType) {
             $context->setContentType($contentType);
             if (isset($this['renderers'][$contentType])) {
-                $handler = $injector->resolve($this['renderers'][$contentType]);
+                $handler = $this->injector->resolve($this['renderers'][$contentType]);
                 $handler($context);
                 $context['@renderer.rendered'] = 'content-negotiator';
             // } elseif ($context->getBody()->getSize() === 0) {
