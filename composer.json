@@ -27,7 +27,7 @@
         }
     ],
     "require": {
-        "slim/slim": "2.3.*",
+        "slim/slim": "2.6.*",
         "reekoheek/util": ">=0.1.2",
         "xinix-technology/norm": "*",
         "filp/whoops": "1.*"
