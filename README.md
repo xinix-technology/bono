@@ -41,7 +41,7 @@ Bono menyediakan hook dan filter pada template engine-nya. Sehingga memudahkan t
 
 Yang diperlukan untuk membangun aplikasi menggunakan Bono:
 - Web Server (Apache, Nginx, LigHttpd, dll)
-- PHP 5.4+ (dengan dukungan library MongoDB)
+- PHP 7.2+
 - MongoDB
 - Xpax*
 
