@@ -61,7 +61,7 @@ class JsonView extends \Slim\View
      *
      * @return [type] [description]
      */
-    public function display($template)
+    public function display($template, $data = NULL)
     {
         $app = App::getInstance();
         $data = $this->data->all();
