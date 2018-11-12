@@ -73,7 +73,7 @@ class LayoutedView extends \Slim\View
      *
      * @return [type] [description]
      */
-    public function fetch($template)
+    public function fetch($template, $data = NULL )
     {
 
         $app = App::getInstance();
